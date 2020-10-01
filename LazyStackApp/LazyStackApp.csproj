@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Authors>Timothy May, Thomas May</Authors>
+    <Company>Insight Sciences Corporation</Company>
+    <Copyright>Copyright (c) 2020 Insight Sciences Corporation</Copyright>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>LazyStack</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LazyStack\LazyStack.csproj" />
+    <ProjectReference Include="..\Microsoft\src\Cli\Microsoft.DotNet.Cli.Sln.Internal\Microsoft.DotNet.Cli.Sln.Internal.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="license.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

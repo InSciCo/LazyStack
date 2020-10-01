@@ -1,0 +1,81 @@
+﻿Resources:
+  CognitoIdentityPoolRoles:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: 
+        Ref: __IdentityPool__
+      Roles:
+        authenticated: 
+          Fn::GetAtt: AuthRole.Arn
+        unauthenticated: 
+          Fn::GetAtt: UnauthRole.Arn
+  AuthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 
+        Fn::Sub: ${AWS::StackName}-AuthRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: 'Allow'
+          Principal:
+            Federated: 'cognito-identity.amazonaws.com'
+          Action:
+          - 'sts:AssumeRoleWithWebIdentity'
+          Condition:
+            StringEquals:
+              'cognito-identity.amazonaws.com:aud': 
+                Ref: __IdentityPool__
+            'ForAnyValue:StringLike':
+              'cognito-identity.amazonaws.com:amr': authenticated
+      Policies:
+      - PolicyName: 
+          Fn::Sub: ${AWS::StackName}-AuthPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: 'Allow'
+            Action:
+            - 'mobileanalytics:PutEvents'
+            - 'cognito-sync:*'
+            - 'cognito-identity:*'
+            Resource: '*'
+          - Effect: 'Allow'
+            Action:
+            - 'execute-api:Invoke'
+            Resource: '*'
+  UnauthRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: 
+        Fn::Sub: ${AWS::StackName}-UnauthRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: 'Allow'
+          Principal:
+            Federated: 'cognito-identity.amazonaws.com'
+          Action:
+          - 'sts:AssumeRoleWithWebIdentity'
+          Condition:
+            StringEquals:
+              'cognito-identity.amazonaws.com:aud': 
+                Ref: __IdentityPool__
+            'ForAnyValue:StringLike':
+              'cognito-identity.amazonaws.com:amr': unauthenticated
+      Policies:
+      - PolicyName: 
+          Fn::Sub: ${AWS::StackName}-UnauthPolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: 'Allow'
+            Action:
+            - 'mobileanalytics:PutEvents'
+            - 'cognito-sync:*'
+            - 'cognito-identity:*'
+            Resource: '*'
+          - Effect: 'Allow'
+            Action:
+            - 'execute-api:Invoke'
+            Resource: '*'

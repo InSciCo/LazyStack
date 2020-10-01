@@ -1,0 +1,22 @@
+﻿#LazyStack.yaml Defaults file
+ProjectGenerationOptions:
+  ClientSDKProjectOpenApiGenerationOptions:
+    aspnetcoreVersion: "3" 
+    targetFramework: "netcoreapp3.1"
+
+  ApiProjectOpenApiGenerationOptions:
+    aspnetCoreVersion: "3.1"
+
+  ClientSDKProject:
+    PackageReferences:
+      AwsSignatureVersion4: "1.3.0"
+      AWSSDK.CognitoIdentity: "3.3.101.125"
+      System.ComponentModel.Annotations: "4.5.0"
+      System.IdentityModel.Tokens.Jwt: "6.7.1"
+      Amazon.Extensions.CognitoAuthentication: "1.0.4"
+
+  LambdaProject:
+    PackageReferences:
+      AWSSDK.S3: "3.3.110.58"
+      AWSSDK.Extensions.NETCore.Setup: "3.3.100.1"
+      Amazon.Lambda.AspNetCoreServer: "5.1.0"

@@ -1,0 +1,23 @@
+﻿Resources:
+  __UserPool__Client:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: 
+        Ref: __UserPool__
+      AllowedOAuthFlowsUserPoolClient: true
+      SupportedIdentityProviders:
+      - COGNITO
+      GenerateSecret: false
+      AllowedOAuthFlows:
+      - code
+      RefreshTokenValidity: 30
+      CallbackURLs:
+      - https://www.example.com
+      LogoutURLs:
+      - https://www.example.com
+      AllowedOAuthScopes:
+      - phone
+      - email
+      - openid
+      - aws.cognito.signin.user.admin
+      - profile

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LazyStackApp": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\tmay\\source\\repos\\TestSecureApi"
+    }
+  }
+}

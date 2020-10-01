@@ -1,0 +1,23 @@
+﻿AWS::Serverless::Function:
+  Properties:
+    FunctionName: 
+      Fn::Sub: ${AWS::StackName}-__lambdaName__
+    CodeUri: Lambdas/__lambdaName__
+    Handler: __lambdaName__::LambdaFunc.LambdaEntryPoint::FunctionHandlerAsync
+    Description: __lambdaName__
+    Runtime: dotnetcore3.1
+    MemorySize: 128
+    Timeout: 30
+    Tracing: Active
+    Policies:
+      - AWSXrayWriteOnlyAccess
+
+  MetaData:
+    StackeryName: __lambdaName__
+    ApiEventsGeneration: true
+
+AWS::Serverless::HttpApi:
+  Properties:
+    StageName:
+      Ref: EnvironmentAPIGatewayStageName
+

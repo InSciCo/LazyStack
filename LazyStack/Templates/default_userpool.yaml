@@ -1,0 +1,13 @@
+﻿Resources:
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AliasAttributes:
+      - email
+      - preferred_username
+      UserPoolName: 
+        Fn::Sub: ${AWS::StackName}-UserPool
+      AutoVerifiedAttributes:
+      - email

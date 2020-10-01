@@ -1,0 +1,13 @@
+﻿Resources:
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: 
+        Fn::Sub: ${AWS::StackName}-IdentityPool
+      AllowUnauthenticatedIdentities: false
+      AllowClassicFlow: false
+      CognitoIdentityProviders:
+      - ClientId: 
+          Ref: __UserPoolClient__
+        ProviderName: 
+          Fn::GetAtt: __UserPool__.ProviderName
