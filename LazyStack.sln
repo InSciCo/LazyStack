@@ -18,6 +18,22 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.Cli.Sln.In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackWebApi", "LazyStackWebApi\LazyStackWebApi.csproj", "{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{AA7BF91F-7110-4443-81A5-0B640693DEB7}"
+	ProjectSection(SolutionItems) = preProject
+		docs\.gitignore = docs\.gitignore
+		docs\404.html = docs\404.html
+		docs\_config.yml = docs\_config.yml
+		docs\about.markdown = docs\about.markdown
+		docs\Gemfile = docs\Gemfile
+		docs\Gemfile.lock = docs\Gemfile.lock
+		docs\index.markdown = docs\index.markdown
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_posts", "_posts", "{BF2C0DA3-A2E9-4535-828D-56852D2738E4}"
+	ProjectSection(SolutionItems) = preProject
+		docs\_posts\2020-10-01-welcome-to-jekyll.markdown = docs\_posts\2020-10-01-welcome-to-jekyll.markdown
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +66,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9437CF4E-E25B-42ED-B84D-BF0A1731E1A7} = {FF78CB5A-187C-43C6-9F63-BCEE23BEDCDC}
+		{BF2C0DA3-A2E9-4535-828D-56852D2738E4} = {AA7BF91F-7110-4443-81A5-0B640693DEB7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {104B9DA2-7333-47B8-B777-2AC9B92CF42E}
