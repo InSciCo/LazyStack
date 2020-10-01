@@ -26,7 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{AA7BF91F-7
 		docs\about.markdown = docs\about.markdown
 		docs\Gemfile = docs\Gemfile
 		docs\Gemfile.lock = docs\Gemfile.lock
-		docs\index.markdown = docs\index.markdown
+		docs\index.md = docs\index.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_posts", "_posts", "{BF2C0DA3-A2E9-4535-828D-56852D2738E4}"
