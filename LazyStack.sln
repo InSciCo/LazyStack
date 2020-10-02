@@ -18,20 +18,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.Cli.Sln.In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackWebApi", "LazyStackWebApi\LazyStackWebApi.csproj", "{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{AA7BF91F-7110-4443-81A5-0B640693DEB7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DocsSource", "DocsSource", "{AA7BF91F-7110-4443-81A5-0B640693DEB7}"
 	ProjectSection(SolutionItems) = preProject
-		docs\.gitignore = docs\.gitignore
-		docs\404.html = docs\404.html
-		docs\_config.yml = docs\_config.yml
-		docs\about.markdown = docs\about.markdown
-		docs\Gemfile = docs\Gemfile
-		docs\Gemfile.lock = docs\Gemfile.lock
-		docs\index.markdown = docs\index.markdown
+		DocsSource\.gitignore = DocsSource\.gitignore
+		DocsSource\404.html = DocsSource\404.html
+		DocsSource\_config.yml = DocsSource\_config.yml
+		DocsSource\about.markdown = DocsSource\about.markdown
+		DocsSource\Gemfile = DocsSource\Gemfile
+		DocsSource\Gemfile.lock = DocsSource\Gemfile.lock
+		DocsSource\index.markdown = DocsSource\index.markdown
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_posts", "_posts", "{BF2C0DA3-A2E9-4535-828D-56852D2738E4}"
 	ProjectSection(SolutionItems) = preProject
-		docs\_posts\2020-10-01-welcome-to-jekyll.markdown = docs\_posts\2020-10-01-welcome-to-jekyll.markdown
+		DocsSource\_posts\2020-10-01-welcome-to-jekyll.markdown = DocsSource\_posts\2020-10-01-welcome-to-jekyll.markdown
 	EndProjectSection
 EndProject
 Global
