@@ -81,7 +81,6 @@ namespace LazyStack
         public string PrevSAMTemplateFilePath { get; private set; }
 
         public string LambdaFolderPath { get; private set; }
-        //public string LambdaApisFolderPath { get; private set; }
         public string ControllersFolderPath { get; private set; }
         
         public Dictionary<string, AwsResource> Resources { get; } = new Dictionary<string, AwsResource>(); // Key is resource name, value is Resource 
@@ -112,13 +111,6 @@ namespace LazyStack
         /// LazyStack default template values keyed by Resource Type.
         /// </summary>
         public Dictionary<string, YamlMappingNode> LzDefaultTemplate = new Dictionary<string, YamlMappingNode>();
-
-        //public string ClientSDKProjectAspnetCoreVersion { get; set; }
-        //public string ClientSDKTargetFramework { get; set; }
-        //public string APIProjectAspnetCoreVersion { get; set; }
-
-        //public Dictionary<string, Dictionary<string, string>> ProjectPackageReferences = new Dictionary<string, Dictionary<string, string>>();
-
         public YamlMappingNode ProjectGenerationOptions;
 
         #endregion Properties
@@ -159,93 +151,6 @@ namespace LazyStack
             ProjectGenerationOptions = node as YamlMappingNode;
 
         }
-
-        /// <summary>
-        /// Init or override LazyStack defaults.
-        /// This routine is called from InitDefaults and from ParseLzConfiguration.
-        /// </summary>
-        /// <param name="defaults"></param>
-        /// <param name="source"></param>
-        //private void ProcessProjectGenerationOptions(YamlMappingNode defaults, string source)
-        //{ 
-        //    YamlNode node;
-        //    // ClientSDKProjectOpenApiGenerationOptions
-        //    if(defaults.Children.TryGetValue("ClientSDKProjectOpenApiGenerationOptions", out node))
-        //    {
-        //        var ClientSDKOptions = node as YamlMappingNode;
-        //        if (ClientSDKOptions == null)
-        //            throw new Exception($"Error: {source} ClientSDKProjectOpenApiGenerationOptions directive is not a mapping node");
-
-        //        if (ClientSDKOptions.Children.TryGetValue("aspnetcoreVersion", out node))
-        //        {
-        //            if (!string.IsNullOrEmpty(ClientSDKProjectAspnetCoreVersion) && !ClientSDKProjectAspnetCoreVersion.Equals(node.ToString()))
-        //                logger.Info($"Overriding: default ClientSDKProjectOpenApiGenerationOptions aspnetcoreVersion {ClientSDKProjectAspnetCoreVersion} with {node}");
-        //            ClientSDKProjectAspnetCoreVersion = node.ToString();
-        //        }
-
-        //        if (ClientSDKOptions.Children.TryGetValue("targetFramework", out node))
-        //        {
-        //            if (!string.IsNullOrEmpty(ClientSDKTargetFramework) && !ClientSDKTargetFramework.Equals(node.ToString()))
-        //                logger.Info($"Overriding: default ClientSDKProjectOpenApiGenerationOptions targetFramework {ClientSDKTargetFramework} with {node}");
-        //            ClientSDKTargetFramework = node.ToString();
-        //        }
-        //    }
-
-        //    // ApiProjectOpenApigenerationOptions
-        //    if(defaults.Children.TryGetValue("ApiProjectOpenApiGenerationOptions", out node))
-        //    {
-        //        var ApiOptions = node as YamlMappingNode;
-        //        if (ApiOptions == null)
-        //            throw new Exception($"Error: {source} ApiProjectOpenApiGenerationOptions directive is not a mapping node");
-
-        //        if (ApiOptions.Children.TryGetValue("aspnetCoreVersion", out node))
-        //        {
-        //            if (!string.IsNullOrEmpty(APIProjectAspnetCoreVersion) && !APIProjectAspnetCoreVersion.Equals(node.ToString()))
-        //                logger.Info($"Overriding: default ApiProjectOpenApiGenerationOptions aspnetCoreVersion {APIProjectAspnetCoreVersion} with {node}");
-        //            APIProjectAspnetCoreVersion = node.ToString();
-        //        }
-        //    }
-
-        //    // ProjectPackageReferences
-        //    if(defaults.Children.TryGetValue("ProjectPackageReferences", out node))
-        //    {
-        //        var ProjectPackageReferencesNode = node as YamlMappingNode;
-        //        if (ProjectPackageReferencesNode == null)
-        //            throw new Exception($"Error: {source} ProjectPackageReferences directive is not a mapping node");
-
-        //        foreach(KeyValuePair<YamlNode,YamlNode> kvp in ProjectPackageReferencesNode)
-        //        {
-        //            var project = kvp.Key.ToString();
-        //            var referencesNode = kvp.Value as YamlMappingNode;
-
-        //            switch (project)
-        //            {
-        //                case "ClientSDKProject":
-        //                case "LambdaProject":
-        //                case "LambdaApiProject":
-        //                    break;
-        //                default:
-        //                    throw new Exception($"Error: {source} unknown ProjectPackagesReferences Project type {project}");
-        //            }
-
-        //            Dictionary<string, string> references;
-        //            if (!ProjectPackageReferences.TryGetValue(project, out references))
-        //                ProjectPackageReferences.Add(project, new Dictionary<string, string>());
-
-        //            references = ProjectPackageReferences[project];
-
-        //            foreach (KeyValuePair<YamlNode, YamlNode> kvpRef in referencesNode)
-        //                if (references.ContainsKey(kvpRef.Key.ToString()))
-        //                {
-        //                    logger.Info($"Overriding: ProjectPackageReferences {project} {kvpRef.Key} {references[kvpRef.Key.ToString()]} with {kvpRef.Value}");
-        //                    references[kvpRef.Key.ToString()] = kvpRef.Value.ToString();
-        //                }
-        //                else
-        //                    references.Add(kvpRef.Key.ToString(), kvpRef.Value.ToString());
-        //        }
-        //    }
-        //}
-
 
         /// <summary>
         /// Read the solutions OpenApi specification file, an
@@ -654,93 +559,6 @@ namespace LazyStack
             {
                 new YamlDotNet.Serialization.Serializer().Serialize(file, samRootNode);
             }
-        }
-
-        /// <summary>
-        /// Not currently used. Todo: delete if we don't persue late binding approach
-        /// </summary>
-        public void ConfigureCognito()
-        {
-
-            // check for an existing UserPool - use the first one found by default
-            var userPool = string.Empty;
-            foreach (var resource in Resources)
-                if (resource.Value.AwsType.Equals("AWS::Cognito::UserPool"))
-                {
-                    userPool = resource.Key.ToString();
-                    break;
-                }
-
-            // Add a default user pool and user pool client if none was specified
-            if (string.IsNullOrEmpty(userPool))
-            {
-                userPool = "UserPool";
-                var defaultDoc = ReadAndParseYamlFile(Path.Combine(LazyStackTemplateFolderPath, "default_userpool.yaml"));
-                new AwsResource(userPool, defaultDoc["Resources"]["UserPool"] as YamlMappingNode, solutionModel: this, isDefault: true);
-            }
-
-            // Look for a UserPoolClient belonging to the userPool
-            var userPoolClient = string.Empty;
-            foreach (var resource in Resources)
-                if (resource.Value.AwsType.Equals("AWS::Cognito::UserPoolClient"))
-                    if (GetNamedProperty(resource.Value.RootNode, "Properties/UserPoolId/Ref", out YamlNode node))
-                        if (node.ToString().Equals(userPool))
-                        {
-                            userPoolClient = resource.Key.ToString();
-                            break;
-                        }
-
-            // Add a default UserPoolclient if none was found
-            if (string.IsNullOrEmpty(userPoolClient))
-            {
-                userPoolClient = userPool + "Client";
-                var userPoolClientText = File.ReadAllText(Path.Combine(LazyStackTemplateFolderPath, "default_userpoolclient.yaml"));
-                userPoolClientText = userPoolClientText.Replace("__UserPool__", userPool);
-                var resources = ParseYamlText(userPoolClientText);
-                new AwsResource(userPoolClient, resources["Resources"][userPoolClient] as YamlMappingNode, this, isDefault: true);
-            }
-
-            // Look for an Identity pool - use first one found
-            var identityPool = string.Empty;
-            foreach (var resource in Resources)
-                if (resource.Value.AwsType.Equals("AWS::Cognito::IdentityPool"))
-                {
-                    identityPool = resource.Key.ToString();
-                    break;
-                }
-
-            // Add a default IdentityPool if none was found
-            if (string.IsNullOrEmpty(identityPool))
-            {
-                identityPool = "IdentityPool";
-                var identityPoolClientText = File.ReadAllText(Path.Combine(LazyStackTemplateFolderPath, "default_identitypool.yaml"));
-                identityPoolClientText = identityPoolClientText.Replace("__UserPool__", userPool);
-                identityPoolClientText = identityPoolClientText.Replace("__UserPoolClient__", userPoolClient);
-                var resources = ParseYamlText(identityPoolClientText);
-                new AwsResource(identityPool, resources["Resources"]["IdentityPool"] as YamlMappingNode, this, isDefault: true);
-            }
-
-            IsCognitoConfigured = true;
-            UserPoolName = userPool;
-            UserPoolClientName = userPoolClient;
-            IdentityPoolName = identityPool;
-        }
-
-        /// <summary>
-        /// Not currently used. Todo: delete if we don't pursue late binding approach.
-        /// </summary>
-        public void ConfigureIAM()
-        {
-            if (!IsCognitoConfigured)
-                ConfigureCognito();
-
-            var iamText = File.ReadAllText(Path.Combine(LazyStackTemplateFolderPath, "default_iam.yaml"));
-            iamText = iamText.Replace("__IdentityPool__", IdentityPoolName);
-            var iamResources = ParseYamlText(iamText);
-            foreach (KeyValuePair<YamlNode, YamlNode> kvp in iamResources["Resources"] as YamlMappingNode)
-                new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: true);
-
-            IsIAMConfigured = true;
         }
 
         #endregion

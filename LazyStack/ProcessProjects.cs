@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 using YamlDotNet.RepresentationModel;
+using YamlDotNet.Serialization.ObjectGraphTraversalStrategies;
 
 namespace LazyStack
 {
@@ -239,6 +240,7 @@ namespace LazyStack
 
 
             // Update LambdaEntryPoint class to inherit correct base class for specified HttpApi or Api
+            // We do this every time because it is not unusual to change the tag/api mapping
             var text = File.ReadAllText(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Lambda","LambdaEntryPoint.cs"));
             var baseClass = api.ProxyFunctionName;
             text = text.Replace("__APIGatewayProxyFunction__", baseClass);
@@ -331,9 +333,7 @@ namespace LazyStack
                         insertMethods.Add(m);
                 }
                 if (insertMethods.Count > 0)
-                {
                     InsertMethods($"{lambdaName}Controller",$"{lambdaName}Controller", classFilePath, GenerateControllerMethods(insertMethods));
-                }
             }
         }
 
@@ -349,76 +349,89 @@ namespace LazyStack
             var csprojFilePath = Path.Combine(projFolderPath, $"{appName}.csproj");
             var references = new List<string>();
             foreach (var lambdaName in solutionModel.Lambdas.Keys)
-            {
                 references.Add(Path.Combine("..", "Controllers", $"{lambdaName}Controller", $"{lambdaName}Controller.csproj"));
-            }
+
             UpdateProjectReferences(csprojFilePath, references);
 
-            // Write ConfgiureSvcs.cs 
+            // Update ConfgiureSvcs.cs 
             string filePath = Path.Combine(solutionModel.SolutionRootFolderPath, solutionModel.AppName, "ConfigureSvcs.cs");
             string nameSpace = solutionModel.AppName;
-            List<string> projReferences = solutionModel.Lambdas.Keys.ToList<string>();
+            var projServices = new Dictionary<string, bool>();
+            foreach (var key in solutionModel.Lambdas.Keys)
+                projServices.Add(key + "Controller", false); // bool indicates if the reference has been registered in the Startup.ConfigureSvcs method
 
-            var classTemplate = File.ReadAllText(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ConfigureSvcs.cs"));
+            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath)).GetCompilationUnitRoot();
 
-            // insert namespace
-            classTemplate = classTemplate.Replace("__NameSpace__", nameSpace);
-             
-            // insert service registrations
-            string serviceStmts = string.Empty;
-            foreach (var reference in projReferences)
+            var method = root
+                .DescendantNodes().OfType<ClassDeclarationSyntax>()
+                .Where(x => x.Identifier.Text.Equals("Startup"))
+                .FirstOrDefault()
+                    ?.DescendantNodes().OfType<MethodDeclarationSyntax>()
+                    .Where(x => x.Identifier.Text.Equals("ConfigureSvcs")
+                            && x.ParameterList.Parameters.Count == 1
+                            && x.ParameterList.Parameters[0].Type.ToString().Equals("IServiceCollection"))
+                    .First();
+
+            if (method == null)
+                throw new Exception("Error: Missing Startup.ConfigureSvcs method");
+
+            var serviceRegistrations = method.DescendantNodes().OfType<BlockSyntax>()
+                .First()
+                ?.DescendantNodes().OfType<ExpressionStatementSyntax>()
+                .Where( x => 
+                        (((x.Expression as InvocationExpressionSyntax))?.Expression is MemberAccessExpressionSyntax)
+                        && ((((x.Expression as InvocationExpressionSyntax))
+                                ?.Expression as MemberAccessExpressionSyntax).Expression as IdentifierNameSyntax)
+                                    .Identifier.ValueText.Equals("services")
+                    );
+
+            var allowedServiceMethods = new string[] { "AddSingleton" };
+            foreach (var x in serviceRegistrations)
             {
-                var referenceName = SolutionModel.ToUpperFirstChar(reference);
-                serviceStmts += $"\t\t\tservices.AddSingleton<{referenceName}Controller.{referenceName}Controller>();\n";
+                var m = (x.Expression as InvocationExpressionSyntax)?.Expression as MemberAccessExpressionSyntax;
+                string methodName = m.Name.Identifier.ValueText.ToString();
+                if (allowedServiceMethods.Contains<string>(methodName))
+                {
+                    var arguments = (m.Name as GenericNameSyntax).TypeArgumentList.Arguments;
+                    if (arguments.Count > 0)
+                    {
+                        string left = (arguments[0] as QualifiedNameSyntax).Left.ToString();
+                        if (projServices.ContainsKey(left))
+                            projServices[left] = true;
+                    }
+                }
             }
-            classTemplate = classTemplate.Replace("__ServiceRegistrations__", serviceStmts);
 
-            File.WriteAllText(filePath, classTemplate);
+            // Insert any Missing service registrations
+            var newStatements = new List<StatementSyntax>();
+            foreach (var kvp in projServices)
+                if (!kvp.Value)
+                    newStatements.Add(ParseStatement($"\t\t\tservices.AddSingleton<{kvp.Key}.{kvp.Key}>();\n")); 
+
+            if(newStatements.Count > 0)
+                root = root.ReplaceNode(method, method.AddBodyStatements(newStatements.ToArray()));
+
+            File.WriteAllText(filePath, root.ToFullString());
         }
 
         private void InsertMethods(string nameSpace, string className, string fileName, string newMethodText)
         {
-            var fileText = File.ReadAllText(fileName);
+            var root = CSharpSyntaxTree.ParseText(File.ReadAllText(fileName)).GetCompilationUnitRoot();
 
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(fileText);
-            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            var classDecl = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals(nameSpace))
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals(className))
+                    .First();
 
-            var nameSpaces = from item in root.DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                             where item.Name.ToString().Equals(nameSpace) // ex: OrderController
-                             select item as NamespaceDeclarationSyntax;
+            if (classDecl == null)
+                throw new Exception($"Error: Can't find {nameSpace}.{className}");
 
-            if (nameSpaces.Count() == 0)
-                throw new Exception($"Error: \"{nameSpace}\" namespace not found");
-
-            var nameSpaceNode = nameSpaces.First(); // Todo - should we treat multiple namespace nodes (with the same name) as an error?
-            //Console.WriteLine($"Namespace {nameSpace.Name}");
-
-            var classDecls = from item in nameSpaceNode.Members.OfType<ClassDeclarationSyntax>()
-                             where item.Identifier.ValueText.Equals(className) // ex: OrderController
-                             select item;
-
-            if (classDecls.Count() == 0)
-                throw new Exception($"Error: \"{className}\" class not found");
-
-            var classDecl = classDecls.First();
-            //Console.WriteLine($"Class {classDecl.Identifier.ValueText}");
-
-            var methods = from item in classDecl.Members.OfType<MethodDeclarationSyntax>()
-                          select item as MethodDeclarationSyntax;
-
-            SyntaxTree newMethodTree = CSharpSyntaxTree.ParseText(newMethodText);
-            CompilationUnitSyntax newMethodRoot = newMethodTree.GetCompilationUnitRoot();
-            root = root.ReplaceNode(classDecl, classDecl.AddMembers(newMethodRoot.Members.ToArray()));
-            //Console.WriteLine($"{root}");
+            root = root.ReplaceNode(classDecl, 
+                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newMethodText).GetCompilationUnitRoot().Members.ToArray()));
             File.WriteAllText(fileName, root.ToString());
-
-            //Regex classRegEx = new Regex(@"([\s\S]*?" + eleName + @"[\s\S]*?{)([\s\S]*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //MatchCollection classSections = classRegEx.Matches(fileText);
-            //if (classSections.Count != 1 || classSections[0].Groups.Count != 3)
-            //    throw new Exception("Error: could not parse {fileName}");
-
-            //fileText = classSections[0].Groups[1].ToString() + "\n" + text + classSections[0].Groups[2].ToString();
-            //File.WriteAllText(fileName, fileText);
         }
 
         /// <summary>
@@ -428,73 +441,36 @@ namespace LazyStack
         /// <returns></returns>
         private List<Method> GetApiControllerMethods(string lambdaName)
         {
+
             // ex: PetStoreApi/Controllers/OrderApi.cs
-            var srcController = File.ReadAllText(
+            var fileText = File.ReadAllText(
                 Path.Combine(solutionModel.SolutionRootFolderPath, 
                 $"{solutionModel.AppName}Api", 
                 "Controllers", $"{lambdaName}Api.cs"));
 
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(srcController);
-            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
 
-            var nameSpaces = from item in root.DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                             where item.Name.ToString().Equals($"{solutionModel.AppName}Api.Controllers") // ex: PetStoreApi.Controllers
-                             select item as NamespaceDeclarationSyntax;
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{solutionModel.AppName}Api.Controllers")) // ex: PetStoreApi.Controllers
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{lambdaName}ApiController"))
+                    .First();
 
-            if (nameSpaces.Count() == 0)
-                throw new Exception($"Error: {solutionModel.AppName}Api.Controllers namespace not found");
+            if (classDecls == null)
+                throw new Exception($"Error: Can't find {lambdaName}ApiController class");
 
-            var nameSpace = nameSpaces.First(); // Todo - should we treat multiple namespace nodes (with the same name) as an error?
-            //Console.WriteLine($"Namespace {nameSpace.Name}");
-
-            var classDecls = from item in nameSpace.Members.OfType<ClassDeclarationSyntax>()
-                             where item.Identifier.ValueText.Equals($"{lambdaName}ApiController") // ex: OrderApiController
-                             select item;
-
-            if (classDecls.Count() == 0)
-                throw new Exception($"Error: {lambdaName}ApiController class not found");
-
-            var classDecl = classDecls.First();
-            //Console.WriteLine($"Class {classDecl.Identifier.ValueText}");
-
-            var methods = from item in classDecl.Members.OfType<MethodDeclarationSyntax>()
-                          select item as MethodDeclarationSyntax;
-
+            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>();
+                
             var methodList = new List<Method>();
             foreach (var method in methods)
-            {
                 methodList.Add(new Method(
                     methodSummary: method.GetLeadingTrivia().ToString(),
                     returnType: method.ReturnType.ToString(),
                     methodName: method.Identifier.ValueText,
                     arguments: method.ParameterList.ToString()
                     ));
-                ;
-                //Console.WriteLine($"Method {method.Identifier.ValueText}");
-                //Console.WriteLine($"Parameters {method.ParameterList.ToString()}");
-                //Console.WriteLine($"Comments {method.GetLeadingTrivia()}");
-                //Console.WriteLine($"Body {method.Body}");
-            }
-
-
-            //// Get body of class
-            //Regex classRegEx = new Regex(@"(?:[\s\S]*?{[\s\S]*?{)([\s\S]*)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //MatchCollection classBodyMatches = classRegEx.Matches(srcController);
-            //var classBodyText = classBodyMatches[0].Groups[1].ToString();
-
-            //Regex methodsRegEx = new Regex(@"((\s*\/\/\/ <summary>[\s\S]*?)(?:\bpublic\sabstract\s)(\w+)\s(\w+)\b(?:\()+(.*)(?:\);))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //MatchCollection methods = methodsRegEx.Matches(classBodyText);
-
-            //var methodList = new List<Method>();
-            //foreach (Match m in methods)
-            //    methodList.Add(new Method(
-            //        methodSummary: m.Groups[2].ToString(), 
-            //        returnType: m.Groups[3].ToString(),
-            //        methodName: m.Groups[4].ToString(),
-            //        arguments: (m.Groups.Count > 5) 
-            //            ? m.Groups[5].ToString() 
-            //            : string.Empty
-            //        ));
 
             return methodList;
         }
@@ -508,69 +484,30 @@ namespace LazyStack
                 $"{lambdaName}Controller", 
                 $"{lambdaName}Controller.cs"));
 
-            SyntaxTree tree = CSharpSyntaxTree.ParseText(fileText);
-            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
 
-            var nameSpaces = from item in root.DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                             where item.Name.ToString().Equals($"{lambdaName}Controller") // ex: OrderController
-                             select item as NamespaceDeclarationSyntax;
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{lambdaName}Controller")) // ex: OrderController
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{lambdaName}Controller")) // ex: OrderController
+                    .First();
 
-            if (nameSpaces.Count() == 0)
-                throw new Exception($"Error: {lambdaName}Controller namespace not found");
+            if (classDecls == null)
+                throw new Exception($"Error: Can't find {lambdaName}Controller");
 
-            var nameSpace = nameSpaces.First(); // Todo - should we treat multiple namespace nodes (with the same name) as an error?
-            //Console.WriteLine($"Namespace {nameSpace.Name}");
-
-            var classDecls = from item in nameSpace.Members.OfType<ClassDeclarationSyntax>()
-                             where item.Identifier.ValueText.Equals($"{lambdaName}Controller") // ex: OrderController
-                             select item;
-
-            if (classDecls.Count() == 0)
-                throw new Exception($"Error: {lambdaName}Controller class not found");
-
-            var classDecl = classDecls.First();
-            //Console.WriteLine($"Class {classDecl.Identifier.ValueText}");
-
-            var methods = from item in classDecl.Members.OfType<MethodDeclarationSyntax>()
-                          select item as MethodDeclarationSyntax;
+            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>();
 
             var methodList = new List<Method>();
             foreach (var method in methods)
-            {
                 methodList.Add(new Method(
                     methodSummary: method.GetLeadingTrivia().ToString(),
                     returnType: method.ReturnType.ToString(),
                     methodName: method.Identifier.ValueText,
                     arguments: method.ParameterList.ToString()
                     ));
-                ;
-                //Console.WriteLine($"Method {method.Identifier.ValueText}");
-                //Console.WriteLine($"Parameters {method.ParameterList.ToString()}");
-                //Console.WriteLine($"Comments {method.GetLeadingTrivia()}");
-                //Console.WriteLine($"Body {method.Body}");
-            }
 
-
-            //Regex methodsRegEx = new Regex(@"(?:\bpublic\s)(\w+)\s(\w+)\s*(?:\()+(.*)(?:\);)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-            //MatchCollection methods = methodsRegEx.Matches(fileText);
-            //// example 
-            //// Group 0 IActionResult DeleteOrder([FromRoute][Required]long orderId);
-            //// Group 1 IActionResult
-            //// Group 2 DeleteOrder
-            //// Group 3 [FromRoute][Required]long orderId
-            //Debug.WriteLine($"GetControllerMethods {lambdaName}Controller");
-            //foreach (Match m in methods)
-            //    Debug.WriteLine($"\tmethod {m.Groups[0]}");
-            //var methodList = new List<Method>();
-            //foreach (Match m in methods)
-            //    methodList.Add(new Method( 
-            //        methodSummary: string.Empty,
-            //        returnType: m.Groups[1].ToString(),
-            //        methodName: m.Groups[2].ToString(),
-            //        arguments: (m.Groups.Count > 3)
-            //            ? m.Groups[3].ToString()
-            //            : string.Empty
-            //        ));
             return methodList;
         }
 

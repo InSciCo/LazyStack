@@ -2,12 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 
 Parameters:
-  StackTagName:
+  StageName:
     Type: String
-    Description: Stack Name
-  EnvironmentTagName:
-    Type: String
-    Description: Environment Name
-  EnvironmentAPIGatewayStageName:
-    Type: String
-    Description: Environment name used for API Gateway Stage names
+    Description: API Gateway Stage name
+    Default: Dev

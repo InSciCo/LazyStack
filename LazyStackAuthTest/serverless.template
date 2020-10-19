@@ -1,13 +1,24 @@
-﻿Resources:
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  StageName:
+    Type: String
+    Description: API Gateway Stage name
+    Default: Dev
+
+Resources:
+
   HttpApiUnsecure:
     Type: AWS::Serverless::HttpApi
     Properties:
+      # Note: HttpApi does not have a Name property - Stupid beyond belief
       StageName:
         Ref: StageName
 
   HttpApiSecure:
     Type: AWS::Serverless::HttpApi
     Properties:
+      # Note: HttpApi does not have a Name property - Stupid beyond belief
       Auth:
         Authorizers:
           OpenIdAuthorizer:
@@ -25,7 +36,7 @@
     Type: AWS::Serverless::Api
     Properties:
       Name: 
-        Fn::Sub: ${AWS::Stackname}$-ApiUnsecure
+        Fn::Sub: ${AWS::StackName}-ApiUnsecure
       StageName:
         Ref: StageName
       EndpointConfiguration: REGIONAL
@@ -34,14 +45,14 @@
   ApiSecure:
     Type: AWS::Serverless::Api
     Properties:
+      Name: 
+        Fn::Sub: ${AWS::StackName}-ApiSecure
       Auth:
         DefaultAuthorizer: AWS_IAM
-      Name: 
-        Fn::Sub: ${AWS::StackName}$-ApiSecure
       StageName:
         Ref: StageName
       EndpointConfiguration: REGIONAL
-      TracingEnabled: true 
+      TracingEnabled: true            
 
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -51,7 +62,7 @@
       AliasAttributes:
       - email
       - preferred_username
-      UserPoolName: 
+      UserPoolName:
         Fn::Sub: ${AWS::StackName}-UserPool
       AutoVerifiedAttributes:
       - email
@@ -59,7 +70,7 @@
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      UserPoolId: 
+      UserPoolId:
         Ref: UserPool
       AllowedOAuthFlowsUserPoolClient: true
       SupportedIdentityProviders:
@@ -82,30 +93,29 @@
   IdentityPool:
     Type: AWS::Cognito::IdentityPool
     Properties:
-      IdentityPoolName: 
+      IdentityPoolName:
         Fn::Sub: ${AWS::StackName}-IdentityPool
       AllowUnauthenticatedIdentities: false
       AllowClassicFlow: false
       CognitoIdentityProviders:
-      - ClientId: 
+      - ClientId:
           Ref: UserPoolClient
-        ProviderName: 
+        ProviderName:
           Fn::GetAtt: UserPool.ProviderName
 
   CognitoIdentityPoolRoles:
     Type: AWS::Cognito::IdentityPoolRoleAttachment
     Properties:
-      IdentityPoolId: 
+      IdentityPoolId:
         Ref: IdentityPool
       Roles:
-        authenticated: 
+        authenticated:
           Fn::GetAtt: AuthRole.Arn
-        unauthenticated: 
-          Fn::GetAtt: UnauthRole.Arn
+
   AuthRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: 
+      RoleName:
         Fn::Sub: ${AWS::StackName}-AuthRole
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -117,13 +127,12 @@
           - 'sts:AssumeRoleWithWebIdentity'
           Condition:
             StringEquals:
-              'cognito-identity.amazonaws.com:aud': 
+              'cognito-identity.amazonaws.com:aud':
                 Ref: IdentityPool
             'ForAnyValue:StringLike':
               'cognito-identity.amazonaws.com:amr': authenticated
-
       Policies:
-      - PolicyName: 
+      - PolicyName:
           Fn::Sub: ${AWS::StackName}-AuthPolicy
         PolicyDocument:
           Version: '2012-10-17'
@@ -137,45 +146,54 @@
           - Effect: 'Allow'
             Action:
             - 'execute-api:Invoke'
-            Resource: 
-              Fn::Sub:
-                arn:aws:execute-api:${AWS::Region}:*:*
+            Resource: 'arn:aws:execute-api:us-east-1:*:*'
 
-  UnauthRole:
-    Type: AWS::IAM::Role
+  LazyStackAuthTestFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      RoleName: 
-        Fn::Sub: ${AWS::StackName}-UnauthRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: 'Allow'
-          Principal:
-            Federated: 'cognito-identity.amazonaws.com'
-          Action:
-          - 'sts:AssumeRoleWithWebIdentity'
-          Condition:
-            StringEquals:
-              'cognito-identity.amazonaws.com:aud': 
-                Ref: IdentityPool
-            'ForAnyValue:StringLike':
-              'cognito-identity.amazonaws.com:amr': unauthenticated
+      InlineCode: |
+        def handler(event, context):
+            return {'body': 'Hello World!', 'statusCode': 200}
+      Handler: index.handler
+      Runtime: python3.7
+      Timeout: 30
+      MemorySize: 128
+      Events:
+        GetTestHttpApiUnsecure:
+          Type: HttpApi
+          Properties:
+            Path: /test
+            Method: GET
+            ApiId: 
+              Ref: HttpApiUnsecure
 
-      Policies:
-      - PolicyName: 
-          Fn::Sub: ${AWS::StackName}-UnauthPolicy
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: 'Allow'
-            Action:
-            - 'mobileanalytics:PutEvents'
-            - 'cognito-sync:*'
-            - 'cognito-identity:*'
-            Resource: '*'
-          - Effect: 'Allow'
-            Action:
-            - 'execute-api:Invoke'
-            Resource:
-              Fn::Sub:
-                arn:aws:execute-api:${AWS::Region}:*:*
+        GetTestHttpApiSecure:
+          Type: HttpApi
+          Properties:
+            Path: /test
+            Method: GET
+            ApiId: 
+              Ref: HttpApiSecure    
+
+        GetTestApiUnsecure:
+          Type: Api
+          Properties:
+            Path: /test
+            Method: GET
+            RestApiId: 
+              Ref: ApiUnsecure
+            Auth:
+              InvokeRole: NONE
+
+        GetTestApiSecure:
+          Type: Api
+          Properties:
+            Path: /test
+            Method: GET
+            RestApiId: 
+              Ref: ApiSecure
+            Auth:
+              InvokeRole: NONE
+
+    MetaData:
+      ApiEventsGeneration: true

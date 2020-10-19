@@ -42,15 +42,15 @@ namespace LazyStack
                             }
                         },
                         { "Path", path },
-                        { "Method", httpOperation.ToUpper() }
+                        { "Method", httpOperation.ToUpper() },
+                        { "Auth", new YamlMappingNode()
+                            {
+                            { "InvokeRole", "NONE" }  
+                            }   
+                        }
                     }
                 }
             };
-
-            // TODO - add in authorization
-            //if (!string.IsNullOrEmpty(api.Authorizer) && !api.Authorizer.Equals("none"))
-            //    eventNode.Add("Auth",
-            //        new YamlMappingNode("Authorizer", api.Authorizer));
 
             return newNode;
         }

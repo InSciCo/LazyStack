@@ -18,21 +18,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.DotNet.Cli.Sln.In
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackWebApi", "LazyStackWebApi\LazyStackWebApi.csproj", "{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DocsSource", "DocsSource", "{AA7BF91F-7110-4443-81A5-0B640693DEB7}"
-	ProjectSection(SolutionItems) = preProject
-		DocsSource\.gitignore = DocsSource\.gitignore
-		DocsSource\404.html = DocsSource\404.html
-		DocsSource\_config.yml = DocsSource\_config.yml
-		DocsSource\about.markdown = DocsSource\about.markdown
-		DocsSource\Gemfile = DocsSource\Gemfile
-		DocsSource\Gemfile.lock = DocsSource\Gemfile.lock
-		DocsSource\index.markdown = DocsSource\index.markdown
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuth", "LazyStackAuth\LazyStackAuth.csproj", "{22FC013D-B6C2-4BC0-8A0B-1B33F328F728}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_posts", "_posts", "{BF2C0DA3-A2E9-4535-828D-56852D2738E4}"
-	ProjectSection(SolutionItems) = preProject
-		DocsSource\_posts\2020-10-01-welcome-to-jekyll.markdown = DocsSource\_posts\2020-10-01-welcome-to-jekyll.markdown
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTest", "LazyStackAuthTest\LazyStackAuthTest.csproj", "{FD0559D3-8B09-4CA8-A644-2357E843D712}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackDevUtil", "LazyStackDevUtil\LazyStackDevUtil.csproj", "{C6F06869-BAB1-4F5B-9FEF-270D26731EB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -60,13 +50,24 @@ Global
 		{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22FC013D-B6C2-4BC0-8A0B-1B33F328F728}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22FC013D-B6C2-4BC0-8A0B-1B33F328F728}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22FC013D-B6C2-4BC0-8A0B-1B33F328F728}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22FC013D-B6C2-4BC0-8A0B-1B33F328F728}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD0559D3-8B09-4CA8-A644-2357E843D712}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD0559D3-8B09-4CA8-A644-2357E843D712}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD0559D3-8B09-4CA8-A644-2357E843D712}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD0559D3-8B09-4CA8-A644-2357E843D712}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F06869-BAB1-4F5B-9FEF-270D26731EB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F06869-BAB1-4F5B-9FEF-270D26731EB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F06869-BAB1-4F5B-9FEF-270D26731EB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F06869-BAB1-4F5B-9FEF-270D26731EB1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{9437CF4E-E25B-42ED-B84D-BF0A1731E1A7} = {FF78CB5A-187C-43C6-9F63-BCEE23BEDCDC}
-		{BF2C0DA3-A2E9-4535-828D-56852D2738E4} = {AA7BF91F-7110-4443-81A5-0B640693DEB7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {104B9DA2-7333-47B8-B777-2AC9B92CF42E}
