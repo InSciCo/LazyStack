@@ -16,18 +16,22 @@ namespace LazyStackAuthTest
     {
         public CallApiTests()
         {
-            Setup.SignUpTestUser1<CallApiTests>(); // Make sure TestUser1 exists in UserPool
 
             var awsSettings = new AwsSettings("LazyStackAuthTest", "us-east-1");
             var json = awsSettings.BuildJson();
             appConfig = new ConfigurationBuilder()
-                .AddUserSecrets<CallApiTests>()
+                .AddUserSecrets<CallApiTests>() // used to get gmail account credentials for auth code
                 .AddJsonStream(new MemoryStream(Encoding.ASCII.GetBytes(json)))
                 .Build();
 
-            // SignIn
             var userLogin = "TestUser1"; // Cognito Login
             var password = "TestUser1!"; // Cognito Password
+
+            // SignUpTestUser requires Gmail:Email and Gmail:Password in appConfig
+            // The signup process sends your gmail account a code necessary for authentication
+            Setup.SignUpTestUser<CallApiTests>(appConfig, userLogin, password); // Make sure TestUser1 exists in UserPool
+
+            // SignIn
             authProvider = new AuthProviderCognito(appConfig);
             var authProcess = new AuthProcess(authProvider);
             var result = authProcess.StartAuthAsync(userLogin, password).GetAwaiter().GetResult();
