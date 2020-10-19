@@ -10,27 +10,18 @@ using LazyStackAuth;
 namespace LazyStackDevUtil
 {
     /// <summary>
-    /// This is NOT A TEST class. 
     /// SignUpTestUser1() is a utility class to make sure a required
-    /// user is in the stack's User Pool. Do not confuse this simple happy
-    /// path execution of signing up a new user with the SignUpTests.
+    /// user is in the stack's User Pool. It requires that you have
+    /// configured a gmail account that the auth process can send
+    /// a code to. Gmail:Email and Gmail:Password are used to 
+    /// access that emaili account. These values are usually
+    /// inserted into appConfig from Visual Studio UserSecrets.
     /// </summary>
     public static class Setup
     {
-        public static void SignUpTestUser1<T>()
+        public static void SignUpTestUser<T>(IConfiguration appConfig, string userLogin, string password)
             where T : class
         {
-            // Sign up TestUser1 if this user is not in the UserPool
-            var awsSettings = new AwsSettings("LazyStackAuthTest", "us-east-1");
-            var json = awsSettings.BuildJson();
-            var appConfig = new ConfigurationBuilder()
-                    .AddUserSecrets<T>()
-                    .AddJsonStream(new MemoryStream(Encoding.ASCII.GetBytes(json)))
-                    .Build();
-
-            var userLogin = "TestUser1"; // Cognito Login
-            var password = "TestUser1!"; // Cognito Password
-
             var authProvider = new AuthProviderCognito(appConfig);
             var authProcess = new AuthProcess(authProvider);
             // Try SignIn with TestUser1
