@@ -13,7 +13,7 @@ namespace LazyStackDevUtil
     public static class AuthEmail
     {
       
-        public static string GetAuthCode(IConfiguration appConfig, DateTime verificationCodeSendTime)
+        public static string GetAuthCode(IConfiguration appConfig, DateTime verificationCodeSendTime, string emailTo)
         {
             // Start SignUp process - will send  a verification code to specified email account
             var email = appConfig["Gmail:Email"];
@@ -44,7 +44,9 @@ namespace LazyStackDevUtil
                         var query =
                             SearchQuery.SubjectContains("Your verification code")
                             .And
-                            (SearchQuery.DeliveredAfter(verificationCodeSendTime));
+                            (SearchQuery.DeliveredAfter(verificationCodeSendTime))
+                            .And
+                            (SearchQuery.ToContains(emailTo));
 
                         inbox.Open(FolderAccess.ReadOnly);
                         //var results = inbox.Search(query);

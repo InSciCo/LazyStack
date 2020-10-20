@@ -146,7 +146,8 @@ Resources:
           - Effect: 'Allow'
             Action:
             - 'execute-api:Invoke'
-            Resource: 'arn:aws:execute-api:us-east-1:*:*'
+            Resource: 
+              Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiSecure}/*
 
   LazyStackAuthTestFunction:
     Type: AWS::Serverless::Function

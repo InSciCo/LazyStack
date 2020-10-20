@@ -102,6 +102,7 @@
           Fn::GetAtt: AuthRole.Arn
         unauthenticated: 
           Fn::GetAtt: UnauthRole.Arn
+
   AuthRole:
     Type: AWS::IAM::Role
     Properties:
@@ -138,8 +139,7 @@
             Action:
             - 'execute-api:Invoke'
             Resource: 
-              Fn::Sub:
-                arn:aws:execute-api:${AWS::Region}:*:*
+               Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiSecure}/*
 
   UnauthRole:
     Type: AWS::IAM::Role
@@ -177,5 +177,4 @@
             Action:
             - 'execute-api:Invoke'
             Resource:
-              Fn::Sub:
-                arn:aws:execute-api:${AWS::Region}:*:*
+               Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiUnsecure}/*

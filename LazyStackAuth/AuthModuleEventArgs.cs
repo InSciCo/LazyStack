@@ -12,30 +12,25 @@ namespace LazyStackAuth
         PasswordUpdate, // Verify password update
         PasswordReset, // Verify password reset
         Email, // Verify email
-        Phone, // Verify phone number
-        UnknownChallenge // This is an error condition. May Raise UnknownChallengeEncountered
+        Phone // Verify phone number
     }
 
     public enum AuthModuleEvent
     {
         AuthChallenge, // One or more AuthChallenges are pending
-        AuthChallengeVerified, // A challenge was successfully handled
         Authorized, // user is fully authenticated and authorized
         SignedUp, // User is signed up, user needs to sign in to continue
         SignedOut, 
+        PasswordResetDone,
+        EmailUpdateDone,
+        VerificationCodeSent,
 
         // Alert events 
-        UserLoginRequired, // 
         AlreadyAuthorized,
-        AuthNotStarted, // 
         AuthAlreadyStarted,
-        SignUpNotStarted, 
+        AccountWithThatEmailAlreadyExists,
         RefreshUserDetailsDone,
-        ChallengeVerifyWithoutRequest, // 
-        VerifyPasswordResetCodeSent,
-        PasswordResetDone,
-        VerificationCodeSent,
-        UnknownChallengeEncountered, // Suggested Message = "Server requested unknown challenge."
+        VerifyCalledButNoChallengeFound, // 
         CantRetrieveUserDetails, // Suggested Message = "Can not retrieve user details."
         NeedToBeSignedIn, // Suggested Message = "Need to be signed in"
         InvalidOperationWhenSignedIn, // Suggested Message "Invalid operation when signed in"
@@ -51,9 +46,7 @@ namespace LazyStackAuth
         NothingToDo,
 
         // Hail Marys
-        Unknown, // Suggested Message = "We encountered an unknown system error. Please try again."
-        Error, // Suggested Message = "We encountered an unexpected error. Please try again."
-        StateError // 
+        Unknown // Suggested Message = "We encountered an unknown system error. Please try again."
     }
 
     public class AuthModuleEventArgs : EventArgs

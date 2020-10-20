@@ -42,7 +42,7 @@ namespace LazyStackDevUtil
                 else if (authProcess.CurrentChallenge != AuthChallenges.SignUp)
                     throw new Exception($"Unexpected problem in user signup. Auth Error {authResult}");
 
-                var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime);
+                var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
 
                 // Verify SignUp
                 authResult = authProcess.VerifySignUpAsync(verificationCode).GetAwaiter().GetResult();

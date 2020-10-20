@@ -11,14 +11,12 @@
 
   <ItemGroup>
     <Compile Remove="Templates\ApiClient.cs" />
-    <Compile Remove="Templates\AwsApi.cs" />
     <Compile Remove="Templates\ConfigureSvcs.cs" />
     <Compile Remove="Templates\Controllers\Controller.cs" />
     <Compile Remove="Templates\Lambda\ConfigureSvcs.cs" />
     <Compile Remove="Templates\Lambda\LambdaEntryPoint.cs" />
     <Compile Remove="Templates\Lambda\LocalEntryPoint.cs" />
     <Compile Remove="Templates\Lambda\Startup.cs" />
-    <Compile Remove="Templates\User.cs" />
   </ItemGroup>
 
 
@@ -28,9 +26,6 @@
       <PackagePath></PackagePath>
     </None>
     <None Include="Templates\ApiClient.cs">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\AwsApi.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\ConfigureSvcs.cs">
@@ -55,9 +50,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Templates\Controllers\Controller.csproj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="Templates\User.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

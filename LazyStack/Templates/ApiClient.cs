@@ -1,24 +1,11 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text;
 using Newtonsoft.Json;
-using Amazon.Runtime;
-using Amazon.CognitoIdentity;
-using Amazon.CognitoIdentityProvider;
-using Amazon.Extensions.CognitoAuthentication;
-
-using Amazon.CognitoIdentityProvider.Model;
-
-using System.Diagnostics;
-using System.Linq;
-using System.Text.Encodings.Web;
-using Microsoft.IdentityModel.Tokens;
 
 using LazyStackAuth;
 
@@ -93,14 +80,14 @@ namespace __AppName__ClientSDK.Client
         /// Constructor assumes we are using library to talk with AWS so we pass in AWS related information.
         /// </summary>
         /// <param name="awsApi"></param>
-        /// <param name="user"></param>
-        public ApiClient(AwsApi awsApi, IAuthProvider authProvider)
+        /// <param name="authProvider"></param>
+        public ApiClient(AwsRestApiGateway awsApi, IAuthProvider authProvider)
         {
             this.awsApi = awsApi;
             this.authProvider = authProvider;
         }
 
-        readonly AwsApi awsApi;
+        readonly AwsRestApiGateway awsApi;
         readonly IAuthProvider authProvider;
 
         public virtual void ProcessPath(
@@ -302,7 +289,7 @@ namespace __AppName__ClientSDK.Client
                     cancelationtoken);
             }
             else
-            if (awsApi.ApiType.Equals("Api", StringComparison.OrdinalIgnoreCase))
+            if (awsApi.Type.Equals("Api", StringComparison.OrdinalIgnoreCase))
             {
                 // Use full request signing process
                 // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
@@ -312,10 +299,10 @@ namespace __AppName__ClientSDK.Client
                     completionOption,
                     cancelationtoken,
                     awsApi.RegionEndpointStr,
-                    awsApi.ServiceName,
+                    "execute-api",
                     icreds);
             }
-            else if (awsApi.ApiType.Equals("HttpApi", StringComparison.OrdinalIgnoreCase))
+            else if (awsApi.Type.Equals("HttpApi", StringComparison.OrdinalIgnoreCase))
             {
                 // Use JWT Token signing process
                 requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);

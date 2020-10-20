@@ -6,6 +6,8 @@ using System.Reflection;
 
 using YamlDotNet.RepresentationModel;
 using Force.DeepCloner;
+using System.Diagnostics;
+using CommandLine;
 
 namespace LazyStack 
 {
@@ -39,10 +41,6 @@ namespace LazyStack
             LambdaFolderPath = Path.Combine(SolutionRootFolderPath, "Lambdas");
             if (!Directory.Exists(LambdaFolderPath))
                 Directory.CreateDirectory(LambdaFolderPath);
-
-            //LambdaApisFolderPath = Path.Combine(SolutionRootFolderPath, "LambdaApis");
-            //if (!Directory.Exists(LambdaApisFolderPath))
-            //    Directory.CreateDirectory(LambdaApisFolderPath);
 
             ControllersFolderPath = Path.Combine(SolutionRootFolderPath, "Controllers");
             if (!Directory.Exists(ControllersFolderPath))
@@ -142,9 +140,6 @@ namespace LazyStack
 
             var lazyStackNode = ReadAndParseYamlFile(fileName);
 
-            //if (lazyStackNode.Children.TryGetValue("ProjectGenerationOptions", out YamlNode node))
-            //    ProcessProjectGenerationOptions(node as YamlMappingNode, "Templates/LazyStack.yaml");
-
             if (!lazyStackNode.Children.TryGetValue("ProjectGenerationOptions", out YamlNode node))
                 throw new Exception("Error: ProjectGenerationOptions missing from LazyStack.yaml file in LazyStack templates folder ");
 
@@ -199,6 +194,9 @@ namespace LazyStack
 
             // Add Lambda.Events for each Path/Operation (route) in OpenApi specification
             ParseOpenApiPathObject();
+
+            // Prune -- remove default resources not referenced
+            PruneResources();
 
             WriteSAM(); // Write serverless.template file
 
@@ -539,6 +537,74 @@ namespace LazyStack
             }
         }
 
+        private void PruneResources()
+        {
+            // Prune un-referenced default resources
+            // UserPool
+            // UserPoolClient
+            // IdentityPool
+            // CognitoIdentityPoolRoles
+            // AuthRole
+            // UnAuthRole
+
+            var pruneList = new Dictionary<string, bool>
+            {
+                { "UserPool", true },
+                { "UserPoolClient", true },
+                { "IdentityPool", true },
+                { "CognitoIdentityPoolRoles", true },
+                { "AuthRole", true },
+                { "UnauthRole", true}
+            };
+
+            foreach(var resource in Resources)
+            {
+                if (!pruneList.Keys.Contains(resource.Value.Name)) // don't look for references inside pruneList resources
+                {
+                    switch(resource.Value.AwsType)
+                    {
+                        case "AWS::Serverless::HttpApi":
+                            if (Apis[resource.Key].Lambdas.Count > 0  && resource.Value.RootNode.AllNodes.Contains("UserPoolClient"))
+                            {
+                                pruneList["UserPool"] = false;
+                                pruneList["UserPoolClient"] = false;
+                                pruneList["IdentityPool"] = false;
+                                pruneList["CognitoIdentityPoolRoles"] = false;
+                            }
+                            break;
+                        case "AWS::Serverless::Api":
+
+                            if (Apis[resource.Key].Lambdas.Count > 0)
+                            {
+                                if (resource.Value.RootNode.AllNodes.Contains("AWS_IAM"))
+                                {
+                                    pruneList["UserPool"] = false;
+                                    pruneList["UserPoolClient"] = false;
+                                    pruneList["IdentityPool"] = false;
+                                    pruneList["CognitoIdentityPoolRoles"] = false;
+                                    pruneList["AuthRole"] = false;
+                                }
+                                else
+                                {
+                                    pruneList["UnauthRole"] = false;
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    
+                }
+            }
+            foreach(var item in pruneList)
+            {
+                if (item.Value)
+                    Resources.Remove(item.Key);
+            }
+
+        }
+
+
         private void WriteSAM()
         {
             logger.Info($"\nWriting SAM serverless.template file");
@@ -630,7 +696,7 @@ namespace LazyStack
             return targetNode;
         }
 
-        public bool FindComponentReferences2(YamlNode node, List<string> references, List<string> processedReferences)
+        public bool FindComponentReferences(YamlNode node, List<string> references)
         {
             switch (node.NodeType)
             {
@@ -641,17 +707,17 @@ namespace LazyStack
                         if (childNode.Key.ToString().Equals(@"$ref") && childNode.Value.NodeType == YamlNodeType.Scalar)
                         {
                             var scalarNode = childNode.Value as YamlScalarNode;
-                            if (!references.Contains(scalarNode.Value) && !processedReferences.Contains(scalarNode.Value))
+                            if (!references.Contains(scalarNode.Value))
                                 references.Add(scalarNode.Value);
                         }
                         else
-                            FindComponentReferences2(childNode.Value, references, processedReferences);
+                            FindComponentReferences(childNode.Value, references);
                     break;
                 case YamlNodeType.Scalar:
                     break;
                 case YamlNodeType.Sequence:
                     foreach (YamlNode childNode in ((YamlSequenceNode)node).Children)
-                        FindComponentReferences2(childNode, references, processedReferences);
+                        FindComponentReferences(childNode, references);
                     break;
             }
 

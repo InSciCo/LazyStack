@@ -13,11 +13,6 @@
       - AWSXrayWriteOnlyAccess
 
   MetaData:
-    StackeryName: __lambdaName__
     ApiEventsGeneration: true
 
-AWS::Serverless::HttpApi:
-  Properties:
-    StageName:
-      Ref: EnvironmentAPIGatewayStageName
 

@@ -37,7 +37,6 @@ namespace LazyStackAuthTest
             var completionOption = HttpCompletionOption.ResponseContentRead;
             var cancelationtoken = CancellationToken.None;
 
-
             HttpResponseMessage response = null;
             if (!awsApi.IsSecure)
             {

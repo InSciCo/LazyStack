@@ -106,28 +106,10 @@ namespace LazyStack
             // and implementing AwsSignerVersion4
             // ApiClient.cs
             var filePath = Path.Combine(projFolderPath, "Client", "ApiClient.cs");
-            File.Copy(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ApiClient.cs"),
+             File.Copy(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ApiClient.cs"),
                 filePath, true);
 
             var text = File.ReadAllText(filePath);
-            text = text.Replace("__AppName__", appName);
-            File.WriteAllText(filePath, text);
-
-            // User.cs
-            filePath = Path.Combine(projFolderPath, "Client", "User.cs");
-            File.Copy(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "User.cs"),
-                filePath, true);
-
-            text = File.ReadAllText(filePath);
-            text = text.Replace("__AppName__", appName);
-            File.WriteAllText(filePath, text);
-
-            // AwsApi.cs
-            filePath = Path.Combine(projFolderPath, "Client", "AwsApi.cs");
-            File.Copy(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "AwsApi.cs"),
-                filePath, true);
-
-            text = File.ReadAllText(filePath);
             text = text.Replace("__AppName__", appName);
             File.WriteAllText(filePath, text);
 

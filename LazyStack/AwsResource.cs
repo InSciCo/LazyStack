@@ -43,57 +43,6 @@ namespace LazyStack
                 solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
         }
 
-        ///// <summary>
-        ///// Call when parsing Info Object x-lz-AwsResource directive
-        ///// </summary>
-        ///// <param name="resourceNode"></param>
-        ///// <param name="solutionModel"></param>
-        //public AwsResource(YamlMappingNode resourceNode, SolutionModel solutionModel)
-        //{
-        //    this.solutionModel = solutionModel;
-        //    YamlNode node;
-
-        //    if (resourceNode.NodeType != YamlNodeType.Mapping)
-        //        throw new Exception($"Error: Resource must be a mapping node.");
-
-        //    if (resourceNode.Children.Count > 1)
-        //        throw new Exception($"Error: x-lz-AwsResource must have only one child node. Name of resource.");
-
-        //    Name = resourceNode.Children.Keys.ToList<YamlNode>()[0].ToString();
-
-        //    var exists = solutionModel.Resources.TryGetValue(Name, out AwsResource existingResource);
-
-        //    RootNode = resourceNode[Name] as YamlMappingNode;
-        //    if (RootNode.Children.TryGetValue("Type", out node))
-        //        AwsType = node.ToString();
-        //    else
-        //        throw new Exception($"Error: Missing Type property for x-lz-AwsResource {Name}");
-
-        //    if (IsLambda)
-        //        throw new Exception($"Error: AWS::Serverless::Function resources may not be defined in Info section. Do this under tags section.");
-
-        //    if (exists)
-        //    {   // Merge new configuration into existing resource
-
-        //        if (!AwsType.Equals(existingResource.AwsType))
-        //            throw new Exception($"Error: Override of resource {Name} found with mismatching Aws Type {AwsType} ");
-
-        //        var msg = SolutionModel.MergeNode(existingResource.RootNode, RootNode);
-        //        if (!string.IsNullOrEmpty(msg))
-        //            throw new Exception($"Error: Parsing x-lz-AwsResource {Name} {msg}");
-        //    }
-        //    else
-        //    {   // Add new resource to dictionaries
-
-        //        if (IsRestApi)
-        //            solutionModel.Apis.Add(Name, new AwsApiRestApi(this, solutionModel));
-
-        //        if (IsHttpApi)
-        //            solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
-
-        //        solutionModel.Resources.Add(Name, this);
-        //    }
-        //}
 
         /// <summary>
         /// Call when parsing Tags Object - x-lz-AwsResource directive to create AWS::Serverless::Function objects
