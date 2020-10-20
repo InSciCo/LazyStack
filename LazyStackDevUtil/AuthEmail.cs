@@ -38,7 +38,6 @@ namespace LazyStackDevUtil
 
                         mailClient.Authenticate(email, emailPassword);
 
-                        // The Inbox folder is always available on all IMAP servers...
                         var inbox = mailClient.Inbox;
 
                         var query =
@@ -49,9 +48,7 @@ namespace LazyStackDevUtil
                             (SearchQuery.ToContains(emailTo));
 
                         inbox.Open(FolderAccess.ReadOnly);
-                        //var results = inbox.Search(query);
 
-                        var orderBy = new[] { OrderBy.ReverseArrival };
                         var results = inbox.Search(query);
 
                         foreach (var uid in results)
