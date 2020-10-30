@@ -22,6 +22,7 @@ namespace LazyStackAuth
         SignedUp, // User is signed up, user needs to sign in to continue
         SignedOut, 
         PasswordResetDone,
+        PasswordUpdateDone,
         EmailUpdateDone,
         VerificationCodeSent,
 

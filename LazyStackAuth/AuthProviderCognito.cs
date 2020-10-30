@@ -132,7 +132,7 @@ namespace LazyStackAuth
             await Task.Yield(); // best implementation I know of Better than await Task.Delay(0);
         }
 
-        public async Task<AuthModuleEvent> StartAuthAsync()
+        public virtual async Task<AuthModuleEvent> StartAuthAsync()
         {
             await NoOp(); // used when the method doesn't call service
 
@@ -146,7 +146,7 @@ namespace LazyStackAuth
             return AuthModuleEvent.AuthChallenge;
         }
 
-        public async Task<AuthModuleEvent> StartAuthAsync(string userLogin)
+        public virtual async Task<AuthModuleEvent> StartAuthAsync(string userLogin)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -158,7 +158,7 @@ namespace LazyStackAuth
             return await VerifyLoginAsync(userLogin);
         }
 
-        public async Task<AuthModuleEvent> StartAuthAsync(string userLogin, string password)
+        public virtual async Task<AuthModuleEvent> StartAuthAsync(string userLogin, string password)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -175,7 +175,7 @@ namespace LazyStackAuth
             return await VerifyPasswordAsync(password);
         }
 
-        public async Task<AuthModuleEvent> VerifyLoginAsync(string userLogin) 
+        public virtual async Task<AuthModuleEvent> VerifyLoginAsync(string userLogin) 
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -202,7 +202,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> VerifyPasswordAsync(string password)
+        public virtual async Task<AuthModuleEvent> VerifyPasswordAsync(string password)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -245,7 +245,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> VerifyMFACodeAsync(string mfaCode)
+        public virtual async Task<AuthModuleEvent> VerifyMFACodeAsync(string mfaCode)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -286,7 +286,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> VerifyPasswordUpdateAsync(string newPassword)
+        public virtual async Task<AuthModuleEvent> VerifyPasswordUpdateAsync(string newPassword)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -325,6 +325,26 @@ namespace LazyStackAuth
                 CognitoUser = null;
                 return AuthModuleEvent.Unknown;
             }
+        }
+
+        public virtual async Task<AuthModuleEvent> UpdatePasswordAsync(string oldPassword, string newPassword)
+        {
+            if (!IsAuthorized)
+                return AuthModuleEvent.NeedToBeSignedIn;
+            try
+            {
+                await CognitoUser.ChangePasswordAsync(oldPassword, newPassword);
+                return AuthModuleEvent.PasswordUpdateDone;
+            }
+            catch (InvalidPasswordException) { return AuthModuleEvent.PasswordRequirementsFailed; }
+            catch (TooManyRequestsException) { return AuthModuleEvent.TooManyAttempts; }
+            catch (TooManyFailedAttemptsException) { return AuthModuleEvent.TooManyAttempts; }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"UpdatePassword() threw an exception {e}");
+                return AuthModuleEvent.Unknown;
+            }
+
         }
 
         private void CheckForChallenges(AuthFlowResponse authFlowResponse)
@@ -371,7 +391,7 @@ namespace LazyStackAuth
             return AuthModuleEvent.Authorized;
         }
 
-        public async Task<AuthModuleEvent> RefreshUserDetailsAsync()
+        public virtual async Task<AuthModuleEvent> RefreshUserDetailsAsync()
         {
             if (CognitoUser == null)
                 return AuthModuleEvent.NeedToBeSignedIn;
@@ -398,7 +418,7 @@ namespace LazyStackAuth
             }
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             CognitoUser = null;
             AuthChallenges.Clear();
@@ -407,14 +427,14 @@ namespace LazyStackAuth
         }
 
 
-        public AuthModuleEvent SignOut()
+        public virtual AuthModuleEvent SignOut()
         {
             UserLogin = string.Empty;
             Clear();
             return AuthModuleEvent.SignedOut;
         }
 
-        public async Task<AuthModuleEvent> StartSignUpAsync(string userLogin, string password, string email)
+        public virtual async Task<AuthModuleEvent> StartSignUpAsync(string userLogin, string password, string email)
         {
             if(IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -463,7 +483,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> ResendVerifySignupCodeAsync(string userLogin)
+        public virtual async Task<AuthModuleEvent> ResendVerifySignupCodeAsync(string userLogin)
         {
             if (CognitoUser != null)
                 return AuthModuleEvent.InvalidOperationWhenSignedIn;
@@ -491,7 +511,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> VerifySignUpAsync(string code)
+        public virtual async Task<AuthModuleEvent> VerifySignUpAsync(string code)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
@@ -524,7 +544,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> ResetPasswordAsync(string userLogin)
+        public virtual async Task<AuthModuleEvent> ResetPasswordAsync(string userLogin)
         {
             if(IsAuthorized)
                 return AuthModuleEvent.InvalidOperationWhenSignedIn;
@@ -548,7 +568,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> VerifyPasswordResetAsync(string password, string code)
+        public virtual async Task<AuthModuleEvent> VerifyPasswordResetAsync(string password, string code)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.InvalidOperationWhenSignedIn;
@@ -574,7 +594,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> UpdateEmailAsync(string newUserEmail)
+        public virtual async Task<AuthModuleEvent> UpdateEmailAsync(string newUserEmail)
         {
             if (!IsAuthorized)
                 return AuthModuleEvent.NeedToBeSignedIn;
@@ -612,7 +632,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<AuthModuleEvent> ResendVerifyEmailUpdateAsync(string newUserEmail)
+        public virtual async Task<AuthModuleEvent> ResendVerifyEmailUpdateAsync(string newUserEmail)
         {
             if (!IsAuthorized)
                 return AuthModuleEvent.NeedToBeSignedIn;
@@ -620,7 +640,7 @@ namespace LazyStackAuth
             return await UpdateEmailAsync(newUserEmail);
         }
 
-        public async Task<AuthModuleEvent> VerifyEmailUpdateAsync(string code)
+        public virtual async Task<AuthModuleEvent> VerifyEmailUpdateAsync(string code)
         {
             if (IsAuthorized)
                 return AuthModuleEvent.NeedToBeSignedIn;
@@ -644,7 +664,7 @@ namespace LazyStackAuth
             }
         }
 
-        public async Task<string> GetAccessToken()
+        public virtual async Task<string> GetAccessToken()
         {
             if (CognitoUser == null)
                 return null;
@@ -656,7 +676,7 @@ namespace LazyStackAuth
                 return null;
         }
 
-        public async Task<string> GetIdentityToken()
+        public virtual async Task<string> GetIdentityToken()
         {
             if (CognitoUser == null)
                 return null; // Need to authenticate user first!

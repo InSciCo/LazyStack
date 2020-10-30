@@ -181,7 +181,6 @@ namespace LazyStackAuth
         /// 
         /// AuthModuleEvents 
         /// - Authorized -- Happy path when there are no more challenges
-        /// - AuthChallengeVerified -- Happy Path when additional challenges exist
         /// 
         /// </summary>
         /// <param name="newPassword"></param>
@@ -212,6 +211,24 @@ namespace LazyStackAuth
         /// </summary>
         /// <returns>AuthModuleEvent</returns>
         public AuthModuleEvent SignOut();
+
+        /// <summary>
+        /// Update user password
+        /// Prep:
+        /// IsAuthorized
+        /// CurrentChallenge == None
+        /// 
+        /// AuthModuleEvents
+        /// - PasswordUpdateDone -- Happy Path
+        /// 
+        /// - AuthModelEvent errors
+        /// 
+        /// </summary>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <returns></returns>
+        public Task<AuthModuleEvent> UpdatePasswordAsync(string oldPassword, string newPassword);
+
 
         /// <summary>
         /// Sign user up

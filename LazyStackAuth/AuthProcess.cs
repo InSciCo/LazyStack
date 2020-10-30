@@ -110,7 +110,7 @@ namespace LazyStackAuth
 			RaiseAllProperties();
 			return result;
         }
-
+		
 		public async Task<AuthModuleEvent> StartAuthAsync(string userLogin)
         {
 			var result = await _authProvider.StartAuthAsync(userLogin);
