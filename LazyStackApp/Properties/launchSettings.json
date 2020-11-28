@@ -2,7 +2,7 @@
   "profiles": {
     "LazyStackApp": {
       "commandName": "Project",
-      "workingDirectory": "C:\\Users\\tmay\\source\\repos\\TestSecureApi"
+      "workingDirectory": "C:\\Users\\tmay\\source\\repos\\LazyStackTutorial\\PetStore"
     }
   }
 }

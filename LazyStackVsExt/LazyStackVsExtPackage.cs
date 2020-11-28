@@ -50,6 +50,7 @@ namespace LazyStackVsExt
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await LazyStack_Generate_Projects.InitializeAsync(this);
             await LazyStackLogToolWindowCommand.InitializeAsync(this);
+            await GetAWSResources.InitializeAsync(this);
         }
 
         #endregion

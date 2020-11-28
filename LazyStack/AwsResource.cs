@@ -40,12 +40,11 @@ namespace LazyStack
                 solutionModel.Apis.Add(Name, new AwsApiRestApi(this, solutionModel));
             else 
             if (IsHttpApi && !solutionModel.Apis.ContainsKey(Name))
-                solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
+                    solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
         }
 
-
         /// <summary>
-        /// Call when parsing Tags Object - x-lz-AwsResource directive to create AWS::Serverless::Function objects
+        /// Call when parsing Tags Object directive to create AWS::Serverless::Function objects
         /// </summary>
         /// <param name="resourceNode"></param>
         /// <param name="solutionModel"></param>
@@ -70,14 +69,20 @@ namespace LazyStack
                 { "Type", "AWS::Serverless::Function" }
             };
 
-            var errorMsg = MergeResourceConfiguration(lambdaResourceDefinition, resourceDefinitionNode, solutionModel);
-            if (!string.IsNullOrEmpty(errorMsg))
-                throw new Exception($"Error: Can't process properties for {tag} {errorMsg}");
+            lambdaResourceDefinition = MergeResourceConfiguration(lambdaResourceDefinition, resourceDefinitionNode, solutionModel);
+
+            var codeUriTarget = solutionModel.GetConfigProperty($"{Name}/CodeUriTarget", errorIfMissing: false);
+            if(string.IsNullOrEmpty(codeUriTarget))
+                codeUriTarget = solutionModel.GetConfigProperty("LambdaProjects/CodeUriTarget", errorIfMissing: false);
+            if(string.IsNullOrEmpty(codeUriTarget))
+            {
+                throw new Exception($"Error: Missing LambdaProjects/CodeUriTarget directive.");
+            }
 
             var text = SolutionModel.YamlNodeToText(lambdaResourceDefinition);
             text = SolutionModel.ReplaceTargets(
                 text,
-                new Dictionary<string, string> { { "__lambdaName__", Name } }
+                new Dictionary<string, string> { { "__lambdaName__", Name }, { "__codeUriTarget__", codeUriTarget } }
                 );
             lambdaResourceDefinition = SolutionModel.ParseYamlText(text);
 
@@ -92,7 +97,6 @@ namespace LazyStack
             // awsApi.Lambdas
             new AWSLambda(awsApi, this, solutionModel);
         }
-
         
         public string Name { get; set; }
         public string AwsType { get; private set; }
@@ -111,14 +115,15 @@ namespace LazyStack
         /// <param name="userResourceConfiguration"></param>
         /// <param name="AwsType"></param>
         /// <param name="tag"></param>
-        private string MergeResourceConfiguration(YamlMappingNode resourceDefinition, YamlMappingNode userResourceConfiguration, SolutionModel solutionModel)
+        private YamlMappingNode MergeResourceConfiguration(YamlMappingNode resourceDefinition, YamlMappingNode userResourceConfiguration, SolutionModel solutionModel)
         {
             var msg = string.Empty;
             string awsType;
             if (resourceDefinition.Children.TryGetValue("Type", out YamlNode node))
                 awsType = node.ToString();
             else
-                return "No AWS Type specified";
+                throw new Exception($"Error: No AWS Type specified");
+
             if (userResourceConfiguration != null 
                 && userResourceConfiguration.NodeType == YamlNodeType.Mapping 
                 && userResourceConfiguration.Children.TryGetValue("Properties",out node))
@@ -126,35 +131,79 @@ namespace LazyStack
                 {
                     case "AWS::Serverless::Function":
                         if (node.NodeType != YamlNodeType.Mapping)
-                            return $"User Resource Definition is not a Mapping node";
+                            throw new Exception("User Resource Definition is not a Mapping node");
                         // Check for invalid property specifciations in user Resource Configuration
                         YamlMappingNode userProps = node as YamlMappingNode;
                         if (userProps.Children.ContainsKey("FunctionName"))
-                            return $"User Resource Configuration may not contain Property FunctionName. LazyStack inserts this automatically.";
+                            throw new Exception("User Resource Configuration may not contain Property FunctionName. LazyStack inserts this automatically.");
                         if (userProps.Children.ContainsKey("CodeUri"))
-                            return $"User Resource Configuration may not contain Property CodeUri. LazyStack inserts this automatically.";
+                            throw new Exception("User Resource Configuration may not contain Property CodeUri. LazyStack inserts this automatically.");
                         if (userProps.Children.ContainsKey("Handler"))
-                            return $"User Resource Configuration may not contain Property Handler. LazyStack inserts this automatically.";
+                            throw new Exception("User Resource Configuration may not contain Property Handler. LazyStack inserts this automatically.");
                         break;
                 }
 
             // Merge in any LazyStack defaults
             if (solutionModel.DefaultResourceConfigurations != null
                && solutionModel.DefaultResourceConfigurations.Children.TryGetValue(awsType, out YamlNode defResourcesMappingNode))
-                msg = SolutionModel.MergeNode(resourceDefinition, defResourcesMappingNode);
-            if (!string.IsNullOrEmpty(msg))
-                return msg;
-
-            if (userResourceConfiguration == null)
-                return string.Empty;
+            {  
+                resourceDefinition = SolutionModel.MergeNode(resourceDefinition, defResourcesMappingNode) as YamlMappingNode;
+            }
 
             // Merge in userResource Definition
             if (userResourceConfiguration != null)
-               msg = SolutionModel.MergeNode(resourceDefinition, userResourceConfiguration);
-            if (!string.IsNullOrEmpty(msg))
-                return msg;
+            {
+                resourceDefinition = SolutionModel.MergeNode(resourceDefinition, userResourceConfiguration) as YamlMappingNode;
+            }
 
-            return string.Empty;
+            return resourceDefinition;
+        }
+
+        public string GetOutputItem()
+        {
+            string OutputItem = string.Empty;
+            switch (AwsType)
+            {
+                case "AWS::Serverless::Api":
+                case "AWS::Serverless::HttpApi":
+                  OutputItem =
+                     $"{Name}: \n"
+                    + $"  Description: \"Gateway URL\"\n"
+                    + $"  Value:\n"
+                    + $"    Fn::Sub: https://${{{Name}}}.execute-api.${{AWS::Region}}.amazonaws.com/${{StageName}}\n"
+                    + $"  Export:\n"
+                    + $"    Name: \"{Name}\"\n";
+                    break;
+                case "AWS::Cognito::UserPool":
+                    OutputItem =
+                       $"{Name}: \n"
+                      + $"  Description: \"Cognito UserPoolId\"\n"
+                      + $"  Value:\n"
+                      + $"    Ref: {Name}\n"
+                      + $"  Export:\n"
+                      + $"    Name: \"{Name}\"\n";
+                    break;
+                case "AWS::Cognito::UserPoolClient":
+                    OutputItem =
+                       $"{Name}: \n"
+                      + $"  Description: \"Cognito UserPoolClientId\"\n"
+                      + $"  Value:\n"
+                      + $"    Ref: {Name}\n"
+                      + $"  Export:\n"
+                      + $"    Name: \"{Name}\"\n";
+                    break;
+                case "AWS::Cognito::IdentityPool":
+                    OutputItem =
+                       $"{Name}: \n"
+                      + $"  Description: \"Cognito IdentityPoolId\"\n"
+                      + $"  Value:\n"
+                      + $"    Ref: {Name}\n"
+                      + $"  Export:\n"
+                      + $"    Name: \"{Name}\"\n";
+                    break;
+            }
+
+            return OutputItem;
         }
 
     }

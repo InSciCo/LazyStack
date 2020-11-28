@@ -10,13 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Templates\ApiClient.cs" />
-    <Compile Remove="Templates\ConfigureSvcs.cs" />
-    <Compile Remove="Templates\Controllers\Controller.cs" />
-    <Compile Remove="Templates\Lambda\ConfigureSvcs.cs" />
-    <Compile Remove="Templates\Lambda\LambdaEntryPoint.cs" />
-    <Compile Remove="Templates\Lambda\LocalEntryPoint.cs" />
-    <Compile Remove="Templates\Lambda\Startup.cs" />
+    <None Remove="Templates\Controllers\Controller.cs.tpl" />
   </ItemGroup>
 
 
@@ -25,57 +19,116 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="Templates\ApiClient.cs">
+  </ItemGroup>
+    
+      
+  <ItemGroup>
+   
+    <None Include="Templates\Schema\Schema.csproj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\ConfigureSvcs.cs">
+   
+    <None Update="Templates\ClientSDK\Client\ApiClient.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Controllers\Controller.cs">
+   
+    <None Update="Templates\ClientSDK\Client\ApiException.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Lambda\ConfigureSvcs.cs">
+   
+    <None Update="Templates\ClientSDK\Client\ApiResponse.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Lambda\LambdaEntryPoint.cs">
+   
+    <None Update="Templates\ClientSDK\Client\ClientUtils.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Lambda\LocalEntryPoint.cs">
+   
+    <None Update="Templates\ClientSDK\Client\ExceptionFactory.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Lambda\Lambda.csproj">
+   
+    <None Update="Templates\ClientSDK\Client\HttpMethod.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="Templates\Lambda\Startup.cs">
+   
+    <None Update="Templates\ClientSDK\Client\IApiAccessor.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+   
+    <None Update="Templates\ClientSDK\Client\IAsynchronousClient.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\Client\Multimap.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\Client\OpenAPIDateConverter.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\Client\RequestOptions.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\WebApi\ConfigureSvcs.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+    <None Update="Templates\Controllers\.gitignore">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  
     <None Include="Templates\Controllers\Controller.csproj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    </None>    
 
-  <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="DeepCloner" Version="0.10.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="YamlDotNet" Version="8.1.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Templates\template.yaml" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Content Include="Templates\Controllers\Controller.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  
     <None Update="OpenAPIGenerator\openapi-generator-cli.jar">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  
+    <None Include="Templates\template.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
     <None Update="Templates\aws_defaults.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+   
     <None Update="Templates\default_resources.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+   
+    <None Update="Templates\Lambda\ConfigureSvcs.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\Lambda\LambdaEntryPoint.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\Lambda\LocalEntryPoint.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\Lambda\Startup.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\LazyStack.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\template.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+ 
+ 
     <None Update="Templates\Lambda\appsettings.Development.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -94,15 +147,19 @@
     <None Update="Templates\Lambda\serverless.template">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Templates\Controllers\.gitignore">
+    <None Include="Templates\Lambda\Lambda.csproj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Templates\LazyStack.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Templates\template.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </None>  
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.CloudFormation" Version="3.3.106.21" />
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="DeepCloner" Version="0.10.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="YamlDotNet" Version="9.1.0" />
   </ItemGroup>
 
 </Project>

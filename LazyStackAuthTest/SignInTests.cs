@@ -1,17 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.Json;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using System;
 using System.IO;
 using System.Text;
 using LazyStackAuth;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Collections.Generic;
-using System.Diagnostics;
-
 using LazyStackDevUtil;
 
 namespace LazyStackAuthTest

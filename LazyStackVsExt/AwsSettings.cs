@@ -5,7 +5,7 @@ using System.Text;
 using Amazon.CloudFormation;
 using Amazon.CloudFormation.Model;
 
-namespace LazyStackDevUtil
+namespace LazyStackVsExt
 {
     public class AwsSettings
     {

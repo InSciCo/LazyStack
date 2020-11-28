@@ -100,8 +100,6 @@
       Roles:
         authenticated: 
           Fn::GetAtt: AuthRole.Arn
-        unauthenticated: 
-          Fn::GetAtt: UnauthRole.Arn
 
   AuthRole:
     Type: AWS::IAM::Role

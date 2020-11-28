@@ -44,7 +44,7 @@ namespace LazyStackAuthTest
             var authProvider = new AuthProviderCognito(appConfig);
             var authProcess = new AuthProcess(authProvider);
 
-            var verificationCodeSendTime = DateTime.UtcNow.AddSeconds(-3); // verficationCode sent after this time
+            var verificationCodeSendTime = DateTime.UtcNow; // verficationCode sent after this time
             var authResult = authProcess.StartSignUpAsync(userLogin, password, email).GetAwaiter().GetResult();
             Assert.IsTrue(authResult == AuthModuleEvent.AuthChallenge);
             Assert.IsTrue(authProcess.HasChallenge);

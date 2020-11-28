@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
+using System.Threading;
 using Microsoft.Extensions.Configuration;
 
 using MailKit;
@@ -25,6 +25,7 @@ namespace LazyStackDevUtil
             do
             {
                 Debug.WriteLine($"tryCount {tryCount}");
+                Thread.Sleep(3000);
                 try
                 {
                     tryCount++;
@@ -54,6 +55,9 @@ namespace LazyStackDevUtil
                         foreach (var uid in results)
                         {
                             var message = inbox.GetMessage(uid);
+                            Debug.WriteLine($"{message.Date} {verificationCodeSendTime} {message.HtmlBody}");
+                            Debug.WriteLine($"{verificationCodeSendTime}");
+                            Debug.WriteLine($"{message.Date.Subtract(verificationCodeSendTime)}");
                             Debug.WriteLine($"{message.Date} {verificationCodeSendTime} {message.HtmlBody}");
                             if (message.Date > verificationCodeSendTime)
                             {

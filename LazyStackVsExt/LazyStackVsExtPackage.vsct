@@ -66,6 +66,13 @@
           <ButtonText>ToolWindow1</ButtonText>
         </Strings>
       </Button>
+      <Button guid="guidLazyStackVsExtPackageCmdSet" id="cmdidGetAWSResources" priority="0x0100" type="Button">
+        <Parent guid="guidLazyStackVsExtPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages2" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Invoke LazyStack - Get AWS Resource Ids</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
     <!--The bitmaps section is used to define the bitmaps that are used for the commands.-->
@@ -77,6 +84,7 @@
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\LazyStack___Generate_Projects.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
       <Bitmap guid="guidImages1" href="Resources\ToolWindow1Command.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages2" href="Resources\GetAWSResources.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
 
@@ -89,6 +97,7 @@
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="LazyStack___Generate_ProjectsId" value="0x0100" />
       <IDSymbol value="4129" name="cmdidToolWindow1Command" />
+      <IDSymbol value="4130" name="cmdidGetAWSResources" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{9222dd9d-112d-433c-b69c-43b5926a00c4}">
@@ -101,6 +110,15 @@
     </GuidSymbol>
   
     <GuidSymbol value="{508db966-32d7-4020-bfb0-daf68d6917a6}" name="guidImages1">
+      <IDSymbol name="bmpPic1" value="1" />
+      <IDSymbol name="bmpPic2" value="2" />
+      <IDSymbol name="bmpPicSearch" value="3" />
+      <IDSymbol name="bmpPicX" value="4" />
+      <IDSymbol name="bmpPicArrows" value="5" />
+      <IDSymbol name="bmpPicStrikethrough" value="6" />
+    </GuidSymbol>
+  
+    <GuidSymbol value="{709bf1b1-7f6d-4a74-bd8f-af394f96b679}" name="guidImages2">
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />

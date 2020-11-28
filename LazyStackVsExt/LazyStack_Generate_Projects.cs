@@ -10,6 +10,7 @@ using EnvDTE80;
 using EnvDTE100;
 using LazyStack;
 using VSLangProj;
+using System.Windows;
 
 namespace LazyStackVsExt
 {
@@ -91,6 +92,12 @@ namespace LazyStackVsExt
             // Do the work in this handler async
             this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
             {
+                var solutionFullName = dte?.Solution?.FullName;
+                if(string.IsNullOrEmpty(solutionFullName))
+                {
+                    MessageBox.Show("Sorry - no solution is open.");
+                    return;
+                }
 
                 ToolWindowPane window = await this.package.ShowToolWindowAsync(typeof(LazyStackLogToolWindow), 0, true, this.package.DisposalToken);
                 if ((null == window) || (null == window.Frame))
@@ -111,7 +118,7 @@ namespace LazyStackVsExt
 
                 try
                 {
-                    var solutionRootFolderPath = Path.GetDirectoryName(dte?.Solution?.FullName);
+                    var solutionRootFolderPath = Path.GetDirectoryName(solutionFullName);
                     var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
 
                     // Use Task.Run to do CPU bound work
