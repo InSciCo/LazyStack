@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization.ObjectGraphTraversalStrategies;
-using CommandLine;
+using NSwag.CodeGeneration.CSharp;
+using NSwag;
+
 
 namespace LazyStack
 {
@@ -39,46 +39,13 @@ namespace LazyStack
 
         public void Run()
         {
-            ProcessClientSDKProject();
+            ProcessClientSDKProject(); // also generates schema project
 
-            ProcessSchemaProject(solutionModel.ClientSDK); // generate schema project from client SDK Models
-
-            //ProcessReferenceApiProject();
-
-
-            // Generate Reference API project using OpenApi Generator
-            var projectLib = new GenerateProject(solutionModel)
+            // Generate Controller and Lambda function project for each OpenApi tag
+            foreach (KeyValuePair<string, AWSLambda> lambda in solutionModel.Lambdas)
             {
-                Input = solutionModel.OpenApiFilePath,
-                Generator = "aspnetcore",
-                Output = "", // We don't output this project, we only use pieces of it to generate controllers code
-                SkipValidateSpec = true,
-                ProjectName = "__ProjectName__"
-            };
-            var properties = solutionModel.GetConfigProperties("ReferenceApiProjects/OpenApiGeneratorOptions", errorIfMissing: true);
-            foreach (var kvp in properties)
-                projectLib.AdditionalProperites.Add(kvp.Key, kvp.Value);
-            projectLib.AdditionalProperites.Add("packageName", "__ProjectName__");
-
-            try
-            {
-                projectLib.GenerateTemp(); // This writes the API reference project into a temporary folder
-
-                // We generate Controller and Lambda function project for each
-                // tag, in the OpenAPI specification. 
-
-                foreach (KeyValuePair<string, AWSLambda> lambda in solutionModel.Lambdas)
-                {
-                    var lambdaName = lambda.Key; // ex: Order
-                                                 // ex: Lambdas/OrderLambda project
-                    ProcessLambdaProject(lambdaName, lambda.Value.AwsApi); // api passed because project needs to know type of Api calling it
-                                                                           // ex: Controllers/OrderController project
-                    ProcessControllerProject(lambdaName, projectLib.TempSolutionPath);
-                }
-            }
-            finally
-            {
-                projectLib.RemoveTemp(); // Remove temp folder
+                ProcessLambdaProject(lambda.Key, lambda.Value.AwsApi); 
+                ProcessControllerProject(lambda.Key);
             }
 
             ProcessLocalWebApiProject();
@@ -118,36 +85,113 @@ namespace LazyStack
 
             logger.Info($"Generating/updating {projName}");
 
-            var client = new GenerateProject(solutionModel)
-            {
-                Input = solutionModel.OpenApiFilePath,
-                Generator = "csharp-netcore",
-                Output = solutionModel.SolutionRootFolderPath,
-                SkipValidateSpec = true,
-                ProjectName = projName
-            };
+            if(Directory.Exists(projFolderPath))
+                foreach (var file in Directory.GetFiles(projFolderPath))
+                    File.Delete(file);
 
-            var properties = solutionModel.GetConfigProperties("ClientSDKProjects/OpenApiGeneratorOptions", errorIfMissing: true);
-            foreach (var kvp in properties)
-                client.AdditionalProperites.Add(kvp.Key, kvp.Value);
-            client.AdditionalProperites.Add("packageName", projName);
-            client.Run();
+            var openApiDocument = OpenApiYamlDocument.FromYamlAsync(solutionModel.OpenApiSpecText).GetAwaiter().GetResult();
 
-            // Replace Client Folder with our version - replalcing RestSharp with MS Classes, 
-            // Implementing AwsSignerVersion4, removing Sync, using MS Configuration
-            Directory.Delete(Path.Combine(projFolderPath, "Client"), recursive: true); 
+            // Copy project templates with replacements and renames as necessary
+            var replacements = new Dictionary<string,string>
+                {
+                    { "__ProjName__", projName }
+                };
+        
+            var securityLevelNoneCases = string.Empty;
+            var securityLevelJwtCases = string.Empty;
+            var securityLevelSignedCases = string.Empty;
+
+            // Build the case statements for each endpoint
+            foreach(var endPoint in solutionModel.EndPoints.Values)
+                switch(endPoint.Api.SecurityLevel)
+                {
+                    case SecurityLevel.none:
+                        securityLevelNoneCases += $"\t\t\t\tcase \"{endPoint.Name}\":\n";
+                        break;
+                    case SecurityLevel.jwt:
+                        securityLevelJwtCases += $"\t\t\t\tcase \"{endPoint.Name}\":\n";
+                        break;
+                    case SecurityLevel.signed:
+                        securityLevelSignedCases += $"\t\t\t\tcase \"{endPoint.Name}\":\n";
+                        break;
+                    default:
+                        throw new Exception($"Error: unknown SecurityLevel in endpoint {endPoint.Name}");
+                }
+
+            // If there are any cases for SecurityLevel == none then add the code to handle those cases
+            if (!string.IsNullOrEmpty(securityLevelNoneCases))
+                securityLevelNoneCases += @"
+                    response = await httpClient.SendAsync(
+                        requestMessage,
+                        httpCompletionOption,
+                        cancellationToken);
+                    break;";
+
+            // If there are any cases for SecurityLevel == jwt then add the code to handle those cases
+            if(!string.IsNullOrEmpty(securityLevelJwtCases))
+                securityLevelJwtCases += @"
+                    // Use JWT Token signing process
+                    requestMessage.Headers.Add(""Authorization"", cognitoUser.SessionTokens.IdToken);
+                    response = await httpClient.SendAsync(
+                        requestMessage,
+                        httpCompletionOption,
+                        cancellationToken);
+                    break; ";
+
+            // If there are any caes for SecurityLevel == signed then add the code to handle those cases
+            if (!string.IsNullOrEmpty(securityLevelSignedCases))
+                securityLevelSignedCases += @"
+                    // Use full request signing process
+                    // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
+                    var iCreds = await cognitoAwsCredentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessaary
+                    // Calling AwsSignatureVersion4 extension method -- this signes the request message
+                    response = await httpClient.SendAsync(
+                        requestMessage,
+                        httpCompletionOption,
+                        cancellationToken,
+                        regionEndPoint,
+                        serviceName,
+                        iCreds);
+                    break;
+";
+
+            // Update the LzHttpClient code
+            replacements.Add("__SecurityLevelNoneCases__", securityLevelNoneCases);
+            replacements.Add("__SecurityLevelJwtCases__", securityLevelJwtCases);
+            replacements.Add("__SecurityLevelSignedCases__", securityLevelSignedCases);
+
 
             Utilities.DirectoryCopy(
-                Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ClientSDK", "Client"),
-                Path.Combine(projFolderPath, "Client"),
+                Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ClientSDK"),
+                projFolderPath,
                 copySubDirs: true,
                 overwrite: true,
                 removeTplExtension: true,
-                new Dictionary<string, string>()
-                    {
-                        {"__ProjName__", projName }
-                    }
+                replacements
                 );
+
+
+            // Generate client sdk class using NSwag
+            var nswagSettings = new CSharpClientGeneratorSettings
+            {
+                ClassName = $"{appName}",
+                UseBaseUrl = false,
+                HttpClientType = "LzHttpClient",
+                CSharpGeneratorSettings =
+                {
+                    Namespace = projName
+                }
+            };
+            var nswagGenerator = new CSharpClientGenerator(openApiDocument, nswagSettings);
+            var code = nswagGenerator.GenerateFile();
+            var schemaCode = code;
+
+            // Strip out schema classes, insert using statement, write out final class
+            var root = CSharpSyntaxTree.ParseText(code).GetCompilationUnitRoot();
+            root = RemoveGeneratedSchemaClasses(root, new List<string> { "ApiException" });
+            root = InsertUsingStatements(root, new List<string> { { $"{appName}Schema.Models" } });
+            code = root.ToFullString();
+            File.WriteAllText(Path.Combine(projFolderPath, $"{appName}.cs"), code);
 
             var localProjectReferences =
                 new List<string>
@@ -155,6 +199,9 @@ namespace LazyStack
                     //< ProjectReference Include = "..\PetStoreSchema\PetStoreSchema.csproj" />
                     Path.Combine("..",$"{appName}Schema", $"{appName}Schema.csproj"),
                 };
+
+            // Rename project file
+            File.Move(Path.Combine(projFolderPath, "ClientSDK.csproj"), projFilePath);
 
             // Modify csproj
             UpdateProjectFile(
@@ -166,86 +213,13 @@ namespace LazyStack
                 localProperties: null
                 );
 
-            // Modify each Api class to use the Schema project and modified Client files
-            var files = Directory.EnumerateFiles(Path.Combine(projFolderPath, "Api"));
-            foreach (var apiFile in files)
-            {
-                var fileText = File.ReadAllText(apiFile);
-                fileText = fileText.Replace($"using {projName}.Model", $"using {solutionModel.AppName}Schema.Model");
-                CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
-
-                var className = Path.GetFileNameWithoutExtension(apiFile);
-
-                root = InsertUsingStatements(
-                    root: root,
-                    newUsingReferences: new List<string>() 
-                    { 
-                        "System.ComponentModel.DataAnnotations", 
-                        "Microsoft.Extensions.Configuration"}
-                    );
-
-                root = RemoveSyncInterface(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: $"I{className}Sync"
-                    );
-
-                root = RemoveSyncMethods(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className,
-                    exclude: new List<string>()
-                    );
-
-                root = RemoveConstructors(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className
-                    );
-
-                root = RemoveProperty(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className,
-                    varName: "Client"
-                    );
-
-                root = RemoveProperty(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className,
-                    varName: "Configuration"
-                    );
-
-
-                // Insert new constructor
-                var constructorText =
-                    $"\t\tpublic {className}(IAsynchronousClient asyncClient)\n" +
-                    $"\t\t{{\n" +
-                    $"\t\t\tif(asyncClient == null) throw new ArgumentNullException(\"asyncClient\");\n" +
-                    $"\t\t\tthis.AsynchronousClient=asyncClient;\n" +
-                    $"\t\t}}\n";
-
-                root = InsertConstructor(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className,
-                    newConstructorText: constructorText);
-
-                root = InsertProperty(
-                    root: root,
-                    nameSpace: $"{projName}.Api",
-                    className: className,
-                    newPropertyText: $"\t\tpublic IConfiguration Configuration {{get; set;}}"
-                    );
-
-                fileText = root.ToFullString();
-                File.WriteAllText(apiFile, fileText);
-
-            }
+            // Stip out the Api classes to create schema code
+            var schemaRoot = CSharpSyntaxTree.ParseText(schemaCode).GetCompilationUnitRoot();
+            schemaRoot = RemoveClass(schemaRoot, appName);
+            ProcessSchemaProject(schemaRoot); // Create shcema project
         }
 
-        private void ProcessSchemaProject(ProjectInfo clientSDK)
+        private void ProcessSchemaProject( CompilationUnitSyntax schemaRoot)
         {
             var projName = $"{solutionModel.AppName}Schema"; // PetStoreSchema
             var projFileName = $"{projName}.csproj"; // PetStoreSchema.csproj
@@ -279,105 +253,73 @@ namespace LazyStack
                 Directory.CreateDirectory(Path.Combine(projFolderPath, "Models"));
             }
 
-            var sourceModelsPath = Path.Combine(clientSDK.FolderPath, "Model");
-            if (Directory.Exists(sourceModelsPath))
+            foreach (var file in Directory.GetFiles(Path.Combine(projFolderPath, "Models")))
+                File.Delete(file);
+
+            // Generate separate files for each model class
+            var classGroups = schemaRoot
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .GroupBy(x => x.Identifier.ValueText)
+                    .ToList(); // ex: OrderController
+
+            var template = @"
+//----------------------
+// <auto-generated>
+//     Generated using the NSwag toolchain 
+// </auto-generated>
+// Refactored into the schema project by LazyStack
+//----------------------
+
+#pragma warning disable 108 // Disable ""CS0108 '{derivedDto}.ToJson()' hides inherited member '{dtoBase}.ToJson()'.Use the new keyword if hiding was intended.""
+#pragma warning disable 114 // Disable ""CS0114 '{derivedDto}.RaisePropertyChanged(String)' hides inherited member 'dtoBase.RaisePropertyChanged(String)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.""
+#pragma warning disable 472 // Disable ""CS0472 The result of the expression is always 'false' since a value of type 'Int32' is never equal to 'null' of type 'Int32?'""
+#pragma warning disable 1573 // Disable ""CS1573 Parameter '...' has no matching param tag in the XML comment for ...""
+#pragma warning disable 1591 // Disable ""CS1591 Missing XML comment for publicly visible type or member ...""
+#pragma warning disable 8073 // Disable ""CS8073 The result of the expression is always 'false' since a value of type 'T' is never equal to 'null' of type 'T?'""
+
+namespace __NameSpace__
+{
+    using System = global::System;
+
+ __Body__
+}
+#pragma warning restore 1591
+#pragma warning restore 1573
+#pragma warning restore  472
+#pragma warning restore  114
+#pragma warning restore  108
+";
+
+            foreach (var classGroup in classGroups)
             {
-                // Move ClientSDK models to Schema project
-                var files = Directory.EnumerateFiles(sourceModelsPath);
-                foreach (var file in files)
-                {
-                    var classname = Path.GetFileNameWithoutExtension(file);
-
-                    var fileText = File.ReadAllText(file);
-                    // Remove reference to OpenApiDateConverter
-                    fileText = fileText.Replace($"using OpenAPIDateConverter = {solutionModel.ClientSDKProjectName}.Client.OpenAPIDateConverter;", "");
-                    
-                    // Rename namespace in model class
-                    fileText = fileText.Replace(solutionModel.ClientSDKProjectName, projName);
-
-                    // Replace any protected constructor "protected <classname>() {}" with "public <classname>() {}
-                    fileText = fileText.Replace($"protected {classname}()", $"public {classname}()");
-
-                    // Add a parameterless constructor if none exists
-                    if (!fileText.Contains($"public {classname}()"))
-                    {
-                        CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
-                        root = InsertConstructor(root, projName + ".Model", classname, $"public {classname}() {{}}");
-                        fileText = root.ToFullString();
-                    }
-
-                    var newFilePath = Path.Combine(projFolderPath, "Models", Path.GetFileName(file));
-                    File.WriteAllText(newFilePath, fileText);
-                }
-                // Remove sourceModelsPath
-                Directory.Delete(sourceModelsPath, recursive: true);
+                var classFileContent = template.Replace("__NameSpace__", $"{projName}.Models");
+                var className = classGroup.Key;
+                var classCode = string.Empty;
+                foreach(var classDecl in classGroup.ToList())
+                    classCode += classDecl.ToFullString();
+                classFileContent = classFileContent.Replace("__Body__", classCode);
+                File.WriteAllText(Path.Combine(projFolderPath, "Models", $"{className}.cs"), classFileContent);
             }
-        }
 
-        /// <summary>
-        /// Generate the <AppName>Api project.
-        /// </summary>
-        private void ProcessReferenceApiProject()
-        { 
-            var projName = $"{solutionModel.AppName}Api"; // PetStoreApi
-            var projFileName = $"{projName}.csproj"; // PetStoreApi.csproj
-            var projFileRelativePath = Path.Combine(projName, projFileName); // PetStoreApi/PetStoreApi.csproj
-            var projFolderPath = Path.Combine(solutionModel.SolutionRootFolderPath, projName);
-            var projFilePath = Path.Combine(projFolderPath, projFileName);
-            var appName = solutionModel.AppName;
+            // Generate a separate file for each enum class
+            var enumGroups = schemaRoot
+            .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+            .First()
+                ?.DescendantNodes().OfType<EnumDeclarationSyntax>()
+                .GroupBy(x => x.Identifier.Value)
+                .ToList(); // ex: OrderController
 
-            solutionModel.Projects.Add(projName,
-                new ProjectInfo(
-                    solutionFolder: string.Empty,
-                    path: projFilePath,
-                    projFileRelativePath,
-                    projFolderPath
-                    ));
-
-            logger.Info($"Generating/updating project {projName}");
-            var projectLib = new GenerateProject(solutionModel)
+            foreach(var enumGroup in enumGroups)
             {
-                Input = solutionModel.OpenApiFilePath,
-                Generator = "aspnetcore",
-                Output = solutionModel.SolutionRootFolderPath,
-                SkipValidateSpec = true,
-                ProjectName = projName
-            };
-
-            var properties = solutionModel.GetConfigProperties("ReferenceApiProjects/OpenApiGeneratorOptions", errorIfMissing: true);
-            foreach (var kvp in properties)
-                projectLib.AdditionalProperites.Add(kvp.Key, kvp.Value);
-            projectLib.AdditionalProperites.Add("packageName", projName);
-            projectLib.Run();
-
-            var localProjectReferences =
-                new List<string>
-                {
-                    //< ProjectReference Include = "..\PetStoreSchema\PetStoreSchema.csproj" />
-                    Path.Combine("..",$"{appName}Schema", $"{appName}Schema.csproj"),
-                };
-
-
-            // Modify csproj
-            UpdateProjectFile(
-                projFilePath,
-                "ReferenceApiProjects",
-                projName,
-                localProjectReferences: localProjectReferences,
-                localPackageReferences: null,
-                localProperties: null
-                );
-
-            // Remove Models folder, we are going to use Schema lib instead
-            Directory.Delete(Path.Combine(projFolderPath, "Models"), recursive: true);
-
-            // Update Api class files
-            var files = Directory.EnumerateFiles(Path.Combine(projFolderPath, "Controllers"));
-            foreach (var file in files)
-            {
-                var fileText = File.ReadAllText(file);
-                fileText = fileText.Replace($"using {projName}.Models", $"using {solutionModel.AppName}Schema.Model");
-                File.WriteAllText(file, fileText);
+                var enumFileContent = template.Replace("__NameSpace__", $"{projName}.Models");
+                var enumName = enumGroup.Key;
+                var enumCode = string.Empty;
+                foreach(var enumDecl in enumGroup.ToList())
+                    enumCode += enumDecl.ToFullString();
+                enumFileContent = enumFileContent.Replace("__Body__", enumCode);
+                File.WriteAllText(Path.Combine(projFolderPath, "Models", $"{enumName}.cs"), enumFileContent);
             }
         }
 
@@ -387,6 +329,7 @@ namespace LazyStack
         /// <param name="lambdaName"></param>
         /// <paramref name="api"/>
         /// <paramref name="tempApiSolutionPath"/>
+        /// 
         private void ProcessLambdaProject(string lambdaName, AwsApi api)
         {
             // Create Lambda project
@@ -473,7 +416,7 @@ namespace LazyStack
         /// Generate a <LambdaName></LambdaName>Controller project.
         /// </summary>
         /// <param name="lambdaName"></param>
-        private void ProcessControllerProject(string lambdaName, string tempApiSolutionPath)
+        private void ProcessControllerProject(string lambdaName)
         {
             var appName = solutionModel.AppName; // PetStore
             var projName = $"{lambdaName}Controller"; // OrderController
@@ -490,65 +433,54 @@ namespace LazyStack
                     folderPath: projFolderPath
                     ));
 
-
             logger.Info($"Generating/updating project {lambdaName}Controller");
 
             // Create new project folder if it doesn't exist
             if (!Directory.Exists(projFolderPath))
-            {
                 Directory.CreateDirectory(projFolderPath);
 
-                File.Move( // Rename csproj file. ex: ApiController.csproj to OrderController.csproj
-                    Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Controllers", "Controller.csproj"),
-                    projFilePath);
-            }
+            File.Copy(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Controllers", "Controller.csproj"),
+                projFilePath, overwrite: true);
 
-            var classFilePath = Path.Combine(projFolderPath, $"{lambdaName}Controller.cs");
+            var fileText = File.ReadAllText(Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Controllers", "FakeEntryPoint.cs.tpl"));
+            fileText = fileText.Replace("__NameSpace__", projName);
+            File.WriteAllText(Path.Combine(projFolderPath, "FakeEntryPoint.cs"), fileText);
 
-            if (!File.Exists(classFilePath))
+            var lambda = solutionModel.Lambdas[lambdaName];
+            var openApiSpec = SolutionModel.YamlNodeToText(lambda.OpenApiSpec);
+            var openApiDocument = OpenApiYamlDocument.FromYamlAsync(openApiSpec).GetAwaiter().GetResult();
+
+            var cSharpControllerGeneratorSettings = new CSharpControllerGeneratorSettings()
             {
-                // Create Class file
-                // ex: Rename Controller.cs to .cs ex: OrderController.cs
-                File.Move(
-                    Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Controllers", "Controller.cs.tpl"),
-                    classFilePath
-                    );
-
-                var text = File.ReadAllText(classFilePath);
-                var usingStatements =
-                    $"using {appName}Schema.Model;\n"; // ex: using PetStoreSchema.Model;
-
-                text = text.Replace("__UsingStatements__", usingStatements);
-                text = text.Replace("__LambdaNameController__", $"{lambdaName}Controller"); // ex: OrderController
-                text = text.Replace("__LambdaNameApiController__", $"{lambdaName}ApiController"); //ex: OrderApiController
-
-                var apiMethods = ProcessApiControllerClass(appName, lambdaName, tempApiSolutionPath, projFolderPath);
-                text = text.Replace("__Methods__", GenerateControllerMethods(apiMethods));
-                File.WriteAllText(classFilePath, text);
-            }
-            else
-            {
-                // Update methods
-                // Copy the controller virtual class, and supporting classes, to the controller project
-                var apiMethods = ProcessApiControllerClass(appName, lambdaName, tempApiSolutionPath, projFolderPath);
-
-                var existingMethods = GetControllerMethods(lambdaName);
-                var insertMethods = new List<Method>();
-                foreach (var m in apiMethods)
+                UseActionResultType = true,
+                 
+                ClassName = lambdaName,
+                ControllerTarget = NSwag.CodeGeneration.CSharp.Models.CSharpControllerTarget.AspNetCore,
+                ControllerBaseClass = "Microsoft.AspNetCore.Mvc.Controller",
+                 
+                CSharpGeneratorSettings =
                 {
-                    bool found = false;
-                    foreach (var em in existingMethods)
-                        if (m.MethodName.Equals(em.MethodName) && m.Arguments.Equals(em.Arguments))
-                        {
-                            found = true;
-                            break;
-                        }
-                    if (!found)
-                        insertMethods.Add(m);
+                    Namespace = projName,
                 }
-                if (insertMethods.Count > 0)
-                    InsertMethodsInFile($"{lambdaName}Controller", $"{lambdaName}Controller", classFilePath, GenerateControllerMethods(insertMethods));
-            }
+            };
+
+            var controllerTarget = new CSharpControllerGenerator(openApiDocument, cSharpControllerGeneratorSettings);
+            var code = controllerTarget.GenerateFile();
+
+            var root = CSharpSyntaxTree.ParseText(code).GetCompilationUnitRoot();
+
+            // Strip out schema classes, insert using statement, write out result
+            root = RemoveGeneratedSchemaClasses(root); 
+            root = InsertUsingStatements(root, new List<string> { { $"{appName}Schema.Models" } });
+            code = root.ToFullString();
+            // NSwag seems to have a template bug. Microsoft.AspNetCore.Mvc.HttpGET should be Microsoft.AspNetCore.Mvc.HttpGet
+            code = code.Replace("Microsoft.AspNetCore.Mvc.HttpGET", "Microsoft.AspNetCore.Mvc.HttpGet");
+            code = code.Replace("Microsoft.AspNetCore.Mvc.HttpPUT", "Microsoft.AspNetCore.Mvc.HttpPut");
+            code = code.Replace("Microsoft.AspNetCore.Mvc.HttpPOST", "Microsoft.AspNetCore.Mvc.HttpPost");
+            code = code.Replace("Microsoft.AspNetCore.Mvc.HttpUPDATE", "Microsoft.AspNetCore.Mvc.HttpUpdate");
+            code = code.Replace("Microsoft.AspNetCore.Mvc.HttpDELETE", "Microsoft.AspNetCore.Mvc.HttpDelete");
+            File.WriteAllText(Path.Combine(projFolderPath, $"{lambdaName}Controller.cs"), code);
+
 
             var localProjectReferences =
                 new List<string> {
@@ -556,7 +488,7 @@ namespace LazyStack
                     Path.Combine("..","..",$"{appName}Schema", $"{appName}Schema.csproj"),
                 };
 
-            // Modify csproj
+            // Modify csproj 
             UpdateProjectFile(
                 projFilePath,
                 "ControllerProjects",
@@ -613,57 +545,70 @@ namespace LazyStack
                 );
         }
 
+        private CompilationUnitSyntax RemoveClass(CompilationUnitSyntax root, string className)
+        {
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals(className))
+                    .ToList(); // ex: OrderController
+
+            root = root.ReplaceNode(root,
+                root.RemoveNodes(classDecls, SyntaxRemoveOptions.KeepNoTrivia));
+
+            return root;
+        }
+
+        private CompilationUnitSyntax RemoveGeneratedSchemaClasses(CompilationUnitSyntax root, List<string> namedClasses = null)
+        {
+
+            var test = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.AttributeLists.First().ToString().StartsWith(@"[System.CodeDom.Compiler.GeneratedCode(""NJsonSchema"))
+                    .ToList();
+
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.AttributeLists.First().ToString().StartsWith(@"[System.CodeDom.Compiler.GeneratedCode(""NJsonSchema"))
+                    .ToList(); // ex: OrderController
+
+            root = root.ReplaceNode(root,
+                root.RemoveNodes(classDecls, SyntaxRemoveOptions.KeepNoTrivia));
+
+            var enumDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .First()
+                    ?.DescendantNodes().OfType<EnumDeclarationSyntax>()
+                    .ToList(); // ex: OrderController
+
+            root = root.ReplaceNode(root,
+                root.RemoveNodes(enumDecls, SyntaxRemoveOptions.KeepNoTrivia));
+
+
+            // Remove any classes in the namedClasses list
+            if (namedClasses != null)
+            {
+                classDecls = root
+                    .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                    .First()
+                        ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                        .Where(x => namedClasses.Contains(x.Identifier.ValueText.ToString()))
+                        .ToList();
+                root = root.ReplaceNode(root,
+                    root.RemoveNodes(classDecls, SyntaxRemoveOptions.KeepNoTrivia));
+            }
+            return root;
+        }
+
         private void FormatServiceStatements(List<string> serviceStatements)
         {
             for (int i = 0; i < serviceStatements.Count; i++)
                 serviceStatements[i] = $"            {serviceStatements[i]}\n";
-        }
-
-        private void ClearServiceRegistrationsInFile(string filePath)
-        {
-            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath)).GetCompilationUnitRoot();
-            root = ClearServiceRegistrations(root);
-            File.WriteAllText(filePath, root.ToFullString());
-        }
-
-        private CompilationUnitSyntax ClearServiceRegistrations(CompilationUnitSyntax root)
-        {
-            // Update ConfgiureSvcs.cs 
-            var projServices = new Dictionary<string, bool>();
-            foreach (var key in solutionModel.Lambdas.Keys)
-                projServices.Add(key + "Controller", false); // bool indicates if the reference has been registered in the Startup.ConfigureSvcs method
-
-
-            var method = root
-                .DescendantNodes().OfType<ClassDeclarationSyntax>()
-                .Where(x => x.Identifier.Text.Equals("Startup"))
-                .FirstOrDefault()
-                    ?.DescendantNodes().OfType<MethodDeclarationSyntax>()
-                    .Where(x => x.Identifier.Text.Equals("ConfigureSvcs")
-                            && x.ParameterList.Parameters.Count == 1
-                            && x.ParameterList.Parameters[0].Type.ToString().Equals("IServiceCollection"))
-                    .First();
-
-            if (method == null)
-                throw new Exception("Error: Missing Startup.ConfigureSvcs method");
-
-            var serviceRegistrations = method.DescendantNodes().OfType<BlockSyntax>()
-                .First()
-                ?.DescendantNodes().OfType<ExpressionStatementSyntax>()
-                .Where(x =>
-                       (((x.Expression as InvocationExpressionSyntax))?.Expression is MemberAccessExpressionSyntax)
-                       && ((((x.Expression as InvocationExpressionSyntax))
-                               ?.Expression as MemberAccessExpressionSyntax).Expression as IdentifierNameSyntax)
-                                   .Identifier.ValueText.Equals("services"));
-
-            return root.RemoveNodes(serviceRegistrations.ToArray(), SyntaxRemoveOptions.KeepNoTrivia);
-        }
-
-        private void InsertServiceRegistrationsInFile(string filePath, List<string> serviceStatements)
-        {
-            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(File.ReadAllText(filePath)).GetCompilationUnitRoot();
-            root = InsertServiceRegistrations(root, serviceStatements);
-            File.WriteAllText(filePath, root.ToFullString());
         }
 
         private CompilationUnitSyntax InsertServiceRegistrations(CompilationUnitSyntax root, List<string> serviceStatements)
@@ -726,332 +671,6 @@ namespace LazyStack
             return root;
         }
 
-        private CompilationUnitSyntax RemoveUsingStatements(CompilationUnitSyntax root, List<string> usingReferences)
-        {
-            var existingUsingStatements = root
-                .DescendantNodes().OfType<UsingDirectiveSyntax>()
-                .ToList();
-
-            var usingStatementsToRemove= new List<string>();
-            foreach (var reference in usingReferences)
-                usingStatementsToRemove.Add($"using {reference};");
-
-            foreach (var stmt in existingUsingStatements)
-                if (usingStatementsToRemove.Contains(stmt.Name.ToString()))
-                    root = root.RemoveNode(stmt, SyntaxRemoveOptions.KeepNoTrivia);
-            return root;
-        }
-
-        private CompilationUnitSyntax InsertConstructor(CompilationUnitSyntax root, string nameSpace, string className, string newConstructorText)
-        {
-
-            var classDecl = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals(nameSpace))
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals(className))
-                    .First();
-
-            if (classDecl == null)
-                throw new Exception($"Error: Can't find {nameSpace}.{className}");
-
-            root = root.ReplaceNode(classDecl,
-                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newConstructorText).GetCompilationUnitRoot().Members.ToArray()));
-            return root;
-        }
-
-        private void InsertMethodsInFile(string nameSpace, string className, string fileName, string newMethodText)
-        {
-            var root = CSharpSyntaxTree.ParseText(File.ReadAllText(fileName)).GetCompilationUnitRoot();
-            root = InsertMethods(root, nameSpace, className, newMethodText);
-            File.WriteAllText(fileName, root.ToString());
-        }
-
-        private CompilationUnitSyntax InsertMethods(CompilationUnitSyntax root, string nameSpace, string className, string newMethodText)
-        {
-            var classDecl = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals(nameSpace))
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals(className))
-                    .First();
-
-            if (classDecl == null)
-                throw new Exception($"Error: Can't find {nameSpace}.{className}");
-
-            root = root.ReplaceNode(classDecl, 
-                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newMethodText).GetCompilationUnitRoot().Members.ToArray()));
-
-            return root;
-        }
-
-        private CompilationUnitSyntax InsertProperty(CompilationUnitSyntax root, string nameSpace, string className, string newPropertyText)
-        {
-            var classDecl = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals(nameSpace))
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals(className))
-                    .First();
-
-            if (classDecl == null)
-                throw new Exception($"Error: Can't find {nameSpace}.{className}");
-
-            root = root.ReplaceNode(classDecl,
-                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newPropertyText).GetCompilationUnitRoot().Members.ToArray()));
-
-            return root;
-        }
-
-        private CompilationUnitSyntax RemoveConstructors(CompilationUnitSyntax root, string nameSpace, string className)
-        {
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {className}");
-
-            var constructors = classDecls.DescendantNodes().OfType<ConstructorDeclarationSyntax>();
-
-            root = root.ReplaceNode(classDecls,
-                classDecls.RemoveNodes(constructors, SyntaxRemoveOptions.KeepNoTrivia));
-
-            return root;
-        }
-
-        private CompilationUnitSyntax RemoveSyncInterface(CompilationUnitSyntax root, string nameSpace, string className)
-        {
-
-            var interfaceDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
-                .First()
-                    ?.DescendantNodes().OfType<InterfaceDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{className}")); // ex: OrderController
-
-            if (interfaceDecls == null)
-                throw new Exception($"Error: Can't find {className}");
-
-            root = root.RemoveNodes(interfaceDecls, SyntaxRemoveOptions.KeepNoTrivia);
-            var rootText = root.ToString();
-            rootText = rootText.Replace($"{className},", "");
-            rootText = rootText.Replace(className, "");
-            root = CSharpSyntaxTree.ParseText(rootText).GetCompilationUnitRoot();
-            return root;
-        }
-
-        private CompilationUnitSyntax RemoveProperty(CompilationUnitSyntax root, string nameSpace, string className, string varName)
-        {
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {className}");
-
-            var properties = classDecls.DescendantNodes().OfType<PropertyDeclarationSyntax>()
-               .Where(x => x.Identifier.ValueText.Equals(varName))
-                ;
-
-            root = root.ReplaceNode(classDecls,
-                classDecls.RemoveNodes(properties, SyntaxRemoveOptions.KeepNoTrivia));
-
-            return root;
-        }
-
-        private CompilationUnitSyntax RemoveSyncMethods(CompilationUnitSyntax root, string nameSpace, string className, List<string> exclude)
-        {
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {className}");
-
-            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>()
-                .Where(x => !x.Identifier.ValueText.Contains("Async") && !exclude.Contains(x.Identifier.ValueText));
-
-            root = root.ReplaceNode(classDecls,
-                classDecls.RemoveNodes(methods, SyntaxRemoveOptions.KeepNoTrivia));
-
-            return root;
-        }
-
-        private void CopyTemplateFolder(string sourceFolder, string targetFolder, Dictionary<string,string> replacements)
-        {
-            foreach (var clientFile in Directory.EnumerateFiles(sourceFolder))
-            {
-                var clientFileText = File.ReadAllText(clientFile);
-                foreach(var kvp in replacements)
-                    clientFileText = clientFileText.Replace(kvp.Key, kvp.Value);
-
-                var newFilePath =
-                    (clientFile.EndsWith(".tpl"))
-                    ? Path.Combine(targetFolder, Path.GetFileNameWithoutExtension(clientFile)) // remvoed .tpl extension
-                    : Path.Combine(targetFolder, Path.GetFileName(clientFile));
-                File.WriteAllText(newFilePath, clientFileText);
-            }
-        }
-
-        private void RemoveTplExtension(string folderName)
-        {
-            var files = Directory.EnumerateFiles(folderName, "*.tpl");
-            foreach (var file in files)
-                File.Move(file, Path.GetFileNameWithoutExtension(file));
-        }
-
-
-        private List<Method> ProcessApiControllerClass(string appName, string lambdaName, string tempApiSolutionPath, string targetFolderPath)
-        {
-            // Virtual Class
-            var srcProjectFolder = Path.Combine(tempApiSolutionPath, "src", "__ProjectName__");
-            var fileText = File.ReadAllText(Path.Combine(srcProjectFolder, "Controllers", $"{lambdaName}Api.cs"));
-            fileText = "// LazyStack Generated file, any changes will be overwritten\n" + fileText;
-            fileText = fileText.Replace("__ProjectName__.Controllers", $"{lambdaName}Controller");
-            fileText = fileText.Replace("using __ProjectName__.Attributes;", "");
-            fileText = fileText.Replace("using __ProjectName__.Models;", $"using {appName}Schema.Model;");
-            File.WriteAllText(Path.Combine(targetFolderPath, $"{lambdaName}Api.cs"), fileText);
-
-            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
-
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{lambdaName}Controller")) // ex: PetController
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{lambdaName}ApiController"))
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {lambdaName}ApiController class");
-
-            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>();
-
-            var methodList = new List<Method>();
-            foreach (var method in methods)
-                methodList.Add(new Method(
-                    methodSummary: method.GetLeadingTrivia().ToString(),
-                    returnType: method.ReturnType.ToString(),
-                    methodName: method.Identifier.ValueText,
-                    arguments: method.ParameterList.ToString()
-                    ));
-
-            // Copy supporting classes
-            fileText = File.ReadAllText(Path.Combine(srcProjectFolder, "Attributes", "ValidateModelStateAttribute.cs"));
-            fileText = "// LazyStack Generated file, any changes will be overwritten\n" + fileText;
-            fileText = fileText.Replace("__ProjectName__.Attributes", $"{lambdaName}Controller");
-            File.WriteAllText(Path.Combine(targetFolderPath, "ValidateModelStateAttribute.cs"), fileText);
-
-            fileText = File.ReadAllText(Path.Combine(srcProjectFolder, "Converters", "CustomEnumConverter.cs"));
-            fileText = "// LazyStack Generated file, any changes will be overwritten\n" + fileText;
-            fileText = fileText.Replace("__ProjectName__.Converters", $"{lambdaName}Controller");
-            File.WriteAllText(Path.Combine(targetFolderPath, "CustomEnumConverter.cs"), fileText);
-
-            return methodList;
-
-        }
-
-
-        /// <summary>
-        /// Get methods from AppNameApi reference project for a specified class name
-        /// </summary>
-        /// <param name="lambdaName"></param>
-        /// <returns></returns>
-        private List<Method> GetApiControllerMethods(string lambdaName)
-        {
-
-            // ex: PetStoreApi/Controllers/OrderApi.cs
-            var fileText = File.ReadAllText(
-                Path.Combine(solutionModel.SolutionRootFolderPath, 
-                $"{solutionModel.AppName}Api", 
-                "Controllers", $"{lambdaName}Api.cs"));
-
-            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
-
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{solutionModel.AppName}Api.Controllers")) // ex: PetStoreApi.Controllers
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{lambdaName}ApiController"))
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {lambdaName}ApiController class");
-
-            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>();
-                
-            var methodList = new List<Method>();
-            foreach (var method in methods)
-                methodList.Add(new Method(
-                    methodSummary: method.GetLeadingTrivia().ToString(),
-                    returnType: method.ReturnType.ToString(),
-                    methodName: method.Identifier.ValueText,
-                    arguments: method.ParameterList.ToString()
-                    ));
-
-            return methodList;
-        }
-
-        private List<Method> GetControllerMethods(string lambdaName)
-        {
-            // ex: Controllers/OrderApiController/OrderApiController.cs
-            var fileText = File.ReadAllText(
-                Path.Combine(solutionModel.SolutionRootFolderPath, 
-                "Controllers", 
-                $"{lambdaName}Controller", 
-                $"{lambdaName}Controller.cs"));
-
-            CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(fileText).GetCompilationUnitRoot();
-
-            var classDecls = root
-                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
-                .Where(x => x.Name.ToString().Equals($"{lambdaName}Controller")) // ex: OrderController
-                .First()
-                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
-                    .Where(x => x.Identifier.ValueText.Equals($"{lambdaName}Controller")) // ex: OrderController
-                    .First();
-
-            if (classDecls == null)
-                throw new Exception($"Error: Can't find {lambdaName}Controller");
-
-            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>();
-
-            var methodList = new List<Method>();
-            foreach (var method in methods)
-                methodList.Add(new Method(
-                    methodSummary: method.GetLeadingTrivia().ToString(),
-                    returnType: method.ReturnType.ToString(),
-                    methodName: method.Identifier.ValueText,
-                    arguments: method.ParameterList.ToString()
-                    ));
-
-            return methodList;
-        }
-
-        private string GenerateControllerMethods(List<Method> methods)
-        {
-            var text = string.Empty;
-            foreach (var m in methods)
-                text += m.GenerateControllerMethodDef();
-            return text;
-        }
 
         /// <summary>
         /// Parsed Method
@@ -1227,7 +846,13 @@ namespace LazyStack
             }
 
             foreach (var reference in references)
-                itemGroup.Add(
+                if(string.IsNullOrEmpty(reference.Value))
+                    itemGroup.Add(
+                    new XElement(
+                        "PackageReference",
+                        new XAttribute("Include", reference.Key)));
+                else
+                    itemGroup.Add(
                     new XElement(
                         "PackageReference", 
                         new XAttribute("Include", reference.Key),
@@ -1289,104 +914,235 @@ namespace LazyStack
 
             xmlDoc.Save(projFilePath);
         }
-    }
 
-    public class GenerateProject
-    {
-        public GenerateProject(SolutionModel solutionModel)
+        #region Unused Methods - most were used when using OpenApi-Generator, keep for reference and possible future use
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax ClearServiceRegistrations(CompilationUnitSyntax root)
+#pragma warning restore IDE0051 // Remove unused private members
         {
-            this.solutionModel = solutionModel;
+            // Update ConfgiureSvcs.cs 
+            var projServices = new Dictionary<string, bool>();
+            foreach (var key in solutionModel.Lambdas.Keys)
+                projServices.Add(key + "Controller", false); // bool indicates if the reference has been registered in the Startup.ConfigureSvcs method
+
+
+            var method = root
+                .DescendantNodes().OfType<ClassDeclarationSyntax>()
+                .Where(x => x.Identifier.Text.Equals("Startup"))
+                .FirstOrDefault()
+                    ?.DescendantNodes().OfType<MethodDeclarationSyntax>()
+                    .Where(x => x.Identifier.Text.Equals("ConfigureSvcs")
+                            && x.ParameterList.Parameters.Count == 1
+                            && x.ParameterList.Parameters[0].Type.ToString().Equals("IServiceCollection"))
+                    .First();
+
+            if (method == null)
+                throw new Exception("Error: Missing Startup.ConfigureSvcs method");
+
+            var serviceRegistrations = method.DescendantNodes().OfType<BlockSyntax>()
+                .First()
+                ?.DescendantNodes().OfType<ExpressionStatementSyntax>()
+                .Where(x =>
+                       (((x.Expression as InvocationExpressionSyntax))?.Expression is MemberAccessExpressionSyntax)
+                       && ((((x.Expression as InvocationExpressionSyntax))
+                               ?.Expression as MemberAccessExpressionSyntax).Expression as IdentifierNameSyntax)
+                                   .Identifier.ValueText.Equals("services"));
+
+            return root.RemoveNodes(serviceRegistrations.ToArray(), SyntaxRemoveOptions.KeepNoTrivia);
         }
 
-        public string Input { get; set; }
-        public string Generator { get; set; }
-        public string Output { get; set; }
-        public bool SkipValidateSpec { get; set; }
-        public Dictionary<String, String> AdditionalProperites { get; set; } = new Dictionary<string, string>();
-        public string ProjectName { get; set; }
-        public string TempSolutionPath { get; set; }
-        readonly SolutionModel solutionModel;
-
-        public void Run()
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax RemoveUsingStatements(CompilationUnitSyntax root, List<string> usingReferences)
         {
-            GenerateTemp();
-            CopyToOutput();
-            RemoveTemp();
+            var existingUsingStatements = root
+                .DescendantNodes().OfType<UsingDirectiveSyntax>()
+                .ToList();
+
+            var usingStatementsToRemove = new List<string>();
+            foreach (var reference in usingReferences)
+                usingStatementsToRemove.Add($"using {reference};");
+
+            foreach (var stmt in existingUsingStatements)
+                if (usingStatementsToRemove.Contains(stmt.Name.ToString()))
+                    root = root.RemoveNode(stmt, SyntaxRemoveOptions.KeepNoTrivia);
+            return root;
         }
 
-        public void GenerateTemp()
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax InsertConstructor(CompilationUnitSyntax root, string nameSpace, string className, string newConstructorText)
         {
-            // We use OpenApiGenerator to generate projects
-            // OpenApiGenerator creates a complete solution (which we do not need)
-            // as well as the required project. So we generate into a 
-            // temp folder, copy the project content we want to
-            // the specified output folder and then remove the generated solution from
-            // the temporary folder.
 
-            var tempFolder = Path.Combine(Path.GetTempPath(),"LazyStack");
+            var classDecl = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals(nameSpace))
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals(className))
+                    .First();
 
-            // First Create LazyStack temp folder if it doesn't exist
-            if (!Directory.Exists(tempFolder))
-                Directory.CreateDirectory(tempFolder);
+            if (classDecl == null)
+                throw new Exception($"Error: Can't find {nameSpace}.{className}");
 
-            TempSolutionPath = Path.Combine(tempFolder,Guid.NewGuid().ToString());
-            if (!Directory.Exists(TempSolutionPath))
-                Directory.CreateDirectory(TempSolutionPath);
+            root = root.ReplaceNode(classDecl,
+                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newConstructorText).GetCompilationUnitRoot().Members.ToArray()));
+            return root;
+        }
 
-            using (System.Diagnostics.Process pProcess = new System.Diagnostics.Process())
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax InsertMethods(CompilationUnitSyntax root, string nameSpace, string className, string newMethodText)
+        {
+            var classDecl = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals(nameSpace))
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals(className))
+                    .First();
+
+            if (classDecl == null)
+                throw new Exception($"Error: Can't find {nameSpace}.{className}");
+
+            root = root.ReplaceNode(classDecl,
+                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newMethodText).GetCompilationUnitRoot().Members.ToArray()));
+
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax InsertProperty(CompilationUnitSyntax root, string nameSpace, string className, string newPropertyText)
+        {
+            var classDecl = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals(nameSpace))
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals(className))
+                    .First();
+
+            if (classDecl == null)
+                throw new Exception($"Error: Can't find {nameSpace}.{className}");
+
+            root = root.ReplaceNode(classDecl,
+                classDecl.AddMembers(CSharpSyntaxTree.ParseText(newPropertyText).GetCompilationUnitRoot().Members.ToArray()));
+
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax RemoveConstructors(CompilationUnitSyntax root, string nameSpace, string className)
+        {
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
+                    .First();
+
+            if (classDecls == null)
+                throw new Exception($"Error: Can't find {className}");
+
+            var constructors = classDecls.DescendantNodes().OfType<ConstructorDeclarationSyntax>();
+
+            root = root.ReplaceNode(classDecls,
+                classDecls.RemoveNodes(constructors, SyntaxRemoveOptions.KeepNoTrivia));
+
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax RemoveSyncInterface(CompilationUnitSyntax root, string nameSpace, string className)
+        {
+
+            var interfaceDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
+                .First()
+                    ?.DescendantNodes().OfType<InterfaceDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{className}")); // ex: OrderController
+
+            if (interfaceDecls == null)
+                throw new Exception($"Error: Can't find {className}");
+
+            root = root.RemoveNodes(interfaceDecls, SyntaxRemoveOptions.KeepNoTrivia);
+            var rootText = root.ToString();
+            rootText = rootText.Replace($"{className},", "");
+            rootText = rootText.Replace(className, "");
+            root = CSharpSyntaxTree.ParseText(rootText).GetCompilationUnitRoot();
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax RemoveProperty(CompilationUnitSyntax root, string nameSpace, string className, string varName)
+        {
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
+                    .First();
+
+            if (classDecls == null)
+                throw new Exception($"Error: Can't find {className}");
+
+            var properties = classDecls.DescendantNodes().OfType<PropertyDeclarationSyntax>()
+               .Where(x => x.Identifier.ValueText.Equals(varName))
+                ;
+
+            root = root.ReplaceNode(classDecls,
+                classDecls.RemoveNodes(properties, SyntaxRemoveOptions.KeepNoTrivia));
+
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private CompilationUnitSyntax RemoveSyncMethods(CompilationUnitSyntax root, string nameSpace, string className, List<string> exclude)
+        {
+            var classDecls = root
+                .DescendantNodes().OfType<NamespaceDeclarationSyntax>()
+                .Where(x => x.Name.ToString().Equals($"{nameSpace}")) // ex: OrderController
+                .First()
+                    ?.DescendantNodes().OfType<ClassDeclarationSyntax>()
+                    .Where(x => x.Identifier.ValueText.Equals($"{className}")) // ex: OrderController
+                    .First();
+
+            if (classDecls == null)
+                throw new Exception($"Error: Can't find {className}");
+
+            var methods = classDecls.DescendantNodes().OfType<MethodDeclarationSyntax>()
+                .Where(x => !x.Identifier.ValueText.Contains("Async") && !exclude.Contains(x.Identifier.ValueText));
+
+            root = root.ReplaceNode(classDecls,
+                classDecls.RemoveNodes(methods, SyntaxRemoveOptions.KeepNoTrivia));
+
+            return root;
+        }
+
+        #pragma warning disable IDE0051 // Remove unused private members
+        private void CopyTemplateFolder(string sourceFolder, string targetFolder, Dictionary<string, string> replacements)
+        {
+            foreach (var clientFile in Directory.EnumerateFiles(sourceFolder))
             {
-                pProcess.StartInfo.FileName = @"java.exe";
+                var clientFileText = File.ReadAllText(clientFile);
+                foreach (var kvp in replacements)
+                    clientFileText = clientFileText.Replace(kvp.Key, kvp.Value);
 
-                var arguments = $"-jar \"{solutionModel.OpenApiGeneratorFilePath}\" generate -i \"{Input}\" -g \"{Generator}\" -o \"{TempSolutionPath}\"";
-                if (SkipValidateSpec)
-                    arguments += " --skip-validate-spec";
-
-                string props = String.Empty;
-                bool first = true;
-                foreach (KeyValuePair<string, string> kvp in AdditionalProperites)
-                {
-                    props += (first) ? $" --additional-properties={kvp.Key}={kvp.Value}" : $",{kvp.Key}={kvp.Value}";
-                    first = false;
-                }
-
-                //if (!string.IsNullOrEmpty(props))
-                //    pProcess.StartInfo.ArgumentList.Add(props);
-
-                if (!string.IsNullOrEmpty(props))
-                    arguments += props;
-
-                pProcess.StartInfo.Arguments = arguments;
-
-                pProcess.StartInfo.UseShellExecute = false;
-                pProcess.StartInfo.RedirectStandardOutput = true;
-                pProcess.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
-                pProcess.StartInfo.CreateNoWindow = true; //do not display a window
-                Debug.WriteLine($"Calling openapi-generagor {arguments}");
-                pProcess.Start();
-                StreamReader reader = pProcess.StandardOutput;
-                string output = reader.ReadToEnd();
-                pProcess.WaitForExit();
-                Debug.WriteLine($"{output}");
-                Debug.WriteLine($"Exit Code: {pProcess.ExitCode}");
+                var newFilePath =
+                    (clientFile.EndsWith(".tpl"))
+                    ? Path.Combine(targetFolder, Path.GetFileNameWithoutExtension(clientFile)) // remvoed .tpl extension
+                    : Path.Combine(targetFolder, Path.GetFileName(clientFile));
+                File.WriteAllText(newFilePath, clientFileText);
             }
         }
 
-        public void CopyToOutput()
+        #pragma warning disable IDE0051 // Remove unused private members
+        private void RemoveTplExtension(string folderName)
         {
-            if (Directory.Exists(TempSolutionPath))
-            {
-                // Copy the project to the specified output folder
-                var srcProjectFolderPath = Path.Combine(TempSolutionPath, "src", ProjectName);
-                var tarProjectFolderPath = Path.Combine(Output, ProjectName);
-                Utilities.DirectoryCopy(srcProjectFolderPath, tarProjectFolderPath, true, true);
-            }
+            var files = Directory.EnumerateFiles(folderName, "*.tpl");
+            foreach (var file in files)
+                File.Move(file, Path.GetFileNameWithoutExtension(file));
         }
-
-        public void RemoveTemp()
-        {
-            // Remove the temporary solution folder
-            if (Directory.Exists(TempSolutionPath))
-                Directory.Delete(TempSolutionPath, true);
-        }
+        #endregion Unused methods
     }
 }

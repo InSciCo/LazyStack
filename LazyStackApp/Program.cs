@@ -5,7 +5,7 @@ using CommandLine;
 using LazyStack;
 using Microsoft.DotNet.Cli.Sln.Internal.Lz;
 using Microsoft.DotNet.Tools.Common.Lz;
-using Microsoft.Build.Locator;
+//using Microsoft.Build.Locator;
 
 namespace LazyStackApp
 {
@@ -49,7 +49,7 @@ namespace LazyStackApp
 
             var logger = new Logger();
 
-            MSBuildLocator.RegisterDefaults();
+            //MSBuildLocator.RegisterDefaults();
 
             var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
 
@@ -70,7 +70,7 @@ namespace LazyStackApp
                 if(!slnFile.ProjectExists(projName))
                 {
                     logger.Info($"Adding Project {projName} to solution");
-                    slnFile.AddProject(projInfo.Path, projInfo.RelativePath, projInfo.SolutionFolder);
+                    slnFile.AddProject(projInfo.Path, projInfo.RelativePath, solutionRootFolderPath);
                 }
             }
 

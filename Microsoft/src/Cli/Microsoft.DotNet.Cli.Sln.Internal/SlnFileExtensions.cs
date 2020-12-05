@@ -15,6 +15,8 @@ using System.Linq;
 // Modified for LazyStack
 namespace Microsoft.DotNet.Tools.Common.Lz
 {
+
+
     public static class SlnFileExtensions
     {
 
@@ -39,8 +41,10 @@ namespace Microsoft.DotNet.Tools.Common.Lz
             if (string.IsNullOrEmpty(fullProjectPath))
                 throw new ArgumentException();
 
-            var rootElement = ProjectRootElement.Open(fullProjectPath);
+            var rootElement = ProjectRootElement.Open(relativeProjectPath);
+
             var projectInstance = new ProjectInstance(rootElement);
+                
 
             var slnProject = new SlnProject
             {
@@ -146,17 +150,12 @@ namespace Microsoft.DotNet.Tools.Common.Lz
 
         private static string GetMatchingProjectKey(IDictionary<string, string> projectKeys, string solutionKey)
         {
-            string projectKey;
-            if (projectKeys.TryGetValue(solutionKey, out projectKey))
-            {
+            if (projectKeys.TryGetValue(solutionKey, out string projectKey))
                 return projectKey;
-            }
 
             var keyWithoutWhitespace = String.Concat(solutionKey.Where(c => !Char.IsWhiteSpace(c)));
             if (projectKeys.TryGetValue(keyWithoutWhitespace, out projectKey))
-            {
                 return projectKey;
-            }
 
             return null;
         }

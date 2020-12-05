@@ -21,7 +21,7 @@ namespace LazyStack
             if (rootNode.Children.TryGetValue("Type", out YamlNode node))
                 AwsType = node.ToString();
             else
-                throw new Exception($"Error: Missing Type property for x-lz-AwsResource {resourceName}");
+                throw new Exception($"Error: Missing Type property for AwsResource {resourceName}");
 
             if (solutionModel.Resources.ContainsKey(resourceName))
             {
@@ -37,14 +37,14 @@ namespace LazyStack
                 solutionModel.Resources.Add(Name, this);
 
             if (IsRestApi && !solutionModel.Apis.ContainsKey(Name))
-                solutionModel.Apis.Add(Name, new AwsApiRestApi(this, solutionModel));
+                solutionModel.Apis.Add(Name, new AwsApiRestApi(this, solutionModel, Name));
             else 
             if (IsHttpApi && !solutionModel.Apis.ContainsKey(Name))
-                    solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
+                    solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel, Name));
         }
 
         /// <summary>
-        /// Call when parsing Tags Object directive to create AWS::Serverless::Function objects
+        /// Call when parsing Tags Object directive to create Lambda AWS::Serverless::Function objects
         /// </summary>
         /// <param name="resourceNode"></param>
         /// <param name="solutionModel"></param>
@@ -58,7 +58,7 @@ namespace LazyStack
             if (string.IsNullOrEmpty(tag))
                 throw new ArgumentException();
 
-            Name = solutionModel.TagToFunctionName(solutionModel.AppName,tag);
+            Name = solutionModel.TagToFunctionName(tag);
 
             if (solutionModel.Resources.ContainsKey(Name))
                 throw new Exception($"Error: The {Name} resource requested in tag {tag} already exists");
@@ -117,7 +117,6 @@ namespace LazyStack
         /// <param name="tag"></param>
         private YamlMappingNode MergeResourceConfiguration(YamlMappingNode resourceDefinition, YamlMappingNode userResourceConfiguration, SolutionModel solutionModel)
         {
-            var msg = string.Empty;
             string awsType;
             if (resourceDefinition.Children.TryGetValue("Type", out YamlNode node))
                 awsType = node.ToString();

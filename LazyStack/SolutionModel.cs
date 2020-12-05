@@ -72,10 +72,6 @@ namespace LazyStack
             if (!File.Exists(SrcTemplateFilePath))
                 throw new System.Exception("Lazy Stack template.yaml Missing. Check installation.");
 
-            OpenApiGeneratorFilePath = Path.Combine(executingAssemblyFolderPath, "OpenAPIGenerator", "openapi-generator-cli.jar");
-            if (!File.Exists(OpenApiGeneratorFilePath))
-                throw new System.Exception("Lazy Stack version of openapi-generator-cli.jar not found. Check installation");
-
             InitDefaults();
 
         }
@@ -85,7 +81,6 @@ namespace LazyStack
         public string AppName { get; private set; }
         public string OpenApiFilePath { get; private set; }
 
-        public string OpenApiGeneratorFilePath { get; private set; }
         public string LazyStackTemplateFolderPath { get; private set; }
         public string SrcTemplateFilePath { get; private set; }
 
@@ -102,6 +97,7 @@ namespace LazyStack
         public Dictionary<string, string> LambdaNameByTagName { get; } = new Dictionary<string, string>(); // key is TagName, value is LambdaName
         public Dictionary<string, string> TagNameByLambdaName { get; } = new Dictionary<string, string>(); // key is LambdaName, value is Tagname
         public Dictionary<string, string> ApiNameByTagName { get; } = new Dictionary<string, string>(); // Key is TagName, value is ApiName
+        public Dictionary<string, EndPoint> EndPoints { get; } = new Dictionary<string, EndPoint>(); // Key is OperationId
 
         public Dictionary<string, ProjectInfo> Projects { get; } = new Dictionary<string, ProjectInfo>(); // key is projectName
         public ProjectInfo ClientSDK { get; set; }
@@ -128,11 +124,12 @@ namespace LazyStack
         /// </summary>
         public Dictionary<string, YamlMappingNode> LzDefaultTemplate = new Dictionary<string, YamlMappingNode>();
         public YamlMappingNode ProjectGenerationOptions;
+        public YamlMappingNode OpenApiSpecRootNode;
+        public string OpenApiSpecText;
 
         #endregion Properties
 
         #region Variables
-        YamlMappingNode openApiSpecRootNode;
         YamlMappingNode lzConfigRootNode;
         YamlMappingNode samRootNode;
         readonly ILogger logger;
@@ -166,17 +163,14 @@ namespace LazyStack
         }
 
         /// <summary>
-        /// Read the solutions OpenApi specification file, an
-        /// optional x-lz-AwsTemplate file and then create/update
-        /// resources to write the solution's SAM serverless.template file.
+        /// Read the solutions OpenApi specification file, and directives in
+        /// the LazyStack.yaml to write the solution's SAM serverless.template file.
         /// </summary>
         public void ProcessOpenApi()
         {
-            if (!File.Exists(OpenApiGeneratorFilePath))
-                throw new Exception($"Error: Missing OpenApi specificaiton file {OpenApiGeneratorFilePath}");
-
             logger.Info($"\nLoading OpenApi Specification {OpenApiFilePath}");
-            openApiSpecRootNode = ReadAndParseYamlFile(OpenApiFilePath); // Read OpenApi specification
+            OpenApiSpecText = File.ReadAllText(OpenApiFilePath);
+            OpenApiSpecRootNode = ParseYamlText(OpenApiSpecText); 
 
             var lzConfigFilePath = Path.Combine(SolutionRootFolderPath, "LazyStack.yaml");
             if (File.Exists(lzConfigFilePath))
@@ -218,7 +212,24 @@ namespace LazyStack
             // Prune -- remove default resources not referenced
             PruneResources();
 
+            // Identify ApiGateway Security level and set SecurityLevel property
+            DiscoverSecurityLevel();
+
             WriteSAM(); // Write serverless.template file
+
+        }
+
+        /// <summary>
+        /// Examine each Api and set security level in asset to facilitate project generation.
+        /// </summary>
+        private void DiscoverSecurityLevel()
+        {
+            // Set the security levels of the Api
+            foreach (var api in Apis.Values)
+                api.DiscoverSecurityLevel();
+
+            // Set the security level of the events/endpoints in each api
+
 
         }
 
@@ -302,7 +313,7 @@ namespace LazyStack
                 {
                     logger.Info($"  Loading default resource: {kvp.Key}");
                     var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, solutionModel: this, isDefault: true);
-                    Debug.WriteLine($"Created Resource: {kvp.Key.ToString()}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
+                    Debug.WriteLine($"Created Resource: {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
                 }
         }
 
@@ -346,7 +357,7 @@ namespace LazyStack
         private void ParseOpenApiTagsObjectForLambdaNames()
         {
             logger.Info($"\nParsing OpenApi Specification tags");
-            if (!openApiSpecRootNode.Children.TryGetValue("tags", out YamlNode node))
+            if (!OpenApiSpecRootNode.Children.TryGetValue("tags", out YamlNode node))
                 throw new Exception($"Error: Your OpenApi specification contains no tags. LazyStack can't generate an Api.");
             else
                 foreach (YamlMappingNode tagsNodeItem in node as YamlSequenceNode)
@@ -355,7 +366,7 @@ namespace LazyStack
                     if (Tags.Contains(tagName))
                         throw new Exception($"Error: Tag \"{tagName}\" defined twice");
                     Tags.Add(tagName);
-                    var lambdaName = TagToFunctionName(AppName,tagName);
+                    var lambdaName = TagToFunctionName(tagName);
                     Lambdas.Add(lambdaName, null);
                     LambdaNameByTagName.Add(tagName, lambdaName);
                     TagNameByLambdaName.Add(lambdaName, tagName);
@@ -383,7 +394,7 @@ namespace LazyStack
                         throw new Exception($"Error: AwsResources file contains a resource name \"{kvp.Key}\" that conflicts with generated lambda name");
                     logger.Info($"  Loading resource {kvp.Key}");
                     var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false); // Added to solutionModel.Resources
-                    Debug.WriteLine($"Added Resource {kvp.Key.ToString()}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
+                    Debug.WriteLine($"Added Resource {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
                 }
         }
 
@@ -434,16 +445,23 @@ namespace LazyStack
             logger.Info($"\nParsing OpenApi Specification tags to generate Lambdas");
             Debug.WriteLine("\nParsing OpenApi Specification tags to generate Lambdas");
             
-            if (!openApiSpecRootNode.Children.TryGetValue("tags", out YamlNode tagsNode))
+            if (!OpenApiSpecRootNode.Children.TryGetValue("tags", out YamlNode tagsNode))
                 throw new Exception($"Error: Could not find a tags field. An OpenApi tags field is required for LazyStack to generate an api.");
 
             if (tagsNode.NodeType != YamlNodeType.Sequence)
-                throw new Exception($"Error: tags node is not a sequence node.");
+                throw new Exception($"Error: tags field is not a sequence node.");
+
+            if (!OpenApiSpecRootNode.Children.TryGetValue("paths", out YamlNode pathsNode))
+                throw new Exception($"Error: Could not find a paths field. An OpenApi paths field is required for LazyStack to generate an api.");
+
+            if (pathsNode.NodeType != YamlNodeType.Mapping)
+                throw new Exception($"Error: paths field is not a mapping node.");
+
 
             foreach (YamlMappingNode tagsNodeItem in tagsNode as YamlSequenceNode)
             {
                 var tagName = tagsNodeItem["name"].ToString();
-                var lambdaName = TagToFunctionName(AppName,tagName);
+                var lambdaName = TagToFunctionName(tagName);
                 var apiName = ApiNameByTagName[tagName];
                 logger.Info($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
                 Debug.WriteLine($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
@@ -456,8 +474,16 @@ namespace LazyStack
                     resource.RootNode.Children["Properties"] = mergedNode;
                 }
 
-                Debug.WriteLine($"{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
+                // Initialize OpenApiSpecification for Lambda
+                var lambda = Lambdas[lambdaName];
+                lambda.OpenApiSpec = OpenApiSpecRootNode.DeepClone();
+                lambda.OpenApiSpec.Children["paths"] = new YamlMappingNode(); // we add paths to this spec in ParseOpenApiaPathObject()
+                lambda.OpenApiSpec.Children["tags"] = new YamlSequenceNode(new YamlMappingNode("name", tagName)); // a tag generates a lambda
+                Debug.WriteLine($"Lamnda OpenApi\n{new SerializerBuilder().Build().Serialize(lambda.OpenApiSpec)}");
+                Debug.WriteLine($"Lambda SAM\n {new SerializerBuilder().Build().Serialize(resource.RootNode)}");
             }
+
+
         }
 
         /// <summary>
@@ -476,9 +502,9 @@ namespace LazyStack
 
             string[] validOperations = { "GET", "PUT", "POST", "DELETE", "UPDATE" };
 
-            string inspect = new SerializerBuilder().Build().Serialize(openApiSpecRootNode);
+            //string inspect = new SerializerBuilder().Build().Serialize(OpenApiSpecRootNode);
 
-            if (!openApiSpecRootNode.Children.TryGetValue("paths", out YamlNode pathsNode))
+            if (!OpenApiSpecRootNode.Children.TryGetValue("paths", out YamlNode pathsNode))
                 throw new Exception($"Error: OpenApi specification missing \"Paths\" Object");
 
             // foreach Path in Paths
@@ -516,12 +542,26 @@ namespace LazyStack
                     if (!Lambdas.TryGetValue(LambdaNameByTagName[tagName], out AWSLambda awsLambda))
                         throw new Exception($"Error: Tag \"{tagName}\" specified for path \"{path}\" not found.");
 
+                    // Add path/operation to lamnda.OpenApiSpec
+                    YamlMappingNode paths = awsLambda.OpenApiSpec.Children["paths"] as YamlMappingNode;
+                    YamlMappingNode pathMappingNode;
+                    if (!paths.Children.TryGetValue(path, out YamlNode pathNode))
+                        paths.Children.Add(path, new YamlMappingNode());
+
+                    pathMappingNode = paths.Children[path] as YamlMappingNode;
+                    pathMappingNode.Add(httpOperation, (apiPathNodeChild.Value as YamlMappingNode).DeepClone());
+
                     // Generate eventName
                     // ex: GET /order/{orderId} => GetOrderOrderId
                     var eventName = RouteToEventName(httpOperation, path);
                     if (awsLambda.AwsResource.RootNode.Children.TryGetValue("Events", out YamlNode eventsNode)
                         && ((YamlMappingNode)eventsNode).Children.ContainsKey(eventName))
                         throw new Exception($"Error: Duplicate event name \"{eventName}\" in Lambda");
+                    if (EndPoints.ContainsKey(eventName))
+                        throw new Exception($"Error: Duplicate event name \"{eventName}\" in Stack");
+
+                    // Add event into the glocal EndPoints Dictionary
+                    EndPoints.Add(eventName, new EndPoint(eventName, awsLambda.AwsApi));
 
                     // The api is responsible for creating the event node because Event nodes are different based on Api
                     var eventNode = awsLambda.AwsApi.EventNode(path, httpOperation);
@@ -542,6 +582,11 @@ namespace LazyStack
                     eventsMappingNode.Children.Add(eventName, eventNode);
                 }
             }
+             
+            // Show LambdaOpenApiSpecs
+            foreach(var lambda in Lambdas.Values)
+                Debug.WriteLine($"Lambnda OpenApiSpec\n{new SerializerBuilder().Build().Serialize(lambda.OpenApiSpec)}");
+
         }
 
         /// <summary>
@@ -553,9 +598,11 @@ namespace LazyStack
             {
                 logger.Info($"\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
                 Debug.WriteLine("\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
+
                 Debug.WriteLine($"{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}");
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
                 {
+
                     var tagName = kvp.Key.ToString();
                     if (!LambdaNameByTagName.ContainsKey(tagName))
                         throw new Exception($"Error: TagLambdas directive references unknown tag \"{tagName}\"");
@@ -580,7 +627,9 @@ namespace LazyStack
                     lambda.AwsResource.RootNode = MergeNode(lambda.AwsResource.RootNode, rootNode) as YamlMappingNode;
                     Debug.WriteLine($"mergednode\n{new SerializerBuilder().Build().Serialize(lambda.AwsResource.RootNode)}");
 
+                    ;
                 }
+
             }
         }
 
@@ -780,7 +829,7 @@ namespace LazyStack
             return references.Count > 0;
         }
 
-        public string TagToFunctionName(string apiName, string tag)
+        public string TagToFunctionName(string tag)
         {
             return ToUpperFirstChar(tag);
         }
@@ -820,7 +869,6 @@ namespace LazyStack
             {
                 var api = new YamlStream();
                 var text = File.ReadAllText(path, Encoding.UTF8);
-                var temp = new StringReader(text);
                 api.Load(new StringReader(text));
                 YamlDocument doc = api.Documents[0];
                 return doc.RootNode as YamlMappingNode;
@@ -838,7 +886,6 @@ namespace LazyStack
             var serializer = new YamlDotNet.Serialization.Serializer();
             return serializer.Serialize(node);
         }
-
 
         public static YamlNode MergeNode(YamlNode leftNode, YamlNode rightNode)
         {
@@ -866,114 +913,13 @@ namespace LazyStack
 
         static object ConvertJTokenToObject(JToken token)
         {
-            if (token is JValue)
-                return ((JValue)token).Value;
+            if (token is JValue value)
+                return value.Value;
             if (token is JArray)
                 return token.AsEnumerable().Select(ConvertJTokenToObject).ToList();
             if (token is JObject)
                 return token.AsEnumerable().Cast<JProperty>().ToDictionary(x => x.Name, x => ConvertJTokenToObject(x.Value));
             throw new InvalidOperationException("Unexpected token: " + token);
-        }
-
-
-        // Recursive Merge rightNode into leftNode. rightNode value has higher priority.
-        public static string MergeNodeOld(YamlNode leftNode, YamlNode rightNode)
-        {
-            if (leftNode == null)
-                return "Can't merge into null node";
-
-            if (rightNode == null)
-                return string.Empty;
-
-            if (leftNode.NodeType != rightNode.NodeType)
-                return "Can't merge nodes of different types";
-
-            switch (leftNode.NodeType) 
-            {
-                case YamlNodeType.Alias:
-                    return "Don't know how to merge Alias nodes";
-
-                case YamlNodeType.Scalar: // leftnode is a Scaler node
-                    // todo - do we need to make the leftNode a ref to support this case? test
-                    leftNode = rightNode.DeepClone();
-
-
-
-                    break;
-
-                case YamlNodeType.Sequence:
-                    var leftSequenceNode = leftNode as YamlSequenceNode;
-                    var rightSequenceNode = rightNode as YamlSequenceNode;
-                    var newNodes = new List<YamlNode>();
-
-                    foreach (var rvalue in rightSequenceNode.Children)
-                    {
-                        switch(rvalue.NodeType)
-                        {
-                            case YamlNodeType.Alias:
-                                return "Don't know how to merge Alias nodes";
-
-                            case YamlNodeType.Sequence:
-                                return "Don't know how to merge nested sequences";
-                                break;
-
-                            case YamlNodeType.Scalar:
-                                bool scalarItemFound = false;
-                                foreach (var scalarItem in leftSequenceNode.Children)
-                                    if ((scalarItemFound = scalarItem.Equals(rvalue)) == true)
-                                        break;
-                                if (!scalarItemFound)
-                                    leftSequenceNode.Add(rvalue);
-                                break;
-
-                            case YamlNodeType.Mapping:
-                                var rightMappingItem = rvalue as YamlMappingNode;
-                                bool mappingItemFound = false;
-                                YamlNode leftMappingItem = null;
-                                foreach (var mappingItem in leftSequenceNode.Children)
-                                    if (mappingItem.NodeType == YamlNodeType.Mapping
-                                        && ((mappingItemFound = (mappingItem as YamlMappingNode).Children.First().Key.Equals(rightMappingItem.Children.First().Key)) == true))
-                                        break;
-                                
-                                var msg = string.Empty;
-                                if (mappingItemFound)
-                                {
-                                    msg = MergeNodeOld(leftMappingItem, rightMappingItem);
-
-                                    if (!string.IsNullOrEmpty(msg))
-                                        return msg;
-                                }
-                                else
-                                {
-                                    newNodes.Add(rvalue);
-                                }
-
-                                break;
-                        }
-                    }
-                    break;
-
-
-                case YamlNodeType.Mapping: 
-                    var leftMappingNode = leftNode as YamlMappingNode;
-                    var rightMappingNode = rightNode as YamlMappingNode;
-                    foreach (KeyValuePair<YamlNode, YamlNode> kvp in rightMappingNode.Children)
-                        if (leftMappingNode.Children.ContainsKey(kvp.Key))
-                        {
-                            if (leftMappingNode[kvp.Key].NodeType == YamlNodeType.Scalar)
-                                leftMappingNode.Children[kvp.Key] = kvp.Value.DeepClone();
-                            else
-                            {
-                                var innerMsg = MergeNodeOld(leftMappingNode[kvp.Key], kvp.Value);
-                                if (!string.IsNullOrEmpty(innerMsg))
-                                    return innerMsg;
-                            }
-                        }
-                        else
-                            leftMappingNode.Children[kvp.Key] = kvp.Value.DeepClone();
-                    break;
-            }
-            return string.Empty;
         }
 
         public static string ReplaceTargets(string source, Dictionary<string, string> replacements)
@@ -1001,6 +947,30 @@ namespace LazyStack
             return newString;
         }
 
+        public static bool NamedPropertyExists(YamlNode node, string propertyPath)
+        {
+
+            if (string.IsNullOrEmpty(propertyPath))
+                return false;
+
+            string[] nodeElement = propertyPath.Split('/');
+            int el = 0; // 
+
+            if (node.NodeType != YamlNodeType.Mapping)
+                return false;
+
+            var mappingNode = node as YamlMappingNode;
+            while (
+                el < nodeElement.Length
+                && mappingNode.Children.TryGetValue(nodeElement[el++], out node)
+                && node.NodeType == YamlNodeType.Mapping)
+                mappingNode = node as YamlMappingNode;
+
+            if (el != nodeElement.Length)
+                return false;
+
+            return node != null;
+        }
 
         public static bool GetNamedProperty(YamlNode node, string propertyPath, out YamlNode outNode)
         {
@@ -1026,12 +996,12 @@ namespace LazyStack
                 return false;
 
             outNode = node;
-            return true;
+            return outNode != null;
         }
 
         public string GetConfigProperty(string path, bool errorIfMissing = true)
         {
-            var propertyValue = GetNamedProperty(
+            GetNamedProperty(
                 ProjectGenerationOptions,
                 path,
                 out YamlNode node
@@ -1047,7 +1017,7 @@ namespace LazyStack
         {
             var result = new Dictionary<string, string>();
 
-            var propertyValue = GetNamedProperty(
+            GetNamedProperty(
                 ProjectGenerationOptions,
                 path,
                 out YamlNode node
@@ -1059,12 +1029,19 @@ namespace LazyStack
             if (node == null)
                 return result;
 
-            if (node.NodeType != YamlNodeType.Mapping)
-                throw new Exception($"Error: Nodetype for {path} configuration property is not mapping node");
 
-            var mappingNode = node as YamlMappingNode;
-            foreach (var kvp in mappingNode.Children)
-                result.Add(kvp.Key.ToString(), kvp.Value.ToString());
+            if (node.NodeType != YamlNodeType.Mapping && node.NodeType != YamlNodeType.Scalar)
+                throw new Exception($"Error: Nodetype for {path} configuration property is not mapping or scalar node");
+
+            if (node.NodeType == YamlNodeType.Mapping)
+            {
+                var mappingNode = node as YamlMappingNode;
+                foreach (var kvp in mappingNode.Children)
+                    result.Add(kvp.Key.ToString(), kvp.Value.ToString());
+            }
+
+            if (node.NodeType == YamlNodeType.Scalar)
+                result.Add((node as YamlScalarNode).ToString(), string.Empty);
 
             return result;
         }
@@ -1073,7 +1050,7 @@ namespace LazyStack
         {
             var result = new List<string>();
 
-            var propertyValue = GetNamedProperty(
+            GetNamedProperty(
                 ProjectGenerationOptions,
                 path,
                 out YamlNode node
