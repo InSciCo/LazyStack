@@ -15,7 +15,13 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="Templates\ClientSDK\ClientSdk.csproj">
+    <None Include="Templates\ClientAWSDev\ClientAWSDev.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\ClientAWS\ClientAWS.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Templates\ClientSDK\ClientSDK.csproj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -27,11 +33,43 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
-    <None Update="Templates\ClientSDK\AwsSettings.cs.tpl">
+    <None Update="Templates\ClientAWSDev\AuthEmail.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
-    <None Update="Templates\ClientSDK\LzHttpClient.cs.tpl">
+    <None Update="Templates\ClientAWSDev\AwsUtils.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientAWSDev\Setup.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientAWS\AuthProviderCognito.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientAWS\AwsSettings.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientAWS\LzHttpClient.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\AuthModuleEventArgs.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\AuthProcess.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\IAuthProvider.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\ILzHttpClient.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    

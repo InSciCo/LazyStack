@@ -1,27 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using System.Linq;
-using System.Dynamic;
 using System.Reflection;
+using System.Text;
 
 using YamlDotNet.RepresentationModel;
-using YamlDotNet.Core;
-using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization.ObjectFactories;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json.Linq;
-using Newtonsoft;
-using Newtonsoft.Json.Converters;
 
 using Force.DeepCloner;
-using System.Diagnostics;
-using CommandLine;
-using System.Text;
 
 namespace LazyStack 
 {
@@ -102,6 +93,7 @@ namespace LazyStack
         public Dictionary<string, ProjectInfo> Projects { get; } = new Dictionary<string, ProjectInfo>(); // key is projectName
         public ProjectInfo ClientSDK { get; set; }
         public string ClientSDKProjectName { get; set; }
+
         public List<string> SolutionFolders { get; } = new List<string>();
 
         public string DefaultApi { get; set; } = "HttpApiUnsecure";
@@ -183,7 +175,6 @@ namespace LazyStack
             // Grab top-level configuration directives
             ParseLzConfiguration();
 
-
             // HttpApiUnsecure, HttpApiSecure, ApiUnsecure, ApiSecure, 
             // UserPool, UserPoolClient, IdentityPool, CognitoIdentityPoolRoles, AuthRole, UnAuthRole
             CreateDefaultResources();
@@ -227,9 +218,6 @@ namespace LazyStack
             // Set the security levels of the Api
             foreach (var api in Apis.Values)
                 api.DiscoverSecurityLevel();
-
-            // Set the security level of the events/endpoints in each api
-
 
         }
 
@@ -372,7 +360,6 @@ namespace LazyStack
                     TagNameByLambdaName.Add(lambdaName, tagName);
                     ApiNameByTagName.Add(tagName, string.Empty);
                     logger.Info($"  {tagName} will create lambda {lambdaName}");
-
                 }
         }
 
@@ -457,7 +444,6 @@ namespace LazyStack
             if (pathsNode.NodeType != YamlNodeType.Mapping)
                 throw new Exception($"Error: paths field is not a mapping node.");
 
-
             foreach (YamlMappingNode tagsNodeItem in tagsNode as YamlSequenceNode)
             {
                 var tagName = tagsNodeItem["name"].ToString();
@@ -482,8 +468,6 @@ namespace LazyStack
                 Debug.WriteLine($"Lamnda OpenApi\n{new SerializerBuilder().Build().Serialize(lambda.OpenApiSpec)}");
                 Debug.WriteLine($"Lambda SAM\n {new SerializerBuilder().Build().Serialize(resource.RootNode)}");
             }
-
-
         }
 
         /// <summary>
@@ -501,8 +485,6 @@ namespace LazyStack
             Debug.WriteLine($"\nParsing OpenApi Specifications paths to generate Lambda events");
 
             string[] validOperations = { "GET", "PUT", "POST", "DELETE", "UPDATE" };
-
-            //string inspect = new SerializerBuilder().Build().Serialize(OpenApiSpecRootNode);
 
             if (!OpenApiSpecRootNode.Children.TryGetValue("paths", out YamlNode pathsNode))
                 throw new Exception($"Error: OpenApi specification missing \"Paths\" Object");
@@ -553,14 +535,16 @@ namespace LazyStack
 
                     // Generate eventName
                     // ex: GET /order/{orderId} => GetOrderOrderId
-                    var eventName = RouteToEventName(httpOperation, path);
+                    GetNamedProperty(apiOpNode, "operationId", out YamlNode operationIdNode);
+                    var operationId = operationIdNode == null ? string.Empty : operationIdNode.ToString();
+                    var eventName = RouteToEventName(httpOperation, path, operationId);
                     if (awsLambda.AwsResource.RootNode.Children.TryGetValue("Events", out YamlNode eventsNode)
                         && ((YamlMappingNode)eventsNode).Children.ContainsKey(eventName))
                         throw new Exception($"Error: Duplicate event name \"{eventName}\" in Lambda");
                     if (EndPoints.ContainsKey(eventName))
                         throw new Exception($"Error: Duplicate event name \"{eventName}\" in Stack");
 
-                    // Add event into the glocal EndPoints Dictionary
+                    // Add event into the global EndPoints Dictionary
                     EndPoints.Add(eventName, new EndPoint(eventName, awsLambda.AwsApi));
 
                     // The api is responsible for creating the event node because Event nodes are different based on Api
@@ -586,7 +570,6 @@ namespace LazyStack
             // Show LambdaOpenApiSpecs
             foreach(var lambda in Lambdas.Values)
                 Debug.WriteLine($"Lambnda OpenApiSpec\n{new SerializerBuilder().Build().Serialize(lambda.OpenApiSpec)}");
-
         }
 
         /// <summary>
@@ -626,10 +609,7 @@ namespace LazyStack
                     Debug.WriteLine($"rnode\n{new SerializerBuilder().Build().Serialize(rootNode)}");
                     lambda.AwsResource.RootNode = MergeNode(lambda.AwsResource.RootNode, rootNode) as YamlMappingNode;
                     Debug.WriteLine($"mergednode\n{new SerializerBuilder().Build().Serialize(lambda.AwsResource.RootNode)}");
-
-                    ;
                 }
-
             }
         }
 
@@ -689,17 +669,12 @@ namespace LazyStack
                         default:
                             break;
                     }
-                    
                 }
             }
             foreach(var item in pruneList)
-            {
                 if (item.Value)
                     Resources.Remove(item.Key);
-            }
-
         }
-
 
         private void WriteSAM()
         {
@@ -841,18 +816,23 @@ namespace LazyStack
         /// <param name="httpOperation"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        public string RouteToEventName(string httpOperation, string path)
+        public static string RouteToEventName(string httpOperation, string path, string operationId)
         {
-            var name = ToUpperFirstChar(httpOperation.ToLower()); //ex: GET to Get
-            var parts = path.Split('/');
-            foreach (var part in parts)
+            if (string.IsNullOrEmpty(operationId))
             {
-                var namePart = part;
-                namePart = namePart.Replace("{", "");
-                namePart = namePart.Replace("}", "");
-                name += ToUpperFirstChar(namePart);
+                var name = ToUpperFirstChar(httpOperation.ToLower()); //ex: GET to Get
+                var parts = path.Split('/');
+                foreach (var part in parts)
+                {
+                    var namePart = part;
+                    namePart = namePart.Replace("{", "");
+                    namePart = namePart.Replace("}", "");
+                    name += ToUpperFirstChar(namePart);
+                }
+                return name;
             }
-            return name;
+            else
+                return ToUpperFirstChar(operationId);
         }
 
         public string GetMappingNodeStringValue(YamlMappingNode node, string key)
@@ -866,13 +846,13 @@ namespace LazyStack
 
         #region Utility Methods
         public static YamlMappingNode ReadAndParseYamlFile(string path)
-            {
-                var api = new YamlStream();
-                var text = File.ReadAllText(path, Encoding.UTF8);
-                api.Load(new StringReader(text));
-                YamlDocument doc = api.Documents[0];
-                return doc.RootNode as YamlMappingNode;
-            }
+        {
+            var api = new YamlStream();
+            var text = File.ReadAllText(path, Encoding.UTF8);
+            api.Load(new StringReader(text));
+            YamlDocument doc = api.Documents[0];
+            return doc.RootNode as YamlMappingNode;
+        }
 
         public static YamlMappingNode ParseYamlText(string text)
         {
@@ -889,7 +869,6 @@ namespace LazyStack
 
         public static YamlNode MergeNode(YamlNode leftNode, YamlNode rightNode)
         {
-
             var leftNodeYaml = new StringReader(new YamlDotNet.Serialization.SerializerBuilder().Build().Serialize(leftNode));
             var leftNodeYamlObject = new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize(leftNodeYaml);
             var leftNodeJson = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(leftNodeYamlObject);
@@ -933,7 +912,8 @@ namespace LazyStack
         {
             if (str.Length == 0)
                 return str;
-            else if (str.Length == 1)
+            else 
+            if (str.Length == 1)
                 return str.ToUpper();
             else
                 return str[0].ToString().ToUpper() + str.Substring(1);
@@ -949,7 +929,6 @@ namespace LazyStack
 
         public static bool NamedPropertyExists(YamlNode node, string propertyPath)
         {
-
             if (string.IsNullOrEmpty(propertyPath))
                 return false;
 
@@ -1070,9 +1049,6 @@ namespace LazyStack
                 result.Add(item.ToString());
             return result;
         }
-
         #endregion
-
     }
-
 }

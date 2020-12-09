@@ -12,7 +12,7 @@ namespace LazyStack
             Api = api;
         }
 
-        public string Name;
-        public AwsApi Api;
+        public string Name { get; }
+        public AwsApi Api { get; }
     }
 }

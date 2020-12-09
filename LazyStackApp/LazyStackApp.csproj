@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LazyStack\LazyStack.csproj" />
-    <ProjectReference Include="..\Microsoft\src\Cli\Microsoft.DotNet.Cli.Sln.Internal\Microsoft.DotNet.Cli.Sln.Internal.csproj" />
   </ItemGroup>
 
   <ItemGroup>

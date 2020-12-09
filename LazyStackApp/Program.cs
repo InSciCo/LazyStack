@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Text;
 using System.IO;
+using System.Diagnostics;
+using System.ComponentModel;
+using System.Threading;
 using System.Collections.Generic;
 using CommandLine;
 using LazyStack;
-using Microsoft.DotNet.Cli.Sln.Internal.Lz;
-using Microsoft.DotNet.Tools.Common.Lz;
+using Microsoft.DotNet;
+using Microsoft.DotNet.InternalAbstractions;
+
 //using Microsoft.Build.Locator;
 
 namespace LazyStackApp
@@ -61,62 +66,43 @@ namespace LazyStackApp
             processProjects.Run();
 
             // Update the Solution File
-            var slnFile = SlnFile.Read(Path.Combine(solutionRootFolderPath, $"{solutionModel.AppName}.sln"));
 
-            foreach(KeyValuePair<string,ProjectInfo> proj in solutionModel.Projects)
-            {
-                var projName = proj.Key;
-                var projInfo = proj.Value;
-                if(!slnFile.ProjectExists(projName))
+            var slnFilePath = Path.Combine(solutionRootFolderPath, $"{solutionModel.AppName}.sln");
+
+            // Get current projects using "dotnet sln <slnFilePath> list
+            var startInfo = new ProcessStartInfo();
+            startInfo.FileName = "dotnet";
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.CreateNoWindow = true;
+            startInfo.Arguments = $" sln {slnFilePath} list";
+            using var process = Process.Start(startInfo);
+            var existingProjects = process.StandardOutput.ReadToEnd();
+            Console.WriteLine($"Existing Projects\n{existingProjects}");
+
+            var projectsToAdd = string.Empty;
+            foreach (KeyValuePair<string, ProjectInfo> proj in solutionModel.Projects)
+                if (!existingProjects.Contains($"{proj.Value.RelativePath}"))
                 {
-                    logger.Info($"Adding Project {projName} to solution");
-                    slnFile.AddProject(projInfo.Path, projInfo.RelativePath, solutionRootFolderPath);
+                    logger.Info($"Adding Project {proj.Value.RelativePath} to solution");
+                    projectsToAdd += $" {proj.Value.RelativePath}";
                 }
-            }
-
-            // Add AppName.yaml file to SolutionItems folder if it exists
-            var itemName = $"{solutionModel.AppName}.yaml";
-            if (File.Exists(Path.Combine(solutionRootFolderPath, itemName)))
-                AddSolutionItemFolderFile(slnFile, itemName, logger);
-
-            // Add template.yaml file to SolutionItems folder if it exists
-            itemName = "template.yaml";
-            if (File.Exists(Path.Combine(solutionRootFolderPath, itemName)))
-                AddSolutionItemFolderFile(slnFile, itemName, logger);
-
-            // Add serverless.template file to SolutionItems folder if it exists
-            itemName = "serverless.template";
-            if (File.Exists(Path.Combine(solutionRootFolderPath, itemName)))
-                AddSolutionItemFolderFile(slnFile, itemName, logger);
-
-            // Add LazyStack.yaml file to SolutionItems folder if it exists
-            itemName = "LazyStack.yaml";
-            if (File.Exists(Path.Combine(solutionRootFolderPath, itemName)))
-                AddSolutionItemFolderFile(slnFile, itemName, logger);
-
-            slnFile.Write();
-        }
-
-        public static void AddSolutionItemFolderFile(SlnFile slnFile, string fileName, ILogger logger)
-        {
-            if (!slnFile.ProjectExists("SolutionItems"))
+            if (!string.IsNullOrEmpty(projectsToAdd))
             {
-                logger.Info($"Adding SolutionItems folder");
-                slnFile.AddSolutionFolder("SolutionItems");
+                startInfo.Arguments = $"sln {slnFilePath} add {projectsToAdd}";
+                using var addProcess = Process.Start(startInfo);
+                var addProjectOutput = addProcess.StandardOutput.ReadToEnd();
+                Console.WriteLine($"{addProjectOutput}");
             }
 
-            var slnProject = slnFile.GetProjectByName("SolutionItems");
+            // Note!
+            // Unlike the VisualStudio processing, we do not have the ability to 
+            // create a Solution Items folder and add items to it when using 
+            // the dotnet CLI. If someone is working with the CLI, it is not clear
+            // if a Solution Items folder would add any value. OTOH, if a solution
+            // generated with Visual Studio and which is later processed using 
+            // the dotnet CLI, nothing bad happens. So, no harm no foul.
 
-            var slnSectionCollection = slnProject.Sections;
-
-            var slnSection = slnSectionCollection.GetOrCreateSection("SolutionItems", SlnSectionType.PreProcess);
-
-            var slnProperties = slnSection.Properties;
-
-            slnProperties.SetValue(fileName, fileName);
-
-            logger.Info($"Adding {fileName} to SolutionItems folder");
         }
-
     }
 }

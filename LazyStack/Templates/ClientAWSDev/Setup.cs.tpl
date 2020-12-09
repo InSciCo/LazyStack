@@ -5,9 +5,10 @@ using System.Text;
 
 using Microsoft.Extensions.Configuration;
 
-using LazyStackAuth;
+using __ProjAWS__;
+using __ProjSDK__;
 
-namespace LazyStackDevUtil
+namespace __ProjName__
 {
     /// <summary>
     /// SignUpTestUser1() is a utility class to make sure a required

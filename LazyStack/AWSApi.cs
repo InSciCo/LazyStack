@@ -6,9 +6,9 @@ namespace LazyStack
 
     public enum SecurityLevel
     {
-        none,
-        jwt,
-        signed
+        None,
+        JWT,
+        AwsSignatureVersion4
     }
 
     public abstract class AwsApi
@@ -70,10 +70,9 @@ namespace LazyStack
         public override SecurityLevel DiscoverSecurityLevel()
         {
             if (SolutionModel.NamedPropertyExists(AwsResource.RootNode, $"Properties/Auth"))
-            {
-                SecurityLevel = SecurityLevel.signed; // Just assume signed for now. ToDo - allow for JWT and other security options
-            }
-            else SecurityLevel = SecurityLevel.none;
+                SecurityLevel = SecurityLevel.AwsSignatureVersion4; // Just assume signed for now. ToDo - allow for JWT and other security options
+            else 
+                SecurityLevel = SecurityLevel.None;
 
             return SecurityLevel;
         }
@@ -111,10 +110,9 @@ namespace LazyStack
         public override SecurityLevel DiscoverSecurityLevel()
         {
             if (SolutionModel.NamedPropertyExists(AwsResource.RootNode, "Properties/Auth"))
-            {
-                SecurityLevel = SecurityLevel.jwt;
-            }
-            else SecurityLevel = SecurityLevel.none;
+                SecurityLevel = SecurityLevel.JWT;
+            else 
+                SecurityLevel = SecurityLevel.None;
 
             return SecurityLevel;
         }

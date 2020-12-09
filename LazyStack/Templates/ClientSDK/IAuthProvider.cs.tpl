@@ -1,17 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Amazon;
-using Amazon.CognitoIdentity;
-using Amazon.CognitoIdentityProvider;
-using Amazon.CognitoIdentityProvider.Model;
-using Amazon.Extensions.CognitoAuthentication;
-using Amazon.Runtime;
-
-namespace LazyStackAuth
+namespace __ProjName__
 {
     /// <summary>
-    /// General authentication flow Interface - not specific to any auth provider
+    /// General authentication flow Interface
     /// </summary>
     public interface IAuthProvider
     {
@@ -38,11 +31,7 @@ namespace LazyStackAuth
         /// <summary>
         /// List of current AuthChallenges
         /// </summary>
-        public List<AuthChallenges> AuthChallenges { get; }
-
-        public CognitoAWSCredentials Credentials { get; }
-
-        public CognitoUser CognitoUser { get; }
+        public List<AuthChallenges> AuthChallengeList { get; }
 
         public bool HasChallenge { get; }
 

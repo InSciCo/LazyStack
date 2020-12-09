@@ -14,6 +14,7 @@ using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
 
+using __SDKProj__;
 
 /// <summary>
 /// AWS Authentication and Authorization Strategy
@@ -49,7 +50,7 @@ using Amazon.Runtime;
 /// .ConfigureAwait(false) on all async calls.
 /// 
 /// </summary>
-namespace LazyStackAuth
+namespace __ProjName__
 {
     /// <summary>
     /// Implements ICognitoAuthProvider
@@ -93,17 +94,17 @@ namespace LazyStackAuth
         public string UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
         public bool IsUserEmailVerified { get; private set; }
         public bool IsAuthorized { get; private set; }
-        public List<AuthChallenges> AuthChallenges { get; } = new List<AuthChallenges>();
+        public List<AuthChallenges> AuthChallengeList { get; } = new List<AuthChallenges>();
         public AuthChallenges CurrentChallenge 
         {
             get
             {
-                return (AuthChallenges.Count > 0)
-                  ? AuthChallenges[0]
-                  : LazyStackAuth.AuthChallenges.None;
+                return (AuthChallengeList.Count > 0)
+                  ? AuthChallengeList[0]
+                  : AuthChallenges.None;
             }
         } 
-        public bool HasChallenge { get { return AuthChallenges.Count > 0; } }
+        public bool HasChallenge { get { return AuthChallengeList.Count > 0; } }
         #endregion Properties
 
         #region Methods
@@ -141,8 +142,8 @@ namespace LazyStackAuth
 
             Clear();
 
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Login);
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Password);
+            AuthChallengeList.Add(AuthChallenges.Login);
+            AuthChallengeList.Add(AuthChallenges.Password);
             return AuthModuleEvent.AuthChallenge;
         }
 
@@ -153,8 +154,8 @@ namespace LazyStackAuth
 
             Clear();
 
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Login);
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Password);
+            AuthChallengeList.Add(AuthChallenges.Login);
+            AuthChallengeList.Add(AuthChallenges.Password);
             return await VerifyLoginAsync(userLogin);
         }
 
@@ -165,8 +166,8 @@ namespace LazyStackAuth
 
             Clear();
 
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Login);
-            AuthChallenges.Add(LazyStackAuth.AuthChallenges.Password);
+            AuthChallengeList.Add(AuthChallenges.Login);
+            AuthChallengeList.Add(AuthChallenges.Password);
 
             var result = await VerifyLoginAsync(userLogin);
             if (result != AuthModuleEvent.AuthChallenge)
@@ -180,7 +181,7 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
 
-            if(CurrentChallenge != LazyStackAuth.AuthChallenges.Login)
+            if(CurrentChallenge != AuthChallenges.Login)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             if (!CheckUserLoginFormat(userLogin))
@@ -191,7 +192,7 @@ namespace LazyStackAuth
             try
             {
                 CognitoUser = new CognitoUser(userLogin, clientId, userPool, providerClient);
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.Login);
+                AuthChallengeList.Remove(AuthChallenges.Login);
                 return AuthModuleEvent.AuthChallenge;
             }
             catch (Exception e)
@@ -207,7 +208,7 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
 
-            if (CurrentChallenge != LazyStackAuth.AuthChallenges.Password)
+            if (CurrentChallenge != AuthChallenges.Password)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             if (!CheckPasswordFormat(password))
@@ -222,11 +223,11 @@ namespace LazyStackAuth
                     }
                     ).ConfigureAwait(false);
 
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.Password);
+                AuthChallengeList.Remove(AuthChallenges.Password);
 
                 CheckForChallenges(authFlowResponse); // Add any challenges presented by server
 
-                if (CurrentChallenge == LazyStackAuth.AuthChallenges.None)
+                if (CurrentChallenge == AuthChallenges.None)
                     return await FinalizeAuthAsync();
 
                 return AuthModuleEvent.AuthChallenge;
@@ -250,7 +251,7 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
 
-            if (CurrentChallenge != LazyStackAuth.AuthChallenges.MFACode)
+            if (CurrentChallenge != AuthChallenges.MFACode)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             try
@@ -263,11 +264,11 @@ namespace LazyStackAuth
                     }
                     ).ConfigureAwait(false);
 
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.MFACode);
+                AuthChallengeList.Remove(AuthChallenges.MFACode);
 
                 CheckForChallenges(authFlowResponse); // Add any challenges presented by server
 
-                if (CurrentChallenge == LazyStackAuth.AuthChallenges.None)
+                if (CurrentChallenge == AuthChallenges.None)
                     return await FinalizeAuthAsync();
 
                 return AuthModuleEvent.AuthChallenge;
@@ -291,7 +292,7 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
 
-            if (CurrentChallenge != LazyStackAuth.AuthChallenges.PasswordUpdate)
+            if (CurrentChallenge != AuthChallenges.PasswordUpdate)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             try
@@ -304,11 +305,11 @@ namespace LazyStackAuth
                     }
                     ).ConfigureAwait(false);
 
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.PasswordUpdate);
+                AuthChallengeList.Remove(AuthChallenges.PasswordUpdate);
 
                 CheckForChallenges(authFlowResponse); // Add any challenges presented by server
 
-                if (CurrentChallenge == LazyStackAuth.AuthChallenges.None)
+                if (CurrentChallenge == AuthChallenges.None)
                     return await FinalizeAuthAsync();
 
                 return AuthModuleEvent.AuthChallenge;
@@ -354,13 +355,13 @@ namespace LazyStackAuth
 
             if (authFlowResponse.ChallengeName == ChallengeNameType.NEW_PASSWORD_REQUIRED) // Update Passsword
             {
-                if(!AuthChallenges.Contains(LazyStackAuth.AuthChallenges.PasswordUpdate))
-                    AuthChallenges.Add(LazyStackAuth.AuthChallenges.PasswordUpdate);
+                if(!AuthChallengeList.Contains(AuthChallenges.PasswordUpdate))
+                    AuthChallengeList.Add(AuthChallenges.PasswordUpdate);
             }
             else if (authFlowResponse.ChallengeName == ChallengeNameType.SMS_MFA) // Multi-factor auth
             {
-                if(!AuthChallenges.Contains(LazyStackAuth.AuthChallenges.MFACode))
-                    AuthChallenges.Add(LazyStackAuth.AuthChallenges.MFACode);
+                if(!AuthChallengeList.Contains(AuthChallenges.MFACode))
+                    AuthChallengeList.Add(AuthChallenges.MFACode);
             }
         }
 
@@ -421,7 +422,7 @@ namespace LazyStackAuth
         public virtual void Clear()
         {
             CognitoUser = null;
-            AuthChallenges.Clear();
+            AuthChallengeList.Clear();
             authFlowResponse = null;
             IsAuthorized = false;
         }
@@ -471,7 +472,7 @@ namespace LazyStackAuth
                 UserLogin = userLogin;
                 UserEmail = email;
 
-                AuthChallenges.Add(LazyStackAuth.AuthChallenges.SignUp);
+                AuthChallengeList.Add(AuthChallenges.SignUp);
                 return AuthModuleEvent.AuthChallenge;
             }
             catch (UsernameExistsException) { return AuthModuleEvent.UserLoginAlreadyUsed; }
@@ -488,7 +489,7 @@ namespace LazyStackAuth
             if (CognitoUser != null)
                 return AuthModuleEvent.InvalidOperationWhenSignedIn;
 
-            //if (CurrentChallenge != LazyStackAuth.AuthChallenges.SignUp)
+            //if (CurrentChallenge != AuthChallenges.SignUp)
             //    return AuthModuleEvent.SignUpNotStarted;
 
             try
@@ -516,7 +517,7 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.AlreadyAuthorized;
 
-            if (CurrentChallenge != LazyStackAuth.AuthChallenges.SignUp)
+            if (CurrentChallenge != AuthChallenges.SignUp)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             try
@@ -529,7 +530,7 @@ namespace LazyStackAuth
                         ConfirmationCode = code
                     }).ConfigureAwait(false);
 
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.SignUp);
+                AuthChallengeList.Remove(AuthChallenges.SignUp);
 
                 return AuthModuleEvent.SignedUp;
             }
@@ -556,7 +557,7 @@ namespace LazyStackAuth
             {
                 CognitoUser user = new CognitoUser(userLogin, clientId, userPool, providerClient);
                 await user.ForgotPasswordAsync().ConfigureAwait(false);
-                AuthChallenges.Add(LazyStackAuth.AuthChallenges.PasswordReset);
+                AuthChallengeList.Add(AuthChallenges.PasswordReset);
                 return AuthModuleEvent.AuthChallenge;
             }
             catch (TooManyRequestsException) { return AuthModuleEvent.TooManyAttempts; }
@@ -573,14 +574,14 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.InvalidOperationWhenSignedIn;
 
-            if (CurrentChallenge != LazyStackAuth.AuthChallenges.PasswordReset)
+            if (CurrentChallenge != AuthChallenges.PasswordReset)
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             try
             {
                 CognitoUser user = new CognitoUser(UserLogin, clientId, userPool, providerClient);
                 await user.ConfirmForgotPasswordAsync(code, password).ConfigureAwait(false);
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.PasswordReset);
+                AuthChallengeList.Remove(AuthChallenges.PasswordReset);
                 return AuthModuleEvent.PasswordResetDone;
             }
             catch (InvalidPasswordException) { return AuthModuleEvent.PasswordRequirementsFailed; }
@@ -619,8 +620,8 @@ namespace LazyStackAuth
                 IsUserEmailVerified = false;
 
                 await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
-                if(!AuthChallenges.Contains(LazyStackAuth.AuthChallenges.Email))
-                    AuthChallenges.Add(LazyStackAuth.AuthChallenges.Email);
+                if(!AuthChallengeList.Contains(AuthChallenges.Email))
+                    AuthChallengeList.Add(AuthChallenges.Email);
                 return AuthModuleEvent.AuthChallenge;
             }
             catch (TooManyRequestsException) { return AuthModuleEvent.TooManyAttempts; }
@@ -645,14 +646,14 @@ namespace LazyStackAuth
             if (IsAuthorized)
                 return AuthModuleEvent.NeedToBeSignedIn;
 
-            if (!AuthChallenges.Contains(LazyStackAuth.AuthChallenges.Email))
+            if (!AuthChallengeList.Contains(AuthChallenges.Email))
                 return AuthModuleEvent.VerifyCalledButNoChallengeFound;
 
             try
             {
                 await CognitoUser.VerifyAttributeAsync("email", code).ConfigureAwait(false);
                 IsUserEmailVerified = true;
-                AuthChallenges.Remove(LazyStackAuth.AuthChallenges.Email);
+                AuthChallengeList.Remove(AuthChallenges.Email);
                 return AuthModuleEvent.EmailUpdateDone;
             }
             catch (TooManyRequestsException) { return AuthModuleEvent.TooManyAttempts; }

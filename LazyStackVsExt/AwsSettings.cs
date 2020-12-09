@@ -11,11 +11,14 @@ namespace LazyStackVsExt
     {
         public class Api
         {
-            public string Name { get; set; }
-            public string Id { get; set; }
             public string Type { get; set; }
+            public string Name { get; set; }
+            public string Scheme { get; set; }
+            public string Id { get; set; }
+            public string Service { get; set; }
+            public string Host { get; set; }
+            public int Port { get; set; }
             public string Stage { get; set; }
-            public bool Secure { get; set; }
         }
 
         public AwsSettings(
@@ -40,26 +43,22 @@ namespace LazyStackVsExt
                         IdentityPoolId = resource.PhysicalResourceId;
                         break;
                     case "AWS::ApiGatewayV2::Api":
-                        var secure = !resource.LogicalResourceId.Contains("Unsecure");
                         var httpApi = new Api()
                         {
                             Name = resource.LogicalResourceId,
                             Id = resource.PhysicalResourceId,
                             Type = "HttpApi",
-                            Stage = "Dev",
-                            Secure = !resource.LogicalResourceId.Contains("Unsecure")
+                            Stage = "Dev"
                         };
                         ApiGateways.Add(httpApi);
                         break;
                     case "AWS::ApiGateway::RestApi":
-                        var secure2 = !resource.LogicalResourceId.Contains("Unsecure");
                         var restApi = new Api()
                         {
                             Name = resource.LogicalResourceId,
                             Id = resource.PhysicalResourceId,
                             Type = "Api",
-                            Stage = "Dev",
-                            Secure = !resource.LogicalResourceId.Contains("Unsecure")
+                            Stage = "Dev"
                         };
                         ApiGateways.Add(restApi);
                         break;
@@ -67,14 +66,20 @@ namespace LazyStackVsExt
             }
 
             Region = region;
-
         }
-        private AmazonCloudFormationClient cfClient;
 
-        public string ClientId { get; }
-        public string UserPoolId { get; }
-        public string IdentityPoolId { get; }
-        public string Region { get; }
+        public string ClientId { get; set; }
+        public string UserPoolId { get; set; }
+        public string IdentityPoolId { get; set; }
+        public string Region { get; set; }
+        public string DefaultScheme { get; set; }
+        public string DefaultHost { get; set; }
+        public int DefaultPort { get; set; }
+        public string DefaultService { get; set; }
+        public string LocalScheme { get; set; }
+        public string LocalHost { get; set; }
+        public int LocalPort { get; set; }
+        public bool UseLocal { get; set; }
         public List<Api> ApiGateways { get; } = new List<Api>();
 
         public string BuildJson()

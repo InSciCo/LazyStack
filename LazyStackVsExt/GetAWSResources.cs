@@ -61,17 +61,6 @@ namespace LazyStackVsExt
         }
 
         /// <summary>
-        /// Gets the service provider from the owner package.
-        /// </summary>
-        private Microsoft.VisualStudio.Shell.IAsyncServiceProvider ServiceProvider
-        {
-            get
-            {
-                return this.package;
-            }
-        }
-
-        /// <summary>
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
@@ -105,29 +94,19 @@ namespace LazyStackVsExt
                 return;
             }
 
-            var solutionName = Path.GetFileName(solutionFullName);
-            var solutionPath = Path.GetDirectoryName(solutionFullName);
-
-            //// Check for ClientSDK project
-            //var clientSDKPath = Path.Combine(Path.GetDirectoryName(solutionPath), $"{solutionName}ClientSDK");
-            //if (!Directory.Exists(clientSDKPath))
-            //{
-            //    MessageBox.Show($"Sorry - your solution does not contain a {solutionName}ClientSDK project");
-            //    return;
-            //}
-
-
             var stackName = string.Empty;
             var region = string.Empty;
             bool canceled;
             do
             {
-                var getStackNameDialog = new GetStackNameDialog();
-                getStackNameDialog.StackName = stackName;
-                getStackNameDialog.Region = region;
-                getStackNameDialog.HasMinimizeButton = false;
-                getStackNameDialog.HasMaximizeButton = false; 
-                
+                var getStackNameDialog = new GetStackNameDialog
+                {
+                    StackName = stackName,
+                    Region = region,
+                    HasMinimizeButton = false,
+                    HasMaximizeButton = false
+                };
+
                 getStackNameDialog.ShowModal();
 
                 stackName = getStackNameDialog.StackName;
@@ -195,7 +174,7 @@ namespace LazyStackVsExt
                 var returnFolder = (SolutionFolder)newFolder.Object;
                 return returnFolder;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

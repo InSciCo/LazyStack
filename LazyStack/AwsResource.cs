@@ -75,9 +75,7 @@ namespace LazyStack
             if(string.IsNullOrEmpty(codeUriTarget))
                 codeUriTarget = solutionModel.GetConfigProperty("LambdaProjects/CodeUriTarget", errorIfMissing: false);
             if(string.IsNullOrEmpty(codeUriTarget))
-            {
                 throw new Exception($"Error: Missing LambdaProjects/CodeUriTarget directive.");
-            }
 
             var text = SolutionModel.YamlNodeToText(lambdaResourceDefinition);
             text = SolutionModel.ReplaceTargets(
@@ -145,15 +143,11 @@ namespace LazyStack
             // Merge in any LazyStack defaults
             if (solutionModel.DefaultResourceConfigurations != null
                && solutionModel.DefaultResourceConfigurations.Children.TryGetValue(awsType, out YamlNode defResourcesMappingNode))
-            {  
                 resourceDefinition = SolutionModel.MergeNode(resourceDefinition, defResourcesMappingNode) as YamlMappingNode;
-            }
 
             // Merge in userResource Definition
             if (userResourceConfiguration != null)
-            {
                 resourceDefinition = SolutionModel.MergeNode(resourceDefinition, userResourceConfiguration) as YamlMappingNode;
-            }
 
             return resourceDefinition;
         }

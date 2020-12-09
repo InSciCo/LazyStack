@@ -1,7 +1,6 @@
 ﻿using System;
-namespace LazyStackAuth
+namespace __ProjName__
 {
-
     public enum AuthChallenges
     {
         None, // No challenge

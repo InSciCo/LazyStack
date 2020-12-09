@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace LazyStackAuth
+namespace __ProjName__
 {
     /// <summary>
     /// AuthProcess add events, INotifyPropertyChanged

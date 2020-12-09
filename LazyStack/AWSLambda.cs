@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using YamlDotNet.Core;
-using YamlDotNet.RepresentationModel;
+﻿using YamlDotNet.RepresentationModel;
 namespace LazyStack
 {
     public class AWSLambda

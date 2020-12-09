@@ -136,7 +136,7 @@ namespace LazyStackVsExt
                     var appName = solutionModel.AppName;
 
                     // create LzStack solution folders if they do not exist
-                    var solutionItemsFolder = CreateSolutionFolder("SolutionItems");
+                    var solutionItemsFolder = CreateSolutionFolder("Solution Items");
 
                     // Add appName.yaml file to SolutionItems folder
                     if (File.Exists(Path.Combine(solutionRootFolderPath, $"{appName}.yaml")))
