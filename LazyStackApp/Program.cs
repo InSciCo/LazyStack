@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -21,11 +22,23 @@ namespace LazyStackApp
             Console.WriteLine(message);
         }
 
+        public async Task InfoAsync(string message)
+        {
+            Console.WriteLine(message);
+        }
+
         public void Error(Exception ex, string message )
         {
             Console.WriteLine(message);
             Console.WriteLine(ex.Message);
         }
+
+        public async Task ErrorAsync(Exception ex, string message)
+        {
+            Console.WriteLine(message);
+            Console.WriteLine(ex.Message);
+        }
+
     }
 
     class Program
@@ -37,7 +50,7 @@ namespace LazyStackApp
             public string SolutionPath { get; set; }
         }
 
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var solutionRootFolderPath = Directory.GetCurrentDirectory();  // default to current working directory
 
@@ -59,11 +72,11 @@ namespace LazyStackApp
             var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
 
             // Process the API yaml files
-            solutionModel.ProcessOpenApi();
+            await solutionModel.ProcessOpenApiAsync();
 
             // Create / Update the Projects
             var processProjects = new ProcessProjects(solutionModel, logger);
-            processProjects.Run();
+            await processProjects.RunAsync();
 
             // Update the Solution File
 

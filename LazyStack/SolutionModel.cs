@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
@@ -158,55 +159,55 @@ namespace LazyStack
         /// Read the solutions OpenApi specification file, and directives in
         /// the LazyStack.yaml to write the solution's SAM serverless.template file.
         /// </summary>
-        public void ProcessOpenApi()
+        public async Task ProcessOpenApiAsync()
         {
-            logger.Info($"\nLoading OpenApi Specification {OpenApiFilePath}");
+            await logger.InfoAsync($"\nLoading OpenApi Specification {OpenApiFilePath}");
             OpenApiSpecText = File.ReadAllText(OpenApiFilePath);
             OpenApiSpecRootNode = ParseYamlText(OpenApiSpecText); 
 
             var lzConfigFilePath = Path.Combine(SolutionRootFolderPath, "LazyStack.yaml");
             if (File.Exists(lzConfigFilePath))
             {
-                logger.Info($"\nLoading LazyStack.yaml configuration file");
+                await logger.InfoAsync($"\nLoading LazyStack.yaml configuration file");
                 lzConfigRootNode = ReadAndParseYamlFile(lzConfigFilePath);
                 Debug.WriteLine($"lzConfigRootNode \n{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}"); 
             }
 
             // Grab top-level configuration directives
-            ParseLzConfiguration();
+            await ParseLzConfigurationAsync();
 
             // HttpApiUnsecure, HttpApiSecure, ApiUnsecure, ApiSecure, 
             // UserPool, UserPoolClient, IdentityPool, CognitoIdentityPoolRoles, AuthRole, UnAuthRole
-            CreateDefaultResources();
+            await CreateDefaultResourcesAsync();
 
             // Read AwsTemplate or default template. Update Resources.
-            LoadSAM();
+            await LoadSAMAsync();
 
             // Parse OpenApi tags object to generate list of LambdaNames we will generate
-            ParseOpenApiTagsObjectForLambdaNames();
+            await ParseOpenApiTagsObjectForLambdaNamesAsync();
 
             // Parse optional AwsResources in LazyStack configuration
-            ParseAwsResources();
+            await ParseAwsResourcesAsync();
 
             // Parse ApiTagMap
-            ParseLzApiTagMap();
+            await ParseLzApiTagMapAsync();
 
             // Create/Updates solutionModel.Resources, solutionModel.Apis.Lambdas and solutionModel.Lambdas 
-            ParseOpenApiTagsObject();
+            await ParseOpenApiTagsObjectAsync();
 
             // Overwrite/Extend Lambda properties
-            ParseTagLambdas();
+            await ParseTagLambdasAsync();
 
             // Add Lambda.Events for each Path/Operation (route) in OpenApi specification
-            ParseOpenApiPathObject();
+            await ParseOpenApiPathObjectAsync();
 
             // Prune -- remove default resources not referenced
-            PruneResources();
+            await PruneResourcesAsync();
 
             // Identify ApiGateway Security level and set SecurityLevel property
             DiscoverSecurityLevel();
 
-            WriteSAM(); // Write serverless.template file
+            await WriteSAMAsync(); // Write serverless.template file
 
         }
 
@@ -229,12 +230,12 @@ namespace LazyStack
         /// ApiTagMap: - just verify good directive name
         /// TagLambdas: - just verify good directive name
         /// </summary>
-        private void ParseLzConfiguration()
+        private async Task ParseLzConfigurationAsync()
         {
             if (lzConfigRootNode == null)
                 return;
 
-            logger.Info($"\nLoading LazyStack Configuration");
+            await logger.InfoAsync($"\nLoading LazyStack Configuration");
 
             // Parse LazyStack Directives in config file
             foreach (KeyValuePair<YamlNode, YamlNode> kvp in lzConfigRootNode)
@@ -242,7 +243,7 @@ namespace LazyStack
                 {
                     case "DefaultApi": // Initializer
                         DefaultApi = kvp.Value.ToString();
-                        logger.Info($"  Default-Api = {DefaultApi}");
+                        await logger.InfoAsync($"  Default-Api = {DefaultApi}");
                         break;
 
                     case "AwsTemplate": // Initializer
@@ -257,7 +258,7 @@ namespace LazyStack
                         if (!File.Exists(path))
                             throw new Exception($"AwsTemplate file not found {path}");
 
-                        logger.Info($"  AwsTempalte = {XlzAwsTemplate}");
+                        await logger.InfoAsync($"  AwsTempalte = {XlzAwsTemplate}");
 
                         break;
 
@@ -290,16 +291,16 @@ namespace LazyStack
         /// ApiUnsecure
         /// ApiSecure
         /// </summary>
-        private void CreateDefaultResources()
+        private async Task CreateDefaultResourcesAsync()
         {
-            logger.Info($"\nCreating default resources");
+            await logger.InfoAsync($"\nCreating default resources");
             Debug.WriteLine("Creating default resources");
             // Load default resources
             var defaultDoc = ReadAndParseYamlFile(Path.Combine(LazyStackTemplateFolderPath, "default_resources.yaml"));
             if (defaultDoc.Children.TryGetValue("Resources", out YamlNode resources))
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in resources as YamlMappingNode)
                 {
-                    logger.Info($"  Loading default resource: {kvp.Key}");
+                    await logger.InfoAsync($"  Loading default resource: {kvp.Key}");
                     var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, solutionModel: this, isDefault: true);
                     Debug.WriteLine($"Created Resource: {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
                 }
@@ -308,11 +309,11 @@ namespace LazyStack
         /// <summary>
         /// Load in AwsTemplate or default LazyStack template.yaml
         /// </summary>
-        private void LoadSAM()
+        private async Task LoadSAMAsync()
         {
           
             if(!string.IsNullOrEmpty(XlzAwsTemplate))
-                logger.Info($"\nLoading SAM Template {XlzAwsTemplate}");
+                await logger.InfoAsync($"\nLoading SAM Template {XlzAwsTemplate}");
 
             // Load LazyStack SAM template or user supplied SAM template
             var tpl = new YamlStream();
@@ -330,7 +331,7 @@ namespace LazyStack
 
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
                 {
-                    logger.Info($"  Loading SAM Template resource: {kvp.Key}");
+                    await logger.InfoAsync($"  Loading SAM Template resource: {kvp.Key}");
                     new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false);
                 }
 
@@ -342,9 +343,9 @@ namespace LazyStack
         /// <summary>
         /// Parse the OpenApi Tags Object to get tag names and generate LambdaNames.
         /// </summary>
-        private void ParseOpenApiTagsObjectForLambdaNames()
+        private async Task ParseOpenApiTagsObjectForLambdaNamesAsync()
         {
-            logger.Info($"\nParsing OpenApi Specification tags");
+            await logger.InfoAsync($"\nParsing OpenApi Specification tags");
             if (!OpenApiSpecRootNode.Children.TryGetValue("tags", out YamlNode node))
                 throw new Exception($"Error: Your OpenApi specification contains no tags. LazyStack can't generate an Api.");
             else
@@ -359,19 +360,19 @@ namespace LazyStack
                     LambdaNameByTagName.Add(tagName, lambdaName);
                     TagNameByLambdaName.Add(lambdaName, tagName);
                     ApiNameByTagName.Add(tagName, string.Empty);
-                    logger.Info($"  {tagName} will create lambda {lambdaName}");
+                    await logger.InfoAsync($"  {tagName} will create lambda {lambdaName}");
                 }
         }
 
         /// <summary>
         /// Parse AwsResources Directive
         /// </summary>
-        private void ParseAwsResources()
+        private async Task ParseAwsResourcesAsync()
         {
             if (lzConfigRootNode == null)
                 return;
 
-            logger.Info($"\nParsing AwsResource (if any) in LazyStack configuration");
+            await logger.InfoAsync($"\nParsing AwsResource (if any) in LazyStack configuration");
             Debug.WriteLine("\nParsing AwsREsources (if any) in LazyStack configuration");
             // Parse LazyStack Resources
             if (lzConfigRootNode.Children.TryGetValue("AwsResources", out YamlNode node))
@@ -379,7 +380,7 @@ namespace LazyStack
                 {
                     if (Lambdas.ContainsKey(kvp.Key.ToString()))
                         throw new Exception($"Error: AwsResources file contains a resource name \"{kvp.Key}\" that conflicts with generated lambda name");
-                    logger.Info($"  Loading resource {kvp.Key}");
+                    await logger.InfoAsync($"  Loading resource {kvp.Key}");
                     var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false); // Added to solutionModel.Resources
                     Debug.WriteLine($"Added Resource {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
                 }
@@ -388,12 +389,12 @@ namespace LazyStack
         /// <summary>
         /// Parse the ApiTagMap
         /// </summary>
-        private void ParseLzApiTagMap()
+        private async Task ParseLzApiTagMapAsync()
         {
             if (lzConfigRootNode != null)
                 if (lzConfigRootNode.Children.TryGetValue("ApiTagMap", out YamlNode node))
                 {
-                    logger.Info($"\nParsing ApiTagMap directive in LazyStack configuration");
+                    await logger.InfoAsync($"\nParsing ApiTagMap directive in LazyStack configuration");
                     Debug.WriteLine($"\nParsing ApiTagMap directive in LazyStack configuration");
                     foreach (KeyValuePair<YamlNode, YamlNode> apiKvp in node as YamlMappingNode)
                     {
@@ -405,7 +406,7 @@ namespace LazyStack
                         foreach (YamlNode lambdaNode in apiKvp.Value as YamlSequenceNode)
                             if (ApiNameByTagName.ContainsKey(tagName = lambdaNode.ToString()))
                             {
-                                logger.Info($"  {tagName}  {apiName}");
+                                await logger.InfoAsync($"  {tagName}  {apiName}");
                                 ApiNameByTagName[tagName] = apiName;
                             }
                             else
@@ -417,9 +418,9 @@ namespace LazyStack
                 if (string.IsNullOrEmpty(ApiNameByTagName[tagName]))
                 {
                     if(first)
-                        logger.Info($"Api Tag Map Default Assignments");
+                        await logger.InfoAsync($"Api Tag Map Default Assignments");
 
-                    logger.Info($"  {tagName}  {DefaultApi}");
+                    await logger.InfoAsync($"  {tagName}  {DefaultApi}");
                     ApiNameByTagName[tagName] = DefaultApi;
                 }
         }
@@ -427,9 +428,9 @@ namespace LazyStack
         /// <summary>
         /// Parse the Tag Object in the openApi specification
         /// </summary>
-        private void ParseOpenApiTagsObject()
+        private async Task ParseOpenApiTagsObjectAsync()
         {
-            logger.Info($"\nParsing OpenApi Specification tags to generate Lambdas");
+            await logger.InfoAsync($"\nParsing OpenApi Specification tags to generate Lambdas");
             Debug.WriteLine("\nParsing OpenApi Specification tags to generate Lambdas");
             
             if (!OpenApiSpecRootNode.Children.TryGetValue("tags", out YamlNode tagsNode))
@@ -449,7 +450,7 @@ namespace LazyStack
                 var tagName = tagsNodeItem["name"].ToString();
                 var lambdaName = TagToFunctionName(tagName);
                 var apiName = ApiNameByTagName[tagName];
-                logger.Info($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
+                await logger.InfoAsync($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
                 Debug.WriteLine($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
                 var resource = new AwsResource(this, tagName, Apis[apiName]);
                 if(lzConfigRootNode != null &&  GetNamedProperty(lzConfigRootNode, "ProjectOptions/LambdaProjects/Properties", out YamlNode propertiesNode))
@@ -479,9 +480,9 @@ namespace LazyStack
         /// For each Path we add an Event to the Lambda associated with the tag.
         /// 
         /// </summary>
-        private void ParseOpenApiPathObject()
+        private async Task ParseOpenApiPathObjectAsync()
         {
-            logger.Info($"\nParsing OpenApi Specifications paths to generate Lambda events");
+            await logger.InfoAsync($"\nParsing OpenApi Specifications paths to generate Lambda events");
             Debug.WriteLine($"\nParsing OpenApi Specifications paths to generate Lambda events");
 
             string[] validOperations = { "GET", "PUT", "POST", "DELETE", "UPDATE" };
@@ -495,7 +496,7 @@ namespace LazyStack
                 var path = pathsNodeChild.Key.ToString();
                 var pathNodeValue = (YamlMappingNode)pathsNodeChild.Value;
 
-                logger.Info($"  {path}");
+                await logger.InfoAsync($"  {path}");
                 Debug.WriteLine($"{path}");
                 // foreach Operation in Path
                 foreach (KeyValuePair<YamlNode, YamlNode> apiPathNodeChild in pathNodeValue)
@@ -517,7 +518,7 @@ namespace LazyStack
                     else
                         tagName = DefaultTag;
 
-                    logger.Info($"    {httpOperation} {tagName}");
+                    await logger.InfoAsync($"    {httpOperation} {tagName}");
                     Debug.WriteLine($" {httpOperation} {tagName}");
 
                     // Find Lambda in global index of Lambdas (indexed by tag) 
@@ -575,11 +576,11 @@ namespace LazyStack
         /// <summary>
         /// Overwrite default properties in Lambda Resources generated by LazyStack 
         /// </summary>
-        private void ParseTagLambdas()
+        private async Task ParseTagLambdasAsync()
         {
             if (lzConfigRootNode != null && lzConfigRootNode.Children.TryGetValue("TagLambdas", out YamlNode node))
             {
-                logger.Info($"\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
+                await logger.InfoAsync($"\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
                 Debug.WriteLine("\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
 
                 Debug.WriteLine($"{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}");
@@ -602,7 +603,7 @@ namespace LazyStack
                     if (!Lambdas.ContainsKey(lambdaName))
                         throw new Exception($"Error: Lambda \"{lambdaName}\" for tag \"{tagName}\" not generated by LazyStack. Are you missing a tag?");
 
-                    logger.Info($"  Processing tag: \"{tagName}\" lambda: \"{lambdaName}\" resource overrides");
+                    await logger.InfoAsync($"  Processing tag: \"{tagName}\" lambda: \"{lambdaName}\" resource overrides");
                     Debug.WriteLine($"Processing tag: \"{tagName}\" lambda: \"{lambdaName}\" resource overrides");
                     var lambda = Lambdas[lambdaName];
                     Debug.WriteLine($"lnode\n{new SerializerBuilder().Build().Serialize(lambda.AwsResource.RootNode)}");
@@ -613,7 +614,7 @@ namespace LazyStack
             }
         }
 
-        private void PruneResources()
+        private async Task PruneResourcesAsync()
         {
             // Prune un-referenced default resources
             // UserPool
@@ -676,9 +677,9 @@ namespace LazyStack
                     Resources.Remove(item.Key);
         }
 
-        private void WriteSAM()
+        private async Task WriteSAMAsync()
         {
-            logger.Info($"\nWriting SAM serverless.template file");
+            await logger.InfoAsync($"\nWriting SAM serverless.template file");
             var OutputSection = string.Empty;
             var resources = new YamlMappingNode();
             foreach (var resource in Resources)

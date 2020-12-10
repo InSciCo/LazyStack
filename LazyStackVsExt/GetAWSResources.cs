@@ -117,8 +117,12 @@ namespace LazyStackVsExt
                 {
                     try
                     {
-                        var awsSettings = new AwsSettings(stackName, region);
-                        var json = awsSettings.BuildJson();
+                        string json = string.Empty;
+                        this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
+                        {
+                            var awsSettings = await AwsUtil.GetAsync(stackName, region);
+                            json = awsSettings.BuildJson();
+                        });
 
                         var saveFileDialog = new SaveFileDialog() 
                         { 

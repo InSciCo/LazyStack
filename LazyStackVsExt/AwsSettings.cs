@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-using Amazon.CloudFormation;
-using Amazon.CloudFormation.Model;
 
 namespace LazyStackVsExt
 {
@@ -19,53 +15,6 @@ namespace LazyStackVsExt
             public string Host { get; set; }
             public int Port { get; set; }
             public string Stage { get; set; }
-        }
-
-        public AwsSettings(
-            string stackName,
-            string region
-            )
-        {
-            var cfClient = new AmazonCloudFormationClient();
-            var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
-            var describeStackResourcesResponse = cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest).GetAwaiter().GetResult();
-            foreach (var resource in describeStackResourcesResponse.StackResources)
-            {
-                switch (resource.ResourceType)
-                {
-                    case "AWS::Cognito::UserPool":
-                        UserPoolId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::Cognito::UserPoolClient":
-                        ClientId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::Cognito::IdentityPool":
-                        IdentityPoolId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::ApiGatewayV2::Api":
-                        var httpApi = new Api()
-                        {
-                            Name = resource.LogicalResourceId,
-                            Id = resource.PhysicalResourceId,
-                            Type = "HttpApi",
-                            Stage = "Dev"
-                        };
-                        ApiGateways.Add(httpApi);
-                        break;
-                    case "AWS::ApiGateway::RestApi":
-                        var restApi = new Api()
-                        {
-                            Name = resource.LogicalResourceId,
-                            Id = resource.PhysicalResourceId,
-                            Type = "Api",
-                            Stage = "Dev"
-                        };
-                        ApiGateways.Add(restApi);
-                        break;
-                }
-            }
-
-            Region = region;
         }
 
         public string ClientId { get; set; }
@@ -87,6 +36,5 @@ namespace LazyStackVsExt
             var result = $"{{\"Aws\": {Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented)}}}";
             return result;
         }
-
     }
 }

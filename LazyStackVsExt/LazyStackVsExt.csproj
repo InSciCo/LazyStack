@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AwsSettings.cs" />
+    <Compile Include="AwsUtil.cs" />
     <Compile Include="GetAWSResources.cs" />
     <Compile Include="GetStackNameDialog.xaml.cs">
       <DependentUpon>GetStackNameDialog.xaml</DependentUpon>

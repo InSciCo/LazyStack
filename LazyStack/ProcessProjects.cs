@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -39,22 +40,22 @@ namespace LazyStack
         private readonly SolutionModel solutionModel;
         private readonly ILogger logger;
 
-        public void Run()
+        public async Task RunAsync()
         {
-            ProcessClientSDKProject(); // also generates schema project
+            await ProcessClientSDKProjectAsync(); // also generates schema project
 
-            ProcessClientAWSProject();
+            await ProcessClientAWSProjectAsync();
 
-            ProcessClientAWSDevProject();
+            await ProcessClientAWSDevProjectAsync();
 
             // Generate Controller and Lambda function project for each OpenApi tag
             foreach (KeyValuePair<string, AWSLambda> lambda in solutionModel.Lambdas)
             {
-                ProcessLambdaProject(lambda.Key, lambda.Value.AwsApi); 
-                ProcessControllerProject(lambda.Key);
+                await ProcessLambdaProjectAsync(lambda.Key, lambda.Value.AwsApi); 
+                await ProcessControllerProjectAsync(lambda.Key);
             }
 
-            ProcessLocalWebApiProject();
+            await ProcessLocalWebApiProjectAsync();
 
             // Update solutionModel.SolutionFolders
             foreach (var projInfo in solutionModel.Projects.Values)
@@ -72,7 +73,7 @@ namespace LazyStack
         /// ClientSDK project. We want the models to be consistent across
         /// the client and server to promote code reuse.
         /// </summary>
-        private void ProcessClientSDKProject()
+        private async Task ProcessClientSDKProjectAsync()
         {
             var appName = solutionModel.AppName; // PetStore
             var projName = $"{appName}ClientSDK";  // PetStoreClientSDK
@@ -91,7 +92,7 @@ namespace LazyStack
             solutionModel.Projects.Add(projName, solutionModel.ClientSDK);
             solutionModel.ClientSDKProjectName = projName;
 
-            logger.Info($"Generating/updating {projName}");
+            await logger.InfoAsync($"Generating/updating {projName}");
 
             if(Directory.Exists(projFolderPath))
                 foreach (var file in Directory.GetFiles(projFolderPath))
@@ -153,7 +154,7 @@ namespace LazyStack
             // Stip out the Api classes to create schema code
             var schemaRoot = CSharpSyntaxTree.ParseText(schemaCode).GetCompilationUnitRoot();
             schemaRoot = RemoveClass(schemaRoot, appName);
-            ProcessSchemaProject(schemaRoot); // Create shcema project
+            ProcessSchemaProjectAsync(schemaRoot); // Create shcema project
         }
 
         /// <summary>
@@ -161,7 +162,7 @@ namespace LazyStack
         /// The ClientAWS project is used in client applications to enable the client
         /// application to use the ClientSDK to call AWS Stacks.
         /// </summary>
-        private void ProcessClientAWSProject()
+        private async Task ProcessClientAWSProjectAsync()
         {
             var appName = solutionModel.AppName; // PetStore
             var projName = $"{appName}ClientAWS";  // PetStoreClientAWS
@@ -177,7 +178,7 @@ namespace LazyStack
                     folderPath: projFolderPath
                     ));
 
-            logger.Info($"Generating/updating {projName}");
+            await logger.InfoAsync($"Generating/updating {projName}");
 
             if (Directory.Exists(projFolderPath))
                 foreach (var file in Directory.GetFiles(projFolderPath))
@@ -242,7 +243,7 @@ namespace LazyStack
                 );
         }
 
-        private void ProcessClientAWSDevProject()
+        private async Task ProcessClientAWSDevProjectAsync()
         {
             var appName = solutionModel.AppName; // PetStore
             var projName = $"{appName}ClientAWSDev";  // PetStoreClientAWSDev
@@ -258,7 +259,7 @@ namespace LazyStack
                     folderPath: projFolderPath
                     ));
 
-            logger.Info($"Generating/updating {projName}");
+            await logger.InfoAsync($"Generating/updating {projName}");
 
             if (Directory.Exists(projFolderPath))
                 foreach (var file in Directory.GetFiles(projFolderPath))
@@ -298,7 +299,7 @@ namespace LazyStack
 
         }
 
-        private void ProcessSchemaProject( CompilationUnitSyntax schemaRoot)
+        private async Task ProcessSchemaProjectAsync( CompilationUnitSyntax schemaRoot)
         {
             var projName = $"{solutionModel.AppName}Schema"; // PetStoreSchema
             var projFileName = $"{projName}.csproj"; // PetStoreSchema.csproj
@@ -314,7 +315,7 @@ namespace LazyStack
                     projFolderPath
                     ));
 
-            logger.Info($"Generating/updating project {projName}");
+            await logger.InfoAsync($"Generating/updating project {projName}");
 
             if (!Directory.Exists(projFolderPath))
             {
@@ -409,7 +410,7 @@ namespace __NameSpace__
         /// <paramref name="api"/>
         /// <paramref name="tempApiSolutionPath"/>
         /// 
-        private void ProcessLambdaProject(string lambdaName, AwsApi api)
+        private async Task ProcessLambdaProjectAsync(string lambdaName, AwsApi api)
         {
             // Create Lambda project
             // LazyStack Templates contains a simple project fileset that we copy and 
@@ -430,7 +431,7 @@ namespace __NameSpace__
                     folderPath: projFolderPath
                     ));
 
-            logger.Info($"Generating/updating project {projName}");
+            await logger.InfoAsync($"Generating/updating project {projName}");
 
             if (!Directory.Exists(projFolderPath))
             {
@@ -494,7 +495,7 @@ namespace __NameSpace__
         /// Generate a <LambdaName></LambdaName>Controller project.
         /// </summary>
         /// <param name="lambdaName"></param>
-        private void ProcessControllerProject(string lambdaName)
+        private async Task ProcessControllerProjectAsync(string lambdaName)
         {
             var appName = solutionModel.AppName; // PetStore
             var projName = $"{lambdaName}Controller"; // OrderController
@@ -511,7 +512,7 @@ namespace __NameSpace__
                     folderPath: projFolderPath
                     ));
 
-            logger.Info($"Generating/updating project {lambdaName}Controller");
+            await logger.InfoAsync($"Generating/updating project {lambdaName}Controller");
 
             // Create new project folder if it doesn't exist
             if (!Directory.Exists(projFolderPath))
@@ -576,7 +577,7 @@ namespace __NameSpace__
                 );
         }
 
-        private void ProcessLocalWebApiProject()
+        private async Task ProcessLocalWebApiProjectAsync()
         {
             // Local web server
             var appName = solutionModel.AppName;
@@ -585,7 +586,7 @@ namespace __NameSpace__
             var projFolderPath = Path.Combine(solutionModel.SolutionRootFolderPath, appName);
             var projFilePath = Path.Combine(projFolderPath, projFileName);
 
-            logger.Info($"Updating project {appName}");
+            await logger.InfoAsync($"Updating project {appName}");
 
             var configureSvcsFilePath = Path.Combine(solutionModel.LazyStackTemplateFolderPath, "WebApi", "ConfigureSvcs.cs.tpl");
             var configureSvcsText = File.ReadAllText(configureSvcsFilePath);

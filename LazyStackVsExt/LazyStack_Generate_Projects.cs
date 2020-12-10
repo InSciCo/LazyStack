@@ -121,13 +121,12 @@ namespace LazyStackVsExt
                     var solutionRootFolderPath = Path.GetDirectoryName(solutionFullName);
                     var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
 
-                    // Use Task.Run to do CPU bound work
                     // Process the API yaml files
-                    await Task.Run(() => solutionModel.ProcessOpenApi());
+                    await solutionModel.ProcessOpenApiAsync();
 
                     // Create / Update the Projects
                     var processProjects = new ProcessProjects(solutionModel, logger);
-                    await Task.Run(() => processProjects.Run());
+                    await processProjects.RunAsync();
 
                     // Avoid unnecessary warnings on access to dte etc.
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
@@ -142,7 +141,7 @@ namespace LazyStackVsExt
                     if (File.Exists(Path.Combine(solutionRootFolderPath, $"{appName}.yaml")))
                         if (solution.FindProjectItem($"{appName}.yaml") == null)
                         {
-                            logger.Info($"Adding {appName}.yaml to Solution Items folder");
+                            await logger.InfoAsync($"Adding {appName}.yaml to Solution Items folder");
                             solutionItemsFolder.Parent.ProjectItems.AddFromFile(
                                 Path.Combine(solutionRootFolderPath, $"{appName}.yaml"));
                         }
@@ -151,7 +150,7 @@ namespace LazyStackVsExt
                     if (File.Exists(Path.Combine(solutionRootFolderPath, "template.yaml")))
                         if (solution.FindProjectItem("template.yaml") == null)
                         {
-                            logger.Info($"Adding templateyaml to Solution Items folder");
+                            await logger.InfoAsync($"Adding templateyaml to Solution Items folder");
                             solutionItemsFolder.Parent.ProjectItems.AddFromFile(
                                 Path.Combine(solutionRootFolderPath, "template.yaml"));
                         }
@@ -160,7 +159,7 @@ namespace LazyStackVsExt
                     if (File.Exists(Path.Combine(solutionRootFolderPath, "serverless.template")))
                         if (solution.FindProjectItem("serverless.template") == null)
                         {
-                            logger.Info($"Adding serverless.template to Solution Items folder");
+                            await logger.InfoAsync($"Adding serverless.template to Solution Items folder");
                             solutionItemsFolder.Parent.ProjectItems.AddFromFile(
                                 Path.Combine(solutionRootFolderPath, "serverless.template"));
                         }
@@ -169,7 +168,7 @@ namespace LazyStackVsExt
                     if (File.Exists(Path.Combine(solutionRootFolderPath, "LazyStack.yaml")))
                         if (solution.FindProjectItem("LazyStack.yaml") == null)
                         {
-                            logger.Info($"Adding LazyStack.yaml to Solution Items folder");
+                            await logger.InfoAsync($"Adding LazyStack.yaml to Solution Items folder");
                             solutionItemsFolder.Parent.ProjectItems.AddFromFile(
                                 Path.Combine(solutionRootFolderPath, "LazyStack.yaml"));
                         }
@@ -187,24 +186,24 @@ namespace LazyStackVsExt
                         {
                             if (string.IsNullOrEmpty(projInfo.SolutionFolder))
                             {   // Add project under solution root
-                                logger.Info($"Adding {projName} to solution");
+                                await logger.InfoAsync($"Adding {projName} to solution");
                                 solution.AddFromFile(projInfo.Path,Exclusive: false);
                             }
                             else
                             {   // Add project under solution folder
-                                logger.Info($"Adding {projName} to solution in solution folder {projInfo.SolutionFolder}");
+                                await logger.InfoAsync($"Adding {projName} to solution in solution folder {projInfo.SolutionFolder}");
                                 var folder = CreateSolutionFolder(projInfo.SolutionFolder);
                                 folder.AddFromFile(projInfo.Path);
                             }
                         }
                     }
 
-                    logger.Info("LazyStack processing complete");
+                    await logger.InfoAsync("LazyStack processing complete");
 
                 }
                 catch (Exception ex)
                 {
-                    logger.Error(ex, "LazyStack Encountered an Error");
+                    await logger.ErrorAsync(ex, "LazyStack Encountered an Error");
                 }
 
             });
