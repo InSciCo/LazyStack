@@ -37,10 +37,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
-    <None Update="Templates\ClientAWSDev\AwsUtils.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
     <None Update="Templates\ClientAWSDev\Setup.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -62,6 +58,10 @@
     </None>
    
     <None Update="Templates\ClientSDK\AuthProcess.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
+    <None Update="Templates\ClientSDK\IAuthProcess.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    

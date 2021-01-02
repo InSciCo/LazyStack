@@ -4,13 +4,6 @@ using YamlDotNet.RepresentationModel;
 namespace LazyStack
 {
 
-    public enum SecurityLevel
-    {
-        None,
-        JWT,
-        AwsSignatureVersion4
-    }
-
     public abstract class AwsApi
     {
         public AwsApi(AwsResource awsResource, SolutionModel solutionModel, string name)
@@ -26,10 +19,10 @@ namespace LazyStack
         public AwsResource AwsResource { get; }
         public List<AWSLambda> Lambdas { get; } = new List<AWSLambda>();
         public abstract string ProxyFunctionName { get; }
-        public SecurityLevel SecurityLevel { get; set; }
+        public AwsSettings.SecurityLevel SecurityLevel { get; set; }
 
         public abstract YamlMappingNode EventNode(string path, string httpOperation);
-        public abstract SecurityLevel DiscoverSecurityLevel();
+        public abstract AwsSettings.SecurityLevel DiscoverSecurityLevel();
         
     }
 
@@ -67,12 +60,12 @@ namespace LazyStack
             return newNode;
         }
 
-        public override SecurityLevel DiscoverSecurityLevel()
+        public override AwsSettings.SecurityLevel DiscoverSecurityLevel()
         {
             if (SolutionModel.NamedPropertyExists(AwsResource.RootNode, $"Properties/Auth"))
-                SecurityLevel = SecurityLevel.AwsSignatureVersion4; // Just assume signed for now. ToDo - allow for JWT and other security options
+                SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4; // Just assume signed for now. ToDo - allow for JWT and other security options
             else 
-                SecurityLevel = SecurityLevel.None;
+                SecurityLevel = AwsSettings.SecurityLevel.None;
 
             return SecurityLevel;
         }
@@ -107,12 +100,12 @@ namespace LazyStack
             return newNode;
         }
 
-        public override SecurityLevel DiscoverSecurityLevel()
+        public override AwsSettings.SecurityLevel DiscoverSecurityLevel()
         {
             if (SolutionModel.NamedPropertyExists(AwsResource.RootNode, "Properties/Auth"))
-                SecurityLevel = SecurityLevel.JWT;
+                SecurityLevel = AwsSettings.SecurityLevel.JWT;
             else 
-                SecurityLevel = SecurityLevel.None;
+                SecurityLevel = AwsSettings.SecurityLevel.None;
 
             return SecurityLevel;
         }

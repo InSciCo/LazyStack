@@ -116,7 +116,8 @@ namespace LazyStack
                 HttpClientType = "ILzHttpClient",
                 CSharpGeneratorSettings =
                 {
-                    Namespace = projName
+                    Namespace = projName,
+                    GenerateDataAnnotations = false
                 },
                 OperationNameGenerator = new LzOperationNameGenerator()
             };
@@ -134,6 +135,12 @@ namespace LazyStack
             code = root.ToFullString();
             File.WriteAllText(Path.Combine(projFolderPath, $"{appName}.cs"), code);
 
+            // Generate interface
+            //var syntaxTree = CSharpSyntaxTree.ParseText(code);
+            //var syntaxRoot = syntaxTree.GetRoot();
+            //IEnumerable<InterfaceDeclarationSyntax> interfaceDeclarations = syntaxRoot.DescendantNodes().OfType<InterfaceDeclarationSyntax>();
+
+            
             // Rename project file
             File.Move(Path.Combine(projFolderPath, "ClientSDK.csproj"), projFilePath);
 
@@ -186,28 +193,6 @@ namespace LazyStack
 
             var openApiDocument = OpenApiYamlDocument.FromYamlAsync(solutionModel.OpenApiSpecText).GetAwaiter().GetResult();
 
-            // Build case statements associating caller_member/endpoint with gateways
-            var memberCaseStatements = new StringBuilder();
-            var endPointGroups = 
-                from endPoint in solutionModel.EndPoints.Values
-                group endPoint by endPoint.Api.Name into endPointGroup
-                orderby endPointGroup.Key
-                select endPointGroup;
-
-            foreach (var endPointGroup in endPointGroups)
-            {
-                foreach (var endPoint in endPointGroup)
-                    memberCaseStatements.Append($"\t\t\t\tcase \"{endPoint.Name}Async\":\n");
-
-                if (endPointGroup.Count() > 0)
-                    memberCaseStatements.Append($"\t\t\t\t\tapi = apiMap[\"{endPointGroup.Key}\"];\n\t\t\t\t\tbreak;\n");
-            }
-
-            // Build case statements associating security level with each gateway
-            var gatewayCaseStatements = new StringBuilder();
-            foreach (var api in solutionModel.Apis)
-                gatewayCaseStatements.Append($"\t\t\t\tcase \"{api.Key}\":\n\t\t\t\t\tsecurityLevel=SecurityLevel.{api.Value.SecurityLevel};\n\t\t\t\t\tbreak;\n");
-
             // Copy project templates with replacements and renames as necessary
             Utilities.DirectoryCopy(
                 Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ClientAWS"),
@@ -218,8 +203,6 @@ namespace LazyStack
                     new Dictionary<string, string>
                     {
                         {"__ProjName__", projName },
-                        {"__MemberCaseStatements__", memberCaseStatements.ToString() },
-                        {"__GatewayCaseStatements__", gatewayCaseStatements.ToString() },
                         {"__SDKProj__", $"{appName}ClientSDK" }
                     }
                 );
@@ -450,6 +433,7 @@ namespace __NameSpace__
             var configureSvcsFilePath = Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Lambda", "ConfigureSvcs.cs.tpl");
             var configureSvcsText = File.ReadAllText(configureSvcsFilePath);
             CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(configureSvcsText).GetCompilationUnitRoot();
+            var istr = root.ToFullString();
 
             var serviceStatements = solutionModel.GetConfigPropertyItems($"LambdaProjects/ServiceRegistrations", errorIfMissing: false);
             var serviceStatements2 = solutionModel.GetConfigPropertyItems($"{projName}/ServiceRegistrations", errorIfMissing: false);
@@ -748,6 +732,10 @@ namespace __NameSpace__
             return root;
         }
 
+        /// <summary>
+        /// Remove Existing Project References
+        /// </summary>
+        /// <param name="projectDoc"></param>
         public void RemoveProjectReferences(XElement projectDoc)
         {
             var packageReferences = projectDoc.Elements("ItemGroup")?.Elements("ProjectReference").ToList();
@@ -755,6 +743,10 @@ namespace __NameSpace__
                 packageReferences.Remove();
         }
 
+        /// <summary>
+        /// Remove existing Package References
+        /// </summary>
+        /// <param name="projectDoc"></param>
         public void RemovePackageReferences(XElement projectDoc)
         {
             var packageReferences = projectDoc.Elements("ItemGroup")?.Elements("PackageReference").ToList();
@@ -762,7 +754,12 @@ namespace __NameSpace__
                 packageReferences.Remove();
         }
 
-        public void UpdateProjectReferences(XElement projectDoc, List<string> references)
+        /// <summary>
+        /// Add Project References
+        /// </summary>
+        /// <param name="projectDoc"></param>
+        /// <param name="references"></param>
+        public void AddProjectReferences(XElement projectDoc, List<string> references)
         {
             if (references == null)
                 return;
@@ -778,7 +775,12 @@ namespace __NameSpace__
                 itemGroup.Add(new XElement("ProjectReference", new XAttribute("Include", reference)));
         }
 
-        public void UpdatePackageReferences(XElement projectDoc, Dictionary<string, string> references)
+        /// <summary>
+        /// Add Package References
+        /// </summary>
+        /// <param name="projectDoc"></param>
+        /// <param name="references"></param>
+        public void AddPackageReferences(XElement projectDoc, Dictionary<string, string> references)
         {
             if (references == null)
                 return;
@@ -815,6 +817,7 @@ namespace __NameSpace__
                         property.Value = properties[property.Name.LocalName];
         }
 
+
         private void UpdateProjectFile(
             string projFilePath, 
             string projType,
@@ -832,21 +835,21 @@ namespace __NameSpace__
 
             // Package References
             var packageReferences = solutionModel.GetConfigProperties($"{projType}/PackageReferences", errorIfMissing: false);
-            UpdatePackageReferences(xmlDoc, packageReferences);
+            AddPackageReferences(xmlDoc, packageReferences);
 
-            UpdatePackageReferences(xmlDoc, localPackageReferences);
+            AddPackageReferences(xmlDoc, localPackageReferences);
 
             var packageReferences2 = solutionModel.GetConfigProperties($"{projName}/PackageReferences", errorIfMissing: false);
-            UpdatePackageReferences(xmlDoc, packageReferences2);
+            AddPackageReferences(xmlDoc, packageReferences2);
 
             // Project References
             var projectReferences = solutionModel.GetConfigPropertyItems($"{projType}/ProjectReferences", errorIfMissing: false);
-            UpdateProjectReferences(xmlDoc, projectReferences);
+            AddProjectReferences(xmlDoc, projectReferences);
 
-            UpdateProjectReferences(xmlDoc, localProjectReferences);
+            AddProjectReferences(xmlDoc, localProjectReferences);
 
             var projectReferences2 = solutionModel.GetConfigPropertyItems($"{projName}/ProjectReferences", errorIfMissing: false);
-            UpdateProjectReferences(xmlDoc, projectReferences2);
+            AddProjectReferences(xmlDoc, projectReferences2);
 
             // Properties
             var projectProperties = solutionModel.GetConfigProperties($"{projType}/Properties", errorIfMissing: false);

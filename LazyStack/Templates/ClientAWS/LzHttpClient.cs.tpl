@@ -7,24 +7,32 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Configuration;
 
-using Amazon.CognitoIdentity;
-using Amazon.Extensions.CognitoAuthentication;
 using __SDKProj__;
 
 namespace __ProjName__
 {
+    
     public class LzHttpClient : ILzHttpClient
     {
-        public LzHttpClient(AwsSettings awsSettings) : this(awsSettings, new HttpClient()) {}
+        public LzHttpClient(IConfiguration appConfig, AuthProviderCognito authProvider, string localApiName = null) : 
+#if DEBUG        
+        this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName) {}
+#else
+        this(appConfig, authprovider, new HttpClient(), localApiName) {}
+#endif
 
-        public LzHttpClient(AwsSettings awsSettings, HttpClient httpClient)
+        public LzHttpClient(IConfiguration appConfig, AuthProviderCognito authProvider, HttpClient httpClient, string localApiName = null)
         {
             this.httpClient = httpClient;
-            this.awsSettings = awsSettings;
+            this.localApiName = localApiName;
+            this.awsSettings = appConfig.GetSection("Aws").Get<AwsSettings>();
+            this.authProvider = authProvider;
         }
         
         readonly HttpClient httpClient;
         readonly AwsSettings awsSettings;
+        readonly string localApiName = string.Empty;
+        AuthProviderCognito authProvider;
 
         // Note: CallerMember is inserted as a literal by the compiler in the IL so there is no 
         // performance penalty for using it.
@@ -34,59 +42,32 @@ namespace __ProjName__
             CancellationToken cancellationToken, 
             [CallerMemberName] string callerMemberName = null)
         {
-            // Note: AwsSettings contains generated code that resolves the correct
-            // api and securityLevel to use for each endpoint method
-            var (api, securityLevel) = awsSettings.ResolveForMethod(callerMemberName);
+            if(!awsSettings.MethodMap.TryGetValue(callerMemberName, out string apiGatewayName))
+                throw new Exception($"Error: {callerMemberName} not found in AwsSettings MethodMap");
 
-            if (awsSettings.UseLocal)
+            if(!awsSettings.ApiGateways.TryGetValue(apiGatewayName, out AwsSettings.Api api))
+                throw new Exception($"Error: {apiGatewayName} not found in AwsSettings ApiGateways dictionary");
+
+            var securityLevel = api.SecurityLevel;
+
+            if (!string.IsNullOrEmpty(localApiName))
             {
-                var localScheme = (!string.IsNullOrEmpty(awsSettings.LocalScheme))
-                    ? awsSettings.LocalScheme
-                    : "https";
+                if(!awsSettings.LocalApis.ContainsKey(localApiName))
+                    throw new Exception($"Error: {localApiName} not found in AwsSettings");
 
-                var localHost = (!string.IsNullOrEmpty(awsSettings.LocalHost))
-                    ? awsSettings.LocalHost
-                    : "localhost";
-
-                var localPort = (awsSettings.LocalPort != 0)
-                    ? awsSettings.LocalPort
-                    : 5001;  // Kestrel     
-
-                var uriBuilder = new UriBuilder(localScheme, localHost, localPort);
+                var localApi = awsSettings.LocalApis[localApiName];
+               
+                var uriBuilder = new UriBuilder(localApi.Scheme, localApi.Host, localApi.Port);
                 uriBuilder.Path = requestMessage.RequestUri.ToString();
                 requestMessage.RequestUri = uriBuilder.Uri;
             }
             else
             {
-                var scheme = (!string.IsNullOrEmpty(api.Scheme))
-                    ? api.Scheme
-                    : (!string.IsNullOrEmpty(awsSettings.DefaultScheme))
-                        ? awsSettings.DefaultScheme
-                        : "https";
-
-                var host = (!string.IsNullOrEmpty(api.Host))
-                    ? api.Host
-                    : (!string.IsNullOrEmpty(awsSettings.DefaultHost))
-                        ? awsSettings.DefaultHost
-                        : "amazonaws.com";
-
-                var port = (api.Port != 0)
-                    ? api.Port
-                    : (awsSettings.DefaultPort != 0)
-                        ? awsSettings.DefaultPort
-                        : 443;
-
-                var service = (!string.IsNullOrEmpty(api.Service))
-                    ? api.Service
-                    : (!string.IsNullOrEmpty(awsSettings.DefaultService))
-                        ? awsSettings.DefaultService
-                        : "execute-api";
-
-                var awshost = $"{api.Id}.{service}.{awsSettings.Region}.{host}";
+                var awshost = $"{api.Id}.{api.Service}.{awsSettings.Region}.{api.Host}";
                
-                var uriBuilder = (port == 443)
-                    ? new UriBuilder(scheme, awshost)
-                    : new UriBuilder(scheme, awshost, port);
+                var uriBuilder = (api.Port == 443)
+                    ? new UriBuilder(api.Scheme, awshost)
+                    : new UriBuilder(api.Scheme, awshost, api.Port);
 
                 var path = (!string.IsNullOrEmpty(api.Stage)) 
                     ? "/" + api.Stage + "/" + requestMessage.RequestUri.ToString()
@@ -103,27 +84,27 @@ namespace __ProjName__
             // in your local host for testing or any other purpose.
             switch(securityLevel)
             {
-				case SecurityLevel.None:
+				case AwsSettings.SecurityLevel.None:
                     response = await httpClient.SendAsync(
                         requestMessage,
                         httpCompletionOption,
                         cancellationToken);
                     break;
 
-				case SecurityLevel.JWT:
+				case AwsSettings.SecurityLevel.JWT:
                     // Use JWT Token signing process
-                    requestMessage.Headers.Add("Authorization", awsSettings.CognitoUser.SessionTokens.IdToken);
+                    requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);
                     response = await httpClient.SendAsync(
                         requestMessage,
                         httpCompletionOption,
                         cancellationToken);
                     break; 
 
-				case SecurityLevel.AwsSignatureVersion4:
+				case AwsSettings.SecurityLevel.AwsSignatureVersion4:
                     // Use full request signing process
                     // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
-                    var iCreds = await awsSettings.CognitoAwsCredentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessaary
-                    // Calling AwsSignatureVersion4 extension method -- this signes the request message
+                    var iCreds = await authProvider.Credentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessary
+                    // Calling AwsSignatureVersion4 extension method -- this signs the request message
                     response = await httpClient.SendAsync(
                         requestMessage,
                         httpCompletionOption,
@@ -135,11 +116,29 @@ namespace __ProjName__
             }
             return response;
         }
-        
+#if DEBUG        
+        //https://docs.microsoft.com/en-us/xamarin/cross-platform/deploy-test/connect-to-local-web-services
+        //Attempting to invoke a local secure web service from an application running in the iOS simulator 
+        //or Android emulator will result in a HttpRequestException being thrown, even when using the managed 
+        //network stack on each platform.This is because the local HTTPS development certificate is self-signed, 
+        //and self-signed certificates aren't trusted by iOS or Android.
+        public static HttpClientHandler GetInsecureHandler()
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    if (cert.Issuer.Equals("CN=localhost"))
+                        return true;
+                    return errors == System.Net.Security.SslPolicyErrors.None;
+                }
+            };
+            return handler;
+        }
+#endif
         public void Dispose()
         {
             httpClient.Dispose();
         }
-
     }
 }

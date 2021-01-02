@@ -1,56 +1,66 @@
-﻿using System;
+﻿using Force.DeepCloner;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-
 using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-using Force.DeepCloner;
-
-namespace LazyStack 
+namespace LazyStack
 {
     public class SolutionModel
     {
-        public SolutionModel(string solutionRootFolderPath, ILogger logger)
-        {
 
-            SolutionRootFolderPath = solutionRootFolderPath;
+        public SolutionModel(string solutionFilePath, ILogger logger)
+        {
             this.logger = logger;
 
-            // Find Visual Studio solution file
-            var solFiles = Directory.GetFiles(solutionRootFolderPath, "*.sln");
-            if (solFiles.Length > 1)
-                throw new System.Exception("More than one .sln file in folder");
+            SolutionRootFolderPath = Path.GetDirectoryName(solutionFilePath); // may be empty
+            AppName = Path.GetFileNameWithoutExtension(solutionFilePath); // may be empty
 
-            if (solFiles.Length == 0)
-                throw new System.Exception("Solution file not found");
+            // use current directory if no directory was specified           
+            if (string.IsNullOrEmpty(SolutionRootFolderPath))
+                SolutionRootFolderPath = Directory.GetCurrentDirectory();
 
-            AppName = Path.GetFileNameWithoutExtension(solFiles[0]);
+            // find sln file if none was specified
+            if (string.IsNullOrEmpty(AppName))
+            { 
+                // Find Visual Studio solution file
+                var solFiles = Directory.GetFiles(SolutionRootFolderPath, "*.sln");
+                if (solFiles.Length > 1)
+                    throw new System.Exception("More than one .sln file in folder");
 
-            OpenApiFilePath = Path.Combine(solutionRootFolderPath, $"{AppName}.yaml");
+                if (solFiles.Length == 0)
+                    throw new System.Exception("Solution file not found");
 
-            SAMTemplateFilePath = Path.Combine(solutionRootFolderPath, "template.yaml");
+                AppName = Path.GetFileNameWithoutExtension(solFiles[0]);
+            }
 
-            PrevSAMTemplateFilePath = Path.Combine(solutionRootFolderPath, "template_prev.yaml");
+            SolutionFilePath = Path.Combine(SolutionRootFolderPath, $"{AppName}.sln");
+
+            if (!File.Exists(SolutionFilePath))
+                throw new Exception($"Error: \"{SolutionFilePath}\" does not exist");
+
+            OpenApiFilePath = Path.Combine(SolutionRootFolderPath, $"{AppName}.yaml");
+
+            SAMTemplateFilePath = Path.Combine(SolutionRootFolderPath, "template.yaml");
 
             if (!File.Exists(OpenApiFilePath))
                 throw new System.Exception($"{AppName}.yaml, api file missing");
 
             LambdaFolderPath = Path.Combine(SolutionRootFolderPath, "Lambdas");
             if (!Directory.Exists(LambdaFolderPath))
-                Directory.CreateDirectory(LambdaFolderPath);
+            Directory.CreateDirectory(LambdaFolderPath);
 
             ControllersFolderPath = Path.Combine(SolutionRootFolderPath, "Controllers");
             if (!Directory.Exists(ControllersFolderPath))
-                Directory.CreateDirectory(ControllersFolderPath);
+            Directory.CreateDirectory(ControllersFolderPath);
 
             // Initialize paths to LazyStack assets
             var executingAssemblyFilePath = Assembly.GetExecutingAssembly().Location;
@@ -65,10 +75,10 @@ namespace LazyStack
                 throw new System.Exception("Lazy Stack template.yaml Missing. Check installation.");
 
             InitDefaults();
-
         }
 
         #region Properties
+        public string SolutionFilePath { get; private set; }
         public string SolutionRootFolderPath { get; private set; }
         public string AppName { get; private set; }
         public string OpenApiFilePath { get; private set; }
@@ -77,7 +87,6 @@ namespace LazyStack
         public string SrcTemplateFilePath { get; private set; }
 
         public string SAMTemplateFilePath { get; private set; }
-        public string PrevSAMTemplateFilePath { get; private set; }
 
         public string LambdaFolderPath { get; private set; }
         public string ControllersFolderPath { get; private set; }
@@ -98,7 +107,7 @@ namespace LazyStack
         public List<string> SolutionFolders { get; } = new List<string>();
 
         public string DefaultApi { get; set; } = "HttpApiUnsecure";
-        public string XlzAwsTemplate { get; set; } = string.Empty;
+        public string UsersAwsTemplate { get; set; } = string.Empty;
         public string DefaultTag { get; set; } = string.Empty;
 
         public bool IsCognitoConfigured { get; set; }
@@ -120,6 +129,9 @@ namespace LazyStack
         public YamlMappingNode OpenApiSpecRootNode;
         public string OpenApiSpecText;
 
+        public Dictionary<string, LzEnvironment> Environments { get; set; } = new Dictionary<string, LzEnvironment>();
+        public Dictionary<string, AwsSettings.LocalApi> LocalApis { get; set; } = new Dictionary<string, AwsSettings.LocalApi>();
+
         #endregion Properties
 
         #region Variables
@@ -135,7 +147,7 @@ namespace LazyStack
         /// </summary>
         public void InitDefaults()
         {
-            // Mapping node keys are Resource Types
+            // Load default resource configurations
             var fileName = Path.Combine(LazyStackTemplateFolderPath, "aws_defaults.yaml");
             if (!File.Exists(fileName))
                 throw new Exception("Error: aws_defaults.yaml file missing from LazyStack templates folder");
@@ -145,14 +157,10 @@ namespace LazyStack
             fileName = Path.Combine(LazyStackTemplateFolderPath, "LazyStack.yaml");
             if (!File.Exists(fileName))
                 throw new Exception("Error: LazyStack.yaml file missing from LazyStack templates folder");
-
             var lazyStackNode = ReadAndParseYamlFile(fileName);
-
             if (!lazyStackNode.Children.TryGetValue("ProjectOptions", out YamlNode node))
                 throw new Exception("Error: ProjectOptions missing from LazyStack.yaml file in LazyStack templates folder ");
-
             ProjectGenerationOptions = node as YamlMappingNode;
-
         }
 
         /// <summary>
@@ -161,10 +169,12 @@ namespace LazyStack
         /// </summary>
         public async Task ProcessOpenApiAsync()
         {
+            // Load Users OpenApi specification file
             await logger.InfoAsync($"\nLoading OpenApi Specification {OpenApiFilePath}");
             OpenApiSpecText = File.ReadAllText(OpenApiFilePath);
             OpenApiSpecRootNode = ParseYamlText(OpenApiSpecText); 
 
+            // Load Users LazyStack.ymal
             var lzConfigFilePath = Path.Combine(SolutionRootFolderPath, "LazyStack.yaml");
             if (File.Exists(lzConfigFilePath))
             {
@@ -173,32 +183,47 @@ namespace LazyStack
                 Debug.WriteLine($"lzConfigRootNode \n{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}"); 
             }
 
-            // Grab top-level configuration directives
+            // Parse top-level configuration directives from Users LazyStack.yaml file
+            // DefaultApi, AwsTemplate, ProjectOptions, Environments, LocalApis
+            // Note: ProjectOptions add/override existing ProjectOptions that were loaded in InitDefaults processing of template\LazyStack.yaml
             await ParseLzConfigurationAsync();
 
             // HttpApiUnsecure, HttpApiSecure, ApiUnsecure, ApiSecure, 
             // UserPool, UserPoolClient, IdentityPool, CognitoIdentityPoolRoles, AuthRole, UnAuthRole
             await CreateDefaultResourcesAsync();
 
-            // Read AwsTemplate or default template. Update Resources.
-            await LoadSAMAsync();
+            // At this point we have default resources provided by LazyStack templates. We also have
+            // the final merged directives information from both the default template LazyStack.yaml and 
+            // any user LazyStack.yaml. Remember that the user can use the AwsResources directive to
+            // add AWS resources here.
+
+            // Read user 
+            // UPDATES Resources dictionary, samRootNode, Apis dictionary
+            // The users resource specifications override LazyStack template defaults.
+            await LoadSAMAsync(); // creates samRootNode
 
             // Parse OpenApi tags object to generate list of LambdaNames we will generate
+            // UPDATES Tags list, Lambdas dictionary, LambdaByName dictionary, ApiNameByTagName dictionary
             await ParseOpenApiTagsObjectForLambdaNamesAsync();
 
-            // Parse optional AwsResources in LazyStack configuration
+            // Parse AwsResources diective loaded from LazyStack.yaml
+            // UPDATES Resources dictionary, Apis dictionary
+            // Skips lambda resources - see ParseAwsReosurcesForLambdaAsync()
             await ParseAwsResourcesAsync();
 
             // Parse ApiTagMap
-            await ParseLzApiTagMapAsync();
+            // Updates ApiNameByTagName dictionary
+            // Uses Default Api when tag is not mapped!
+            await ParseApiTagMapAsync();
 
             // Create/Updates solutionModel.Resources, solutionModel.Apis.Lambdas and solutionModel.Lambdas 
             await ParseOpenApiTagsObjectAsync();
 
             // Overwrite/Extend Lambda properties
-            await ParseTagLambdasAsync();
+            await ParseAwsResourcesForLambdasAsync();
 
             // Add Lambda.Events for each Path/Operation (route) in OpenApi specification
+            // Updates EndPoints dictionary, updates Lambda event node(s)
             await ParseOpenApiPathObjectAsync();
 
             // Prune -- remove default resources not referenced
@@ -206,8 +231,6 @@ namespace LazyStack
 
             // Identify ApiGateway Security level and set SecurityLevel property
             DiscoverSecurityLevel();
-
-            await WriteSAMAsync(); // Write serverless.template file
 
         }
 
@@ -237,6 +260,8 @@ namespace LazyStack
 
             await logger.InfoAsync($"\nLoading LazyStack Configuration");
 
+            var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
+
             // Parse LazyStack Directives in config file
             foreach (KeyValuePair<YamlNode, YamlNode> kvp in lzConfigRootNode)
                 switch (kvp.Key.ToString())
@@ -247,18 +272,19 @@ namespace LazyStack
                         break;
 
                     case "AwsTemplate": // Initializer
-                        if (!string.IsNullOrEmpty(XlzAwsTemplate))
+                        // Don't load it, just make sure it exists
+                        if (!string.IsNullOrEmpty(UsersAwsTemplate))
                             throw new Exception($"Error: More than AwsTemplate directive found.");
 
                         if (string.IsNullOrEmpty(kvp.Value.ToString()))
                             throw new Exception($"AwsTemplate value can't be empty");
 
-                        XlzAwsTemplate = kvp.Value.ToString();
-                        var path = Path.Combine(SolutionRootFolderPath, XlzAwsTemplate);
+                        UsersAwsTemplate = kvp.Value.ToString();
+                        var path = Path.Combine(SolutionRootFolderPath, UsersAwsTemplate);
                         if (!File.Exists(path))
                             throw new Exception($"AwsTemplate file not found {path}");
 
-                        await logger.InfoAsync($"  AwsTempalte = {XlzAwsTemplate}");
+                        await logger.InfoAsync($"  AwsTempalte = {UsersAwsTemplate}");
 
                         break;
 
@@ -275,8 +301,35 @@ namespace LazyStack
                         break;
 
                     case "ProjectOptions":
-                        ProjectGenerationOptions= MergeNode( ProjectGenerationOptions, kvp.Value) as YamlMappingNode;
+                        // ProjectGenerationOptions are also loaded from template\LazyStack.yaml so we merge here - right into left
+                        ProjectGenerationOptions= MergeNode( leftNode: ProjectGenerationOptions, rightNode: kvp.Value) as YamlMappingNode;
                         Debug.WriteLine($"ProjectGenerationOptions\n {new SerializerBuilder().Build().Serialize(ProjectGenerationOptions)}");
+                        break;
+
+                    case "Environments":
+                        // Load values - environments are used by the Generate Settings process
+                        var envYamlStr = SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode);
+                        try
+                        {
+                            Environments = deserializer.Deserialize<Dictionary<string, LzEnvironment>>(SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode));
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception($"Error: Could not parse Environments section. {e.InnerException.Message}");
+                        }
+                        break;
+
+                    case "LocalApis":
+                        // Load values - LocalApis are used by the Generate Settings process
+                        var localApisYamlStr = SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode);
+                        try
+                        {
+                            LocalApis = deserializer.Deserialize<Dictionary<string, AwsSettings.LocalApi>>(SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode));
+                        }
+                        catch (Exception e)
+                        {
+                            throw new Exception($"Error: Could not parse LocalApis section. {e.InnerException.Message}");
+                        }
                         break;
 
                     default: // stop on any unrecognized directives
@@ -301,23 +354,24 @@ namespace LazyStack
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in resources as YamlMappingNode)
                 {
                     await logger.InfoAsync($"  Loading default resource: {kvp.Key}");
-                    var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, solutionModel: this, isDefault: true);
+                    var resource =AwsResource.MakeGeneralResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, solutionModel: this, isDefault: true);
                     Debug.WriteLine($"Created Resource: {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
                 }
         }
 
         /// <summary>
-        /// Load in AwsTemplate or default LazyStack template.yaml
+        /// Load in users AwsTemplate - creates samRootNode
+        /// UPDATES Resources dictionary, samRootNode, Apis dictionary
         /// </summary>
         private async Task LoadSAMAsync()
         {
           
-            if(!string.IsNullOrEmpty(XlzAwsTemplate))
-                await logger.InfoAsync($"\nLoading SAM Template {XlzAwsTemplate}");
+            if(!string.IsNullOrEmpty(UsersAwsTemplate))
+                await logger.InfoAsync($"\nLoading SAM Template {UsersAwsTemplate}");
 
-            // Load LazyStack SAM template or user supplied SAM template
+            // Load user supplied SAM template (or minimal template from templates folder if no user template provided)
             var tpl = new YamlStream();
-            var source = !string.IsNullOrEmpty(XlzAwsTemplate)
+            var source = !string.IsNullOrEmpty(UsersAwsTemplate)
                 ? SAMTemplateFilePath
                 : Path.Combine(LazyStackTemplateFolderPath, "template.yaml");
 
@@ -332,7 +386,7 @@ namespace LazyStack
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
                 {
                     await logger.InfoAsync($"  Loading SAM Template resource: {kvp.Key}");
-                    new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false);
+                    AwsResource.MakeGeneralResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false);
                 }
 
                 // Remove Resources Node as we will add it back in later from the solutionModel.Resources array
@@ -342,6 +396,7 @@ namespace LazyStack
 
         /// <summary>
         /// Parse the OpenApi Tags Object to get tag names and generate LambdaNames.
+        /// UPDATES Tags list, Lambdas dictionary, LambdaByName dictionary, ApiNameByTagName dictionary
         /// </summary>
         private async Task ParseOpenApiTagsObjectForLambdaNamesAsync()
         {
@@ -365,7 +420,9 @@ namespace LazyStack
         }
 
         /// <summary>
-        /// Parse AwsResources Directive
+        /// Parse AwsResource directive in LazyStack.yaml file.
+        /// UPDATES Resources dictionary, Apis dictionary
+        /// Throws error if a Lambda resource is specified that LazyStack will generate!
         /// </summary>
         private async Task ParseAwsResourcesAsync()
         {
@@ -378,18 +435,62 @@ namespace LazyStack
             if (lzConfigRootNode.Children.TryGetValue("AwsResources", out YamlNode node))
                 foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
                 {
+                    if (!Lambdas.ContainsKey(kvp.Key.ToString()))
+                    {
+                        await logger.InfoAsync($"  Loading resource {kvp.Key}");
+                        AwsResource.MakeGeneralResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false); // Added to solutionModel.Resources
+                    }
+                }
+        }
+
+        /// <summary>
+        /// Parse AwsResource directive in LazyStack.yaml file.
+        /// UPDATES Resources dictionary, Apis dictionary
+        /// Throws error if a Lambda resource is specified that LazyStack will generate!
+        /// </summary>
+        private async Task ParseAwsResourcesForLambdasAsync()
+        {
+            if (lzConfigRootNode == null)
+                return;
+
+            await logger.InfoAsync($"\nParsing AwsResource (if any) for Lambda properties in LazyStack configuration");
+            Debug.WriteLine("\nParsing AwsResources (if any) for Lamnbda properties in LazyStack configuration");
+            // Parse LazyStack Resources
+            if (lzConfigRootNode.Children.TryGetValue("AwsResources", out YamlNode node))
+                foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
+                {
                     if (Lambdas.ContainsKey(kvp.Key.ToString()))
-                        throw new Exception($"Error: AwsResources file contains a resource name \"{kvp.Key}\" that conflicts with generated lambda name");
-                    await logger.InfoAsync($"  Loading resource {kvp.Key}");
-                    var resource = new AwsResource(kvp.Key.ToString(), kvp.Value as YamlMappingNode, this, isDefault: false); // Added to solutionModel.Resources
-                    Debug.WriteLine($"Added Resource {kvp.Key}\n{new SerializerBuilder().Build().Serialize(resource.RootNode)}");
+                    {
+                        var lambda = Lambdas[kvp.Key.ToString()];
+                        var lambdaResource = lambda.AwsResource;
+                        var lambdaResourceTxt = YamlNodeToText(lambdaResource.RootNode);
+                        await logger.InfoAsync($"  Updating Lambda resource {kvp.Key}");
+
+                        // Check for illegal properties - thse are properties that LazyStack manages
+                        YamlNode outNode;
+                        if (GetNamedProperty(kvp.Value, "Properties/FunctionName", out outNode))
+                            throw new Exception($"    Error: Property FunctionName not allowed in AwsResources AWS::Serverless::Function resource. LazyStack manages this property.");
+
+                        if (GetNamedProperty(kvp.Value, "Properties/CodeUri", out outNode))
+                            throw new Exception($"    Error: Property CodeUri not allowed in AwsResources AWS::Serverless::Function resource. LazyStack manages this property.");
+
+                        if (GetNamedProperty(kvp.Value, "Properties/Handler", out outNode))
+                            throw new Exception($"    Error: Property Handler not allowed in AwsResources AWS::Serverless::Function resource. LazyStack manages this property.");
+
+                        if (GetNamedProperty(kvp.Value, "Properties/Events", out outNode))
+                            throw new Exception($"    Error: Property Events not allowed in AwsResources AWS::Serverless::Function resource. LazyStack manages this property.");
+
+                        lambdaResource.RootNode = MergeNode(lambdaResource.RootNode as YamlNode, kvp.Value) as YamlMappingNode;
+                    }
                 }
         }
 
         /// <summary>
         /// Parse the ApiTagMap
+        /// UPDATES ApiNameByTagName dictionary
+        /// Uses Default Api when tag is not mapped!
         /// </summary>
-        private async Task ParseLzApiTagMapAsync()
+        private async Task ParseApiTagMapAsync()
         {
             if (lzConfigRootNode != null)
                 if (lzConfigRootNode.Children.TryGetValue("ApiTagMap", out YamlNode node))
@@ -452,7 +553,7 @@ namespace LazyStack
                 var apiName = ApiNameByTagName[tagName];
                 await logger.InfoAsync($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
                 Debug.WriteLine($"  Creating resource \"{lambdaName}\" for tag \"{tagName}\"");
-                var resource = new AwsResource(this, tagName, Apis[apiName]);
+                var resource = AwsResource.MakeLambdaResource(this, tagName, Apis[apiName]);
                 if(lzConfigRootNode != null &&  GetNamedProperty(lzConfigRootNode, "ProjectOptions/LambdaProjects/Properties", out YamlNode propertiesNode))
                 {
                     if (!GetNamedProperty(resource.RootNode, "Properties", out YamlNode projectPropertiesNode))
@@ -573,47 +674,6 @@ namespace LazyStack
                 Debug.WriteLine($"Lambnda OpenApiSpec\n{new SerializerBuilder().Build().Serialize(lambda.OpenApiSpec)}");
         }
 
-        /// <summary>
-        /// Overwrite default properties in Lambda Resources generated by LazyStack 
-        /// </summary>
-        private async Task ParseTagLambdasAsync()
-        {
-            if (lzConfigRootNode != null && lzConfigRootNode.Children.TryGetValue("TagLambdas", out YamlNode node))
-            {
-                await logger.InfoAsync($"\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
-                Debug.WriteLine("\nOverwriting/Extending Lambda properties based on TagLamnbdas directives in LazyStack configuration");
-
-                Debug.WriteLine($"{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}");
-                foreach (KeyValuePair<YamlNode, YamlNode> kvp in node as YamlMappingNode)
-                {
-
-                    var tagName = kvp.Key.ToString();
-                    if (!LambdaNameByTagName.ContainsKey(tagName))
-                        throw new Exception($"Error: TagLambdas directive references unknown tag \"{tagName}\"");
-
-                    var lambdaName = LambdaNameByTagName[tagName];
-                    var rootNode = kvp.Value as YamlMappingNode;
-                    var awsType = string.Empty;
-                    if (rootNode.Children.TryGetValue("Type", out node))
-                        awsType = node.ToString();
-
-                    if (!string.IsNullOrEmpty(awsType) && !awsType.Equals("AWS::Serverless::Function"))
-                        throw new Exception($"Error: TagLambda {tagName} can only contain AWS::Serverless::Function");
-
-                    if (!Lambdas.ContainsKey(lambdaName))
-                        throw new Exception($"Error: Lambda \"{lambdaName}\" for tag \"{tagName}\" not generated by LazyStack. Are you missing a tag?");
-
-                    await logger.InfoAsync($"  Processing tag: \"{tagName}\" lambda: \"{lambdaName}\" resource overrides");
-                    Debug.WriteLine($"Processing tag: \"{tagName}\" lambda: \"{lambdaName}\" resource overrides");
-                    var lambda = Lambdas[lambdaName];
-                    Debug.WriteLine($"lnode\n{new SerializerBuilder().Build().Serialize(lambda.AwsResource.RootNode)}");
-                    Debug.WriteLine($"rnode\n{new SerializerBuilder().Build().Serialize(rootNode)}");
-                    lambda.AwsResource.RootNode = MergeNode(lambda.AwsResource.RootNode, rootNode) as YamlMappingNode;
-                    Debug.WriteLine($"mergednode\n{new SerializerBuilder().Build().Serialize(lambda.AwsResource.RootNode)}");
-                }
-            }
-        }
-
         private async Task PruneResourcesAsync()
         {
             // Prune un-referenced default resources
@@ -624,89 +684,134 @@ namespace LazyStack
             // AuthRole
             // UnAuthRole
 
-            var pruneList = new Dictionary<string, bool>
+            var pruneList = new HashSet<string>
             {
-                { "UserPool", true },
-                { "UserPoolClient", true },
-                { "IdentityPool", true },
-                { "CognitoIdentityPoolRoles", true },
-                { "AuthRole", true },
-                { "UnauthRole", true}
+                { "UserPool"},
+                { "UserPoolClient"},
+                { "IdentityPool"},
+                { "CognitoIdentityPoolRoles"},
+                { "AuthRole"},
+                { "UnauthRole"}
             };
 
             foreach(var resource in Resources)
-            {
-                if (!pruneList.Keys.Contains(resource.Value.Name)) // don't look for references inside pruneList resources
+                switch(resource.Value.AwsType)
                 {
-                    switch(resource.Value.AwsType)
-                    {
-                        case "AWS::Serverless::HttpApi":
-                            if (Apis[resource.Key].Lambdas.Count > 0  && resource.Value.RootNode.AllNodes.Contains("UserPoolClient"))
-                            {
-                                pruneList["UserPool"] = false;
-                                pruneList["UserPoolClient"] = false;
-                                pruneList["IdentityPool"] = false;
-                                pruneList["CognitoIdentityPoolRoles"] = false;
-                            }
-                            break;
-                        case "AWS::Serverless::Api":
+                    case "AWS::Serverless::HttpApi":
+                        if (Apis[resource.Key].Lambdas.Count > 0  && resource.Value.RootNode.AllNodes.Contains("UserPoolClient"))
+                        {
+                            pruneList.Remove("UserPool");
+                            pruneList.Remove("UserPoolClient");
+                            pruneList.Remove("IdentityPool");
+                            pruneList.Remove("CognitoIdentityPoolRoles");
+                        }
 
-                            if (Apis[resource.Key].Lambdas.Count > 0)
+                        if (Apis[resource.Key].Lambdas.Count == 0)
+                            pruneList.Add(resource.Key);
+
+                        break;
+                    case "AWS::Serverless::Api":
+                        if (Apis[resource.Key].Lambdas.Count > 0)
+                        {
+                            if (resource.Value.RootNode.AllNodes.Contains("AWS_IAM"))
                             {
-                                if (resource.Value.RootNode.AllNodes.Contains("AWS_IAM"))
-                                {
-                                    pruneList["UserPool"] = false;
-                                    pruneList["UserPoolClient"] = false;
-                                    pruneList["IdentityPool"] = false;
-                                    pruneList["CognitoIdentityPoolRoles"] = false;
-                                    pruneList["AuthRole"] = false;
-                                }
-                                else
-                                {
-                                    pruneList["UnauthRole"] = false;
-                                }
+                                pruneList.Remove("UserPool");
+                                pruneList.Remove("UserPoolClient");
+                                pruneList.Remove("IdentityPool");
+                                pruneList.Remove("CognitoIdentityPoolRoles");
+                                pruneList.Remove("AuthRole");
                             }
-                            break;
-                        default:
-                            break;
-                    }
+                            else
+                            {
+                                pruneList.Remove("UnauthRole");
+                            }
+                        }
+                        else
+                            pruneList.Add(resource.Key);
+                        break;
+                    default:
+                        break;
                 }
-            }
+
             foreach(var item in pruneList)
-                if (item.Value)
-                    Resources.Remove(item.Key);
+                    Resources.Remove(item);
         }
 
-        private async Task WriteSAMAsync()
+        // 
+        public async Task WriteSAMAsync()
         {
-            await logger.InfoAsync($"\nWriting SAM serverless.template file");
-            var OutputSection = string.Empty;
+            var fileName = "serverless.template";
+
+            await logger.InfoAsync($"\nWriting SAM File(s)");
+
             var resources = new YamlMappingNode();
             foreach (var resource in Resources)
-                if (resource.Value.IsHttpApi || resource.Value.IsRestApi)
-                {   // Emit the Api only if it services a lambda
-                    if (Apis[resource.Key].Lambdas.Count > 0)
-                    {
-                        resources.Add(resource.Key, resource.Value.RootNode);
-                        OutputSection += resource.Value.GetOutputItem();
-                    }
-                }
-                else
-                {
-                    resources.Add(resource.Key, resource.Value.RootNode);
-                    OutputSection += resource.Value.GetOutputItem();
-                }
+                resources.Add(resource.Key, resource.Value.RootNode);
 
             samRootNode.Add("Resources", resources);
-            if(!string.IsNullOrEmpty(OutputSection))
-                samRootNode.Add("Outputs", ParseYamlText(OutputSection));
+            var fileText = new YamlDotNet.Serialization.Serializer().Serialize(samRootNode);
 
-            // Write new serverless.template
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(Path.Combine(SolutionRootFolderPath, "serverless.template")))
+            foreach(var env in Environments)
             {
-                new YamlDotNet.Serialization.Serializer().Serialize(file, samRootNode);
+                var envFileText = fileText.Replace("__codeUriTarget__", env.Value.UriCodeTarget);
+                envFileText = envFileText.Replace("__StageName__", env.Value.Stage);
+                File.WriteAllText(Path.Combine(SolutionRootFolderPath,$"{env.Key}.{fileName}"), envFileText);
+                if(env.Key.Equals("Dev"))
+                    File.WriteAllText(Path.Combine(SolutionRootFolderPath, $"{fileName}"), envFileText);
             }
         }
+
+        public async Task WriteSolutionModelAwsSettings()
+        {
+            var awsSettings = new AwsSettings();
+            foreach (var kvp in Apis)
+                awsSettings.ApiGateways.Add(kvp.Key,
+                    new AwsSettings.Api()
+                    { 
+                        SecurityLevel = kvp.Value.SecurityLevel,
+                    });
+
+            // Generate MethodMap
+            foreach (var endpoint in EndPoints)
+                awsSettings.MethodMap.Add($"{endpoint.Key}Async", endpoint.Value.Api.Name);
+
+            var settingsFileText = awsSettings.BuildJson();
+            File.WriteAllText(Path.Combine(SolutionRootFolderPath, "SolutionModelAwsSettings.json"), settingsFileText);
+        }
+
+        // old version where we added an Output section
+        //public async Task WriteSAMAsync(string envName)
+        //{
+        //    var filePath = $"{AppName}.{envName}.template.yaml";
+        //    await logger.InfoAsync($"\nWriting SAM File {filePath}");
+        //    if (!Environments.TryGetValue(envName, out LzEnvironment env))
+        //        throw new Exception($"Error: {envName} not found!");
+        //    // We must prefix output variables becuase they have to be globally unique - no two stacks, in the same account, can use the same output variable name
+        //    var resourcePrefix = $"{AppName}{envName}"; // ex: PetStoreDev
+        //    var OutputSection = string.Empty;
+        //    var resources = new YamlMappingNode();
+        //    foreach (var resource in Resources)
+        //        if (resource.Value.IsHttpApi || resource.Value.IsRestApi)
+        //        {   // Emit the Api only if it services a lambda 
+        //            if (Apis[resource.Key].Lambdas.Count > 0)
+        //            {
+        //                resources.Add(resource.Key, resource.Value.RootNode);
+        //                OutputSection += resource.Value.GetOutputItem(resourcePrefix);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            resources.Add(resource.Key, resource.Value.RootNode);
+        //            OutputSection += resource.Value.GetOutputItem(resourcePrefix);
+        //        }
+        //    samRootNode.Add("Resources", resources);
+        //    if (!string.IsNullOrEmpty(OutputSection))
+        //        samRootNode.Add("Outputs", ParseYamlText(OutputSection));
+        //    var fileText = new YamlDotNet.Serialization.Serializer().Serialize(samRootNode);
+        //    fileText = fileText.Replace("__codeUriTarget__", env.UriCodeTarget);
+        //    File.WriteAllText(filePath, fileText);
+        //}
+
 
         #endregion
 

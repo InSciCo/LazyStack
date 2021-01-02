@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Amazon.CognitoIdentity;
-using Amazon.Extensions.CognitoAuthentication;
+﻿using System.Collections.Generic;
 
-namespace __ProjName__
+
+namespace LazyStack
 {
-   public class AwsSettings
-   {
+    public class AwsSettings
+    {
         public enum SecurityLevel
         {
             None,
@@ -20,7 +18,7 @@ namespace __ProjName__
             public string Scheme { get; set; } = "https";
             public string Id { get; set; }
             public string Service { get; set; } = "execute-api";
-            public string Host { get; set; } = "awsamazon.com";
+            public string Host { get; set; } = "amazonaws.com";
             public int Port { get; set; } = 443;
             public string Stage { get; set; } = "";
             public SecurityLevel SecurityLevel { get; set; }
@@ -33,7 +31,7 @@ namespace __ProjName__
             public int Port { get; set; }
         }
 
-        public string Stackname {get; set;}
+        public string StackName { get; set; }
         public string ClientId { get; set; }
         public string UserPoolId { get; set; }
         public string IdentityPoolId { get; set; }
@@ -43,8 +41,6 @@ namespace __ProjName__
         public Dictionary<string, LocalApi> LocalApis { get; set; } = new Dictionary<string, LocalApi>();
         public Dictionary<string, string> MethodMap { get; set; } = new Dictionary<string, string>();
 
-        public CognitoUser CognitoUser;
-        public CognitoAWSCredentials CognitoAwsCredentials;
 
         public string BuildJson()
         {
@@ -52,11 +48,10 @@ namespace __ProjName__
             return result;
         }
 
-        public string BuildJsonWrapped()
+        public string BuildJsonWrapped(string name = "Aws")
         {
-            var result = $"{{\"Aws\": {Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented)}}}";
+            var result = $"{{\"{name}\": {Newtonsoft.Json.JsonConvert.SerializeObject(this, Newtonsoft.Json.Formatting.Indented)}}}";
             return result;
         }
     }
 }
-

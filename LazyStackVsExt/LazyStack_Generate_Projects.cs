@@ -90,7 +90,7 @@ namespace LazyStackVsExt
             ThreadHelper.ThrowIfNotOnUIThread();
 
             // Do the work in this handler async
-            this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
+            this.package.JoinableTaskFactory.RunAsync((Func<Task>) async delegate
             {
                 var solutionFullName = dte?.Solution?.FullName;
                 if(string.IsNullOrEmpty(solutionFullName))
@@ -119,10 +119,13 @@ namespace LazyStackVsExt
                 try
                 {
                     var solutionRootFolderPath = Path.GetDirectoryName(solutionFullName);
-                    var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
+                    var solutionModel = new SolutionModel(solutionFullName, logger);
 
                     // Process the API yaml files
                     await solutionModel.ProcessOpenApiAsync();
+
+                    // Write the new serverless.template file
+                    await solutionModel.WriteSAMAsync();
 
                     // Create / Update the Projects
                     var processProjects = new ProcessProjects(solutionModel, logger);
@@ -173,6 +176,26 @@ namespace LazyStackVsExt
                                 Path.Combine(solutionRootFolderPath, "LazyStack.yaml"));
                         }
 
+                    // Add LazyStack.yaml file to SolutionItems folder if it exists
+                    if (File.Exists(Path.Combine(solutionRootFolderPath, "SolutionModelAwsSettings.json")))
+                        if (solution.FindProjectItem("SolutionModelAwsSettings.json") == null)
+                        {
+                            await logger.InfoAsync($"Adding SolutionModelAwsSettings.json to Solution Items folder");
+                            solutionItemsFolder.Parent.ProjectItems.AddFromFile(
+                                Path.Combine(solutionRootFolderPath, "SolutionModelAwsSettings.json"));
+                        }
+
+                    // environment serverless.template files: ex: Dev.serverless.template
+                    foreach(var envName in solutionModel.Environments.Keys)
+                    {
+                        var envSettingsFileName = $"{envName}.serverless.template";
+                        if (solution.FindProjectItem(envSettingsFileName) == null)
+                        {
+                            await logger.InfoAsync($"Adding {envSettingsFileName} to Solution Items folder");
+                            solutionItemsFolder.Parent.ProjectItems.AddFromFile(
+                                Path.Combine(solutionRootFolderPath, envSettingsFileName));
+                        }
+                    }
 
                     // Get a dictionary of projects (keyed by subfolder/projectName where subfolder is used only on subprojects)
                     var projects = GetProjects();

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Design;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using Microsoft.VisualStudio.Shell;
 using System.Windows;
@@ -8,6 +10,13 @@ using EnvDTE;
 using EnvDTE80;
 using EnvDTE100;
 using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft;
+
+using LazyStack;
+using Amazon;
+using Amazon.Runtime.CredentialManagement;
+
 
 namespace LazyStackVsExt
 {
@@ -16,6 +25,7 @@ namespace LazyStackVsExt
     /// </summary>
     internal sealed class GetAWSResources
     {
+
         /// <summary>
         /// Command ID.
         /// </summary>
@@ -87,77 +97,55 @@ namespace LazyStackVsExt
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var solutionFullName = dte?.Solution?.FullName;
-            if (string.IsNullOrEmpty(solutionFullName))
-            {
-                MessageBox.Show("Sorry - no solution is open.");
-                return;
-            }
+            this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
+           {
 
-            var stackName = string.Empty;
-            var region = string.Empty;
-            bool canceled;
-            do
-            {
-                var getStackNameDialog = new GetStackNameDialog
-                {
-                    StackName = stackName,
-                    Region = region,
-                    HasMinimizeButton = false,
-                    HasMaximizeButton = false
-                };
 
-                getStackNameDialog.ShowModal();
+               var solutionFullName = dte?.Solution?.FullName;
+               if (string.IsNullOrEmpty(solutionFullName))
+               {
+                   MessageBox.Show("Sorry - no solution is open.");
+                   return;
+               }
 
-                stackName = getStackNameDialog.StackName;
-                region = getStackNameDialog.Region;
-                canceled = getStackNameDialog.Canceled;
+               var solutionFolderPath = Path.GetDirectoryName(solutionFullName);
 
-                if (!string.IsNullOrEmpty(stackName))
-                {
-                    try
-                    {
-                        string json = string.Empty;
-                        this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
-                        {
-                            var awsSettings = await AwsUtil.GetAsync(stackName, region);
-                            json = awsSettings.BuildJson();
-                        });
+               ToolWindowPane window = await this.package.ShowToolWindowAsync(typeof(LazyStackLogToolWindow), 0, true, this.package.DisposalToken);
+               if ((null == window) || (null == window.Frame))
+                   throw new NotSupportedException("Cannot create tool window");
 
-                        var saveFileDialog = new SaveFileDialog() 
-                        { 
-                            FileName = $"{stackName}Settings.json",
-                            Title = "Save AWS Settings File",
-                            Filter = "JSON Settings|*.json"
-                        
-                        };
-                        saveFileDialog.ShowDialog();
+               var userControl = window.Content as LazyStackLogToolWindowControl;
+               userControl.LogEntries.Clear();
 
-                        if (!string.IsNullOrEmpty(saveFileDialog.FileName))
-                        {
-                            File.WriteAllText(saveFileDialog.FileName, json);
+               // Progress class
+               // Any handler provided to the constructor or event handlers registered with the 
+               // ProgressChanged event are invoked through a SynchronizationContext instance captured 
+               // when the instance is constructed. If there is no current SynchronizationContext 
+               // at the time of construction, the callbacks will be invoked on the ThreadPool.
+               // Practical Effect; Progress allows us to avoid wiring up events to handle logging entries
+               // made by CPU bound tasks executed with await Task.Run(...)
+               var progress = new Progress<LogEntry>(l => userControl.LogEntries.Add(l));
+               var logger = new Logger(progress); // ie Logger.Info(msg) calls progress.Report(logEntry).
 
-                            var solution = dte?.Solution as Solution4;
+               // Avoid unnecessary warnings on access to dte etc.
+               await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+               await AwsConfig.GenerateSettingsFileAsync(solutionFolderPath, "Dev", logger);
 
-                            // create SolutionItems folder if it does not exist
-                            var solutionItemsFolder = CreateSolutionFolder("SolutionItems");
+               var solution = dte?.Solution as Solution4;
+               // create LzStack solution folders if they do not exist
+               var solutionItemsFolder = CreateSolutionFolder("Solution Items");
 
-                            // Add settings file to SolutionItems folder if it does not already exist
-                            if (File.Exists(saveFileDialog.FileName))
-                                if (solution.FindProjectItem(Path.GetFileName(saveFileDialog.FileName)) == null)
-                                {
-                                    solutionItemsFolder.Parent.ProjectItems.AddFromFile(saveFileDialog.FileName);
-                                }
-                            return;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
-                }
-            }
-            while (!canceled);
+               // Add Dev.AwsSettings.json to solution folder
+               var awsSettingsFileName = "Dev.AwsSettings.json";
+               if (File.Exists(Path.Combine(solutionFolderPath, awsSettingsFileName)))
+                   if (solution.FindProjectItem(awsSettingsFileName) == null)
+                   {
+                       await logger.InfoAsync($"Adding {awsSettingsFileName} to Solution Items folder");
+                       solutionItemsFolder.Parent.ProjectItems.AddFromFile(
+                           Path.Combine(solutionFolderPath, awsSettingsFileName));
+                   }
+                await logger.InfoAsync($"Generate {awsSettingsFileName} File complete");
+           });
         }
 
         private SolutionFolder CreateSolutionFolder(string name)

@@ -1,7 +1,8 @@
 ﻿#LazyStack.yaml Defaults file
-ProjectOptions:
 
+ProjectOptions:
   ClientAWSProjects:
+    
     PackageReferences:
       AwsSignatureVersion4: "1.4.0"
       System.ComponentModel.Annotations: "4.5.0"
@@ -19,6 +20,7 @@ ProjectOptions:
       AWSSDK.CloudFormation: "3.5.2.4"
 
   ClientSDKProjects:
+    
     PackageReferences:
       System.ComponentModel.Annotations: "4.5.0"
       JsonSubTypes: "1.5.2"
@@ -30,7 +32,7 @@ ProjectOptions:
       netCoreProjectFile: "true"
 
   LambdaProjects:
-    CodeUriTarget: "bin/Release/netcoreapp3.1"
+    CodeUriPlatform: "netcoreapp3.1"
     PackageReferences:
       AWSSDK.Extensions.NETCore.Setup: "3.3.101"
       Amazon.Lambda.AspNetCoreServer: "5.2.0"

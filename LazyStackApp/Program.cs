@@ -27,7 +27,7 @@ namespace LazyStackApp
             Console.WriteLine(message);
         }
 
-        public void Error(Exception ex, string message )
+        public void Error(Exception ex, string message)
         {
             Console.WriteLine(message);
             Console.WriteLine(ex.Message);
@@ -38,84 +38,151 @@ namespace LazyStackApp
             Console.WriteLine(message);
             Console.WriteLine(ex.Message);
         }
-
     }
 
     class Program
     {
         // https://github.com/commandlineparser/commandline
-        public class Options
+        [Verb("projects", isDefault: true, HelpText = "Generate/Update project files")]
+        public class ProjectsOptions
         {
-            [Option('s', "solutionpath", Required = false, HelpText = "Specify path to solution root folder")]
-            public string SolutionPath { get; set; }
+            [Option('s', "solutionfile", Required = false, HelpText = "Specify solution file")]
+            public string SolutionFilePath { get; set; }
+
+            [Option('e', "env", Required = false, HelpText = "Specify environment")]
+            public string Environment { get; set; } = "Dev";
         }
 
-        static async Task Main(string[] args)
+        [Verb("settings", HelpText = "Generate/Update AWS settings files")]
+        public class SettingsOptions
         {
-            var solutionRootFolderPath = Directory.GetCurrentDirectory();  // default to current working directory
+            [Option('s', "solutionfile", Required = false, HelpText = "Specify solution file")]
+            public string SolutionFilePath { get; set; }
 
-            Parser.Default.ParseArguments<Options>(args)
-                 .WithParsed<Options>(o =>
-                 {
-                     if (!string.IsNullOrEmpty(o.SolutionPath))
-                     {
-                         solutionRootFolderPath = o.SolutionPath;
-                         if (!Directory.Exists(solutionRootFolderPath))
-                             throw new System.Exception("Specified solution root folder does not exist");
-                     }
-                 });
+            [Option('e', "env", Required = false, HelpText = "Specify environment")]
+            public string Environment { get; set; } = "Dev";
+        }
 
+        // todo: should be "static Task<int> Main(...) so everything can be async. However, the 
+        // CommandLine library argues. Figure this out at some point but this is not urgent.
+        static int Main(string[] args)
+        {
+            return CommandLine.Parser.Default.ParseArguments<ProjectsOptions, SettingsOptions>(args)
+                .MapResult(
+                    (ProjectsOptions opts) => RunProjects(opts),
+                    (SettingsOptions opts) => RunSettings(opts),
+                    errs => 1
+                 );
+        }
+
+        /// <summary>
+        /// Generate AWS Settings file(s)
+        /// </summary>
+        /// <param name="settingsOptions"></param>
+        /// <returns></returns>
+        public static int RunSettings(SettingsOptions settingsOptions)
+        {
             var logger = new Logger();
+            var solutionFilePath = settingsOptions.SolutionFilePath;
 
-            //MSBuildLocator.RegisterDefaults();
+            var solutionRootFolderPath = Path.GetDirectoryName(solutionFilePath); // may be empty
+            var appName = Path.GetFileNameWithoutExtension(solutionFilePath); // may be empty
 
-            var solutionModel = new SolutionModel(solutionRootFolderPath, logger);
+            // use current directory if no directory was specified           
+            if (string.IsNullOrEmpty(solutionRootFolderPath))
+                solutionRootFolderPath = Directory.GetCurrentDirectory();
 
-            // Process the API yaml files
-            await solutionModel.ProcessOpenApiAsync();
-
-            // Create / Update the Projects
-            var processProjects = new ProcessProjects(solutionModel, logger);
-            await processProjects.RunAsync();
-
-            // Update the Solution File
-
-            var slnFilePath = Path.Combine(solutionRootFolderPath, $"{solutionModel.AppName}.sln");
-
-            // Get current projects using "dotnet sln <slnFilePath> list
-            var startInfo = new ProcessStartInfo();
-            startInfo.FileName = "dotnet";
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.CreateNoWindow = true;
-            startInfo.Arguments = $" sln {slnFilePath} list";
-            using var process = Process.Start(startInfo);
-            var existingProjects = process.StandardOutput.ReadToEnd();
-            Console.WriteLine($"Existing Projects\n{existingProjects}");
-
-            var projectsToAdd = string.Empty;
-            foreach (KeyValuePair<string, ProjectInfo> proj in solutionModel.Projects)
-                if (!existingProjects.Contains($"{proj.Value.RelativePath}"))
-                {
-                    logger.Info($"Adding Project {proj.Value.RelativePath} to solution");
-                    projectsToAdd += $" {proj.Value.RelativePath}";
-                }
-            if (!string.IsNullOrEmpty(projectsToAdd))
+            // find sln file if none was specified
+            if (string.IsNullOrEmpty(appName))
             {
-                startInfo.Arguments = $"sln {slnFilePath} add {projectsToAdd}";
-                using var addProcess = Process.Start(startInfo);
-                var addProjectOutput = addProcess.StandardOutput.ReadToEnd();
-                Console.WriteLine($"{addProjectOutput}");
+                // Find Visual Studio solution file
+                var solFiles = Directory.GetFiles(solutionRootFolderPath, "*.sln");
+                if (solFiles.Length > 1)
+                    throw new System.Exception("More than one .sln file in folder");
+
+                if (solFiles.Length == 0)
+                    throw new System.Exception("Solution file not found");
+
+                appName = Path.GetFileNameWithoutExtension(solFiles[0]);
+                solutionFilePath = Path.Combine(solutionRootFolderPath, $"{appName}.sln");
             }
 
-            // Note!
-            // Unlike the VisualStudio processing, we do not have the ability to 
-            // create a Solution Items folder and add items to it when using 
-            // the dotnet CLI. If someone is working with the CLI, it is not clear
-            // if a Solution Items folder would add any value. OTOH, if a solution
-            // generated with Visual Studio and which is later processed using 
-            // the dotnet CLI, nothing bad happens. So, no harm no foul.
+            try
+            {
+                AwsConfig.GenerateSettingsFileAsync(solutionRootFolderPath, settingsOptions.Environment, logger).GetAwaiter().GetResult();
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, e.Message);
+                return -1;
+            }
+            return 1;
+        }
 
+        /// <summary>
+        /// Generate/Update projects
+        /// </summary>
+        /// <param name="projectsOptions"></param>
+        /// <returns></returns>
+        public static int RunProjects(ProjectsOptions projectsOptions)
+        {
+            var logger = new Logger();
+            try
+            { 
+                var solutionModel = new SolutionModel(projectsOptions.SolutionFilePath, logger);
+
+                // Process the API yaml files
+                solutionModel.ProcessOpenApiAsync().GetAwaiter().GetResult();
+
+                solutionModel.WriteSAMAsync().GetAwaiter().GetResult();
+
+                solutionModel.WriteSolutionModelAwsSettings().GetAwaiter().GetResult();
+
+                // Create / Update the Projects
+                var processProjects = new ProcessProjects(solutionModel, logger);
+                processProjects.RunAsync().GetAwaiter().GetResult();
+
+                // Get current projects using "dotnet sln <slnFilePath> list
+                var startInfo = new ProcessStartInfo();
+                startInfo.FileName = "dotnet";
+                startInfo.UseShellExecute = false;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.CreateNoWindow = true;
+                startInfo.Arguments = $" sln {solutionModel.SolutionFilePath} list";
+                using var process = Process.Start(startInfo);
+                var existingProjects = process.StandardOutput.ReadToEnd();
+                Console.WriteLine($"Existing Projects\n{existingProjects}");
+
+                var projectsToAdd = string.Empty;
+                foreach (KeyValuePair<string, ProjectInfo> proj in solutionModel.Projects)
+                    if (!existingProjects.Contains($"{proj.Value.RelativePath}"))
+                    {
+                        logger.Info($"Adding Project {proj.Value.RelativePath} to solution");
+                        projectsToAdd += $" {proj.Value.RelativePath}";
+                    }
+                if (!string.IsNullOrEmpty(projectsToAdd))
+                {
+                    startInfo.Arguments = $"sln {solutionModel.SolutionFilePath} add {projectsToAdd}";
+                    using var addProcess = Process.Start(startInfo);
+                    var addProjectOutput = addProcess.StandardOutput.ReadToEnd();
+                    Console.WriteLine($"{addProjectOutput}");
+                }
+
+                    // Note!
+                    // Unlike the VisualStudio processing, we do not have the ability to 
+                    // create a Solution Items folder and add items to it when using 
+                    // the dotnet CLI. If someone is working with the CLI, it is not clear
+                    // if a Solution Items folder would add any value. OTOH, if a solution
+                    // generated with Visual Studio and which is later processed using 
+                    // the dotnet CLI, nothing bad happens. So, no harm no foul.
+            }
+            catch (Exception e)
+            {
+                logger.Error(e, e.Message);
+                return -1;
+            }
+
+            return 1;
         }
     }
 }
