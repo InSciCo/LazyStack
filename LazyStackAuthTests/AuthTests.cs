@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using LazyStackAuth;
-using LazyStack;
+
 
 // Integration Tests for Auth library
 // This integration test requires:
@@ -18,7 +18,7 @@ using LazyStack;
 // AwsSettings file
 // A gmail account
 //  - gmail account security must have "Access to less secure apps" turned on
-//  - We recommend creating a gmail account just for this purpose and that you don't use your real gmail account
+//  - We recommend creating a gmail account just for this purpose and that you don't use your primary gmail account
 //  - We use gmail becuase it has an auto alias feature that makes it possible to create multiple Cognito user accounts
 //      - gmail allows you to create an alias using the '+' char. ex: myemail@gmail.com, myemail+01@gmail.com
 //      - each Cognito user account requires a unique email and it doesn't know myemail+01@gmail.com is an alias
@@ -72,7 +72,7 @@ namespace PetStoreClientTests
 
             // test happy path signup
             var now = DateTime.Now;
-            var login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Second}-{now.Millisecond}";
+            var login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}";
             var password = "TestUser1!";
 
             // Use Google email alias trick to allow us to use a single gmail account for our testing
@@ -387,7 +387,7 @@ namespace PetStoreClientTests
             var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
-            Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedIn);
+            Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp); //todo Should be SignedUp
             stepResult = ObjectStateDump(15,  authProcess, stepResult);
             // State Changes Step: 15
             // CurrentChallenge==AuthChallengeEnum.None
@@ -1649,7 +1649,7 @@ namespace PetStoreClientTests
         private List<string> ObjectStateDump(int step, IAuthProcess authProcess, List<string> prevStep = null)
         {
             var thisStep = new List<string>();
-           
+            
             string indent = "            ";
             // Generate Assert statements for curent AuthProcess State
             var strBld = new StringBuilder();

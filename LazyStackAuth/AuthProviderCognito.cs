@@ -705,7 +705,7 @@ namespace LazyStackAuth
 
                             CurrentAuthProcess = AuthProcessEnum.None;
                             ClearSensitiveFields();
-                            return AuthEventEnum.SignedIn;
+                            return AuthEventEnum.SignedUp;
 
                         case AuthProcessEnum.SigningIn:
                             if (authFlowResponse != null && authFlowResponse.ChallengeName == ChallengeNameType.NEW_PASSWORD_REQUIRED) // Update Passsword
