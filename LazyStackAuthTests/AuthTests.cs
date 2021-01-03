@@ -66,8 +66,6 @@ namespace PetStoreClientTests
         [TestMethod]
         public async Task TestAuth()
         {
-            var startStep = 0;
-            var endStep = 9999;
 
             var authProcess = serviceProvider.GetService<IAuthProcess>();
             var appConfig = serviceProvider.GetService<IConfiguration>();
@@ -87,8 +85,7 @@ namespace PetStoreClientTests
             var email2 = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
 
-
-            ObjectStateDump(10, startStep, endStep, authProcess);
+            var stepResult = ObjectStateDump(10,  authProcess);
             #region Step: 10
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -140,7 +137,22 @@ namespace PetStoreClientTests
 
             // StartSignUpAsync
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(11, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(11,  authProcess, stepResult);
+            // State Changes Step: 11
+            // CurrentChallenge==AuthChallengeEnum.Login
+            // CurrentAuthProcess==AuthProcessEnum.SigningUp
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsSigningUp==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsLogin==true
+            // CollectLogin==true
+            // CollectPassword==true
+            // CollectEmail==true
+            // CanSignIn==false
+            // CanSignUp==false
+            // CanResetPassword==false
             #region Step: 11
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningUp, "CurrentAuthProcess==AuthProcessEnum.SigningUp");
@@ -193,7 +205,14 @@ namespace PetStoreClientTests
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(12, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(12,  authProcess, stepResult);
+            // State Changes Step: 12
+            // CurrentChallenge==AuthChallengeEnum.Password
+            // IsLoginFormatOk==true
+            // IsLoginVerified==true
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CurrentChallengeIsPassword==true
             #region Step: 12
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningUp, "CurrentAuthProcess==AuthProcessEnum.SigningUp");
@@ -246,7 +265,14 @@ namespace PetStoreClientTests
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(13, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(13,  authProcess, stepResult);
+            // State Changes Step: 13
+            // CurrentChallenge==AuthChallengeEnum.Email
+            // IsPasswordFormatOk==true
+            // IsPasswordVerified==true
+            // CurrentChallengeIsPassword==false
+            // CollectPassword==false
+            // CurrentChallengeIsEmail==true
             #region Step: 13
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Email, "CurrentChallenge==AuthChallengeEnum.Email");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningUp, "CurrentAuthProcess==AuthProcessEnum.SigningUp");
@@ -299,7 +325,15 @@ namespace PetStoreClientTests
             // VerifyEmailAsync
             authProcess.Email = email;
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(14, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(14,  authProcess, stepResult);
+            // State Changes Step: 14
+            // CurrentChallenge==AuthChallengeEnum.Code
+            // IsEmailFormatOk==true
+            // IsEmailVerified==true
+            // CurrentChallengeIsEmail==false
+            // CollectEmail==false
+            // CurrentChallengeIsCode==true
+            // CollectCode==true
             #region Step: 14
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Code, "CurrentChallenge==AuthChallengeEnum.Code");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningUp, "CurrentAuthProcess==AuthProcessEnum.SigningUp");
@@ -354,7 +388,22 @@ namespace PetStoreClientTests
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedIn);
-            ObjectStateDump(15, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(15,  authProcess, stepResult);
+            // State Changes Step: 15
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsPasswordFormatOk==false
+            // IsCodeVerified==true
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsSigningUp==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsCode==false
+            // CollectCode==false
+            // CanSignIn==true
+            // CanSignUp==true
+            // CanResetPassword==true
             #region Step: 15
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -407,7 +456,21 @@ namespace PetStoreClientTests
             // Test SignIn to new account
             // SignIn Happy Path
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(16, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(16,  authProcess, stepResult);
+            // State Changes Step: 16
+            // CurrentChallenge==AuthChallengeEnum.Login
+            // CurrentAuthProcess==AuthProcessEnum.SigningIn
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsSigningIn==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsLogin==true
+            // CollectLogin==true
+            // CollectPassword==true
+            // CanSignIn==false
+            // CanSignUp==false
+            // CanResetPassword==false
             #region Step: 16
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
@@ -460,7 +523,12 @@ namespace PetStoreClientTests
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(20, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(20,  authProcess, stepResult);
+            // State Changes Step: 20
+            // CurrentChallenge==AuthChallengeEnum.Password
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CurrentChallengeIsPassword==true
             #region Step: 20
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
@@ -513,7 +581,23 @@ namespace PetStoreClientTests
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
-            ObjectStateDump(21, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(21,  authProcess, stepResult);
+            // State Changes Step: 21
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsSignedIn==true
+            // IsNotSignedIn==false
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsSigningIn==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsPassword==false
+            // CollectPassword==false
+            // CanSignOut==true
+            // CanUpdateEmail==true
+            // CanUpdatePassword==true
+            // CanUpdatePhone==true
             #region Step: 21
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -565,7 +649,17 @@ namespace PetStoreClientTests
 
             // SignOut
             Assert.IsTrue(authProcess.SignOut() == AuthEventEnum.SignedOut);
-            ObjectStateDump(22, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(22,  authProcess, stepResult);
+            // State Changes Step: 22
+            // IsSignedIn==false
+            // IsNotSignedIn==true
+            // CanSignOut==false
+            // CanSignIn==true
+            // CanSignUp==true
+            // CanResetPassword==true
+            // CanUpdateEmail==false
+            // CanUpdatePassword==false
+            // CanUpdatePhone==false
             #region Step: 22
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -617,7 +711,21 @@ namespace PetStoreClientTests
 
             // Test Reset Password
             Assert.IsTrue(await authProcess.StartResetPasswordAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(30, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(30,  authProcess, stepResult);
+            // State Changes Step: 30
+            // CurrentChallenge==AuthChallengeEnum.Login
+            // CurrentAuthProcess==AuthProcessEnum.ResettingPassword
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsResettingPassword==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsLogin==true
+            // CollectLogin==true
+            // CollectNewPassword==true
+            // CanSignIn==false
+            // CanSignUp==false
+            // CanResetPassword==false;
             #region Step: 30
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.ResettingPassword, "CurrentAuthProcess==AuthProcessEnum.ResettingPassword");
@@ -670,7 +778,12 @@ namespace PetStoreClientTests
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(31, startStep, endStep, authProcess);
+            ObjectStateDump(31,  authProcess, stepResult);
+            // State Changes Step: 31
+            // CurrentChallenge==AuthChallengeEnum.NewPassword
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CurrentChallengeIsNewPassword==true
             #region Step: 31
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewPassword, "CurrentChallenge==AuthChallengeEnum.NewPassword");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.ResettingPassword, "CurrentAuthProcess==AuthProcessEnum.ResettingPassword");
@@ -724,7 +837,16 @@ namespace PetStoreClientTests
             password = "TestUser1!reset";
             authProcess.NewPassword = password;
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.AuthChallenge );
-            ObjectStateDump(32, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(32,  authProcess, stepResult);
+            // State Changes Step: 32
+            // CurrentChallenge==AuthChallengeEnum.Code
+            // IsPasswordFormatOk==true
+            // IsNewPasswordFormatOk==true
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CollectNewPassword==false
+            // CurrentChallengeIsCode==true
+            // CollectCode==true
             #region Step: 32
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Code, "CurrentChallenge==AuthChallengeEnum.Code");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.ResettingPassword, "CurrentAuthProcess==AuthProcessEnum.ResettingPassword");
@@ -779,7 +901,22 @@ namespace PetStoreClientTests
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.PasswordResetDone);
-            ObjectStateDump(33, startStep, endStep, authProcess);
+            ObjectStateDump(33,  authProcess, stepResult);
+            // State Changes Step: 33
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsPasswordFormatOk==false
+            // IsNewPasswordFormatOk==false
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsResettingPassword==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsCode==false
+            // CollectCode==false
+            // CanSignIn==true
+            // CanSignUp==true
+            // CanResetPassword==true
             #region Step: 33
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -831,7 +968,19 @@ namespace PetStoreClientTests
 
             // Test Update Password
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(40, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(40,  authProcess, stepResult);
+            // State Changes Step: 40
+            // CurrentChallenge==AuthChallengeEnum.Login
+            // CurrentAuthProcess==AuthProcessEnum.SigningIn
+            // IsPasswordFormatOk==false
+            // IsNewPasswordFormatOk==false
+            // IsSigningIn==true
+            // IsResettingPassword==false
+            // CurrentChallengeIsLogin==true
+            // CollectLogin==true
+            // CollectPassword==true
+            // CurrentChallengeIsCode==false
+            // CollectCode==false
             #region Step: 40
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
@@ -885,7 +1034,13 @@ namespace PetStoreClientTests
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             authProcess.Password = password;
-            ObjectStateDump(41, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(41,  authProcess, stepResult);
+            // State Changes Step: 41
+            // CurrentChallenge==AuthChallengeEnum.Password
+            // IsPasswordFormatOk==true
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CurrentChallengeIsPassword==true
             #region Step: 41
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
@@ -938,7 +1093,24 @@ namespace PetStoreClientTests
 
             // VerifyPasswordAsync
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
-            ObjectStateDump(42, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(42,  authProcess, stepResult);
+            // State Changes Step: 42
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsPasswordFormatOk==false
+            // IsSignedIn==true
+            // IsNotSignedIn==false
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsSigningIn==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsPassword==false
+            // CollectPassword==false
+            // CanSignOut==true
+            // CanUpdateEmail==true
+            // CanUpdatePassword==true
+            // CanUpdatePhone==true
             #region Step: 42
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -990,7 +1162,22 @@ namespace PetStoreClientTests
 
             // Test Update Password -- using previous step's sign in
             Assert.IsTrue(await authProcess.StartUpdatePasswordAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(43, startStep, endStep, authProcess);
+            ObjectStateDump(43,  authProcess, stepResult);
+            // State Changes Step: 43
+            // CurrentChallenge==AuthChallengeEnum.Password
+            // CurrentAuthProcess==AuthProcessEnum.UpdatingPassword
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsUpdatingPassword==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsPassword==true
+            // CollectPassword==true
+            // CollectNewPassword==true
+            // CanSignOut==false
+            // CanUpdateEmail==false
+            // CanUpdatePassword==false
+            // CanUpdatePhone==false
             #region Step: 43
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingPassword, "CurrentAuthProcess==AuthProcessEnum.UpdatingPassword");
@@ -1043,7 +1230,22 @@ namespace PetStoreClientTests
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(44, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(44,  authProcess, stepResult);
+            // State Changes Step: 44
+            // CurrentChallenge==AuthChallengeEnum.NewPassword
+            // CurrentAuthProcess==AuthProcessEnum.UpdatingPassword
+            // IsPasswordFormatOk==true
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsUpdatingPassword==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsNewPassword==true
+            // CollectNewPassword==true
+            // CanSignOut==false
+            // CanUpdateEmail==false
+            // CanUpdatePassword==false
+            // CanUpdatePhone==false
             #region Step: 44
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewPassword, "CurrentChallenge==AuthChallengeEnum.NewPassword");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingPassword, "CurrentAuthProcess==AuthProcessEnum.UpdatingPassword");
@@ -1097,7 +1299,22 @@ namespace PetStoreClientTests
             password = "TestUser1!new";
             authProcess.NewPassword = password;
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.PasswordUpdateDone);
-            ObjectStateDump(45, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(45,  authProcess, stepResult);
+            // State Changes Step: 45
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsNewPasswordFormatOk==true
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsUpdatingPassword==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsNewPassword==false
+            // CollectNewPassword==false
+            // CanSignOut==true
+            // CanUpdateEmail==true
+            // CanUpdatePassword==true
+            // CanUpdatePhone==true
             #region Step: 45
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -1150,7 +1367,21 @@ namespace PetStoreClientTests
 
             // Test Update email -- using previous test signin
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(50, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(50,  authProcess, stepResult);
+            // State Changes Step: 50
+            // CurrentChallenge==AuthChallengeEnum.Email
+            // CurrentAuthProcess==AuthProcessEnum.UpdatingEmail
+            // HasActiveAuthProcess==true
+            // NoActiveAuthProcess==false
+            // IsUpdatingEmail==true
+            // HasChallenge==true
+            // NoChallenge==false
+            // CurrentChallengeIsEmail==true
+            // CollectEmail==true
+            // CanSignOut==false
+            // CanUpdateEmail==false
+            // CanUpdatePassword==false
+            // CanUpdatePhone==false
             #region Step: 50
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Email, "CurrentChallenge==AuthChallengeEnum.Email");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
@@ -1203,7 +1434,13 @@ namespace PetStoreClientTests
             // VerifyEmailAsync
             authProcess.Email = email2;
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-            ObjectStateDump(51, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(51,  authProcess, stepResult);
+            // State Changes Step: 51
+            // CurrentChallenge==AuthChallengeEnum.Code
+            // CurrentChallengeIsEmail==false
+            // CollectEmail==false
+            // CurrentChallengeIsCode==true
+            // CollectCode==true
             #region Step: 51
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Code, "CurrentChallenge==AuthChallengeEnum.Code");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
@@ -1258,7 +1495,22 @@ namespace PetStoreClientTests
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.EmailUpdateDone);
-            ObjectStateDump(52, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(52,  authProcess, stepResult);
+            // State Changes Step: 52
+            // CurrentChallenge==AuthChallengeEnum.None
+            // CurrentAuthProcess==AuthProcessEnum.None
+            // IsCodeFormatOk==true
+            // HasActiveAuthProcess==false
+            // NoActiveAuthProcess==true
+            // IsUpdatingEmail==false
+            // HasChallenge==false
+            // NoChallenge==true
+            // CurrentChallengeIsCode==false
+            // CollectCode==false
+            // CanSignOut==true
+            // CanUpdateEmail==true
+            // CanUpdatePassword==true
+            // CanUpdatePhone==true
             #region Step: 52
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -1310,7 +1562,20 @@ namespace PetStoreClientTests
 
             // Sign Out
             authProcess.SignOut();
-            ObjectStateDump(53, startStep, endStep, authProcess);
+            stepResult = ObjectStateDump(53,  authProcess, stepResult);
+            // State Changes Step: 53
+            // IsPasswordFormatOk==false
+            // IsCodeFormatOk==false
+            // IsNewPasswordFormatOk==false
+            // IsSignedIn==false
+            // IsNotSignedIn==true
+            // CanSignOut==false
+            // CanSignIn==true
+            // CanSignUp==true
+            // CanResetPassword==true
+            // CanUpdateEmail==false
+            // CanUpdatePassword==false
+            // CanUpdatePhone==false
             #region Step: 53
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -1381,14 +1646,15 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.SignOut() == AuthEventEnum.SignedOut);
         }
 
-        private void ObjectStateDump(int step, int startStep, int endStep, IAuthProcess authProcess)
+        private List<string> ObjectStateDump(int step, IAuthProcess authProcess, List<string> prevStep = null)
         {
-            if (step < startStep || step > endStep)
-                return;
+            var thisStep = new List<string>();
            
             string indent = "            ";
             // Generate Assert statements for curent AuthProcess State
-            Console.WriteLine($"{indent}#region Step: {step}");
+            var strBld = new StringBuilder();
+
+            strBld.AppendLine($"{indent}#region Step: {step}");
             foreach (var property in authProcess.GetType().GetProperties())
             {
                 string rValue = string.Empty;
@@ -1412,11 +1678,36 @@ namespace PetStoreClientTests
                         rValue = $"AuthEventEnum.{e.ToString()}";
                         break;
                 }
-                if(!string.IsNullOrEmpty(rValue))
-                    Console.WriteLine($"{indent}Assert.IsTrue(authProcess.{property.Name}=={rValue}, \"{property.Name}=={rValue}\");");
-
+                if (!string.IsNullOrEmpty(rValue))
+                {
+                    strBld.AppendLine($"{indent}Assert.IsTrue(authProcess.{property.Name}=={rValue}, \"{property.Name}=={rValue}\");");
+                    thisStep.Add($"{property.Name}=={rValue}");
+                }
             }
-            Console.WriteLine($"{indent}#endregion Step: {step}");
+            strBld.AppendLine($"{indent}#endregion Step: {step}");
+
+            int i = 0;
+            var strBld2 = new StringBuilder();
+            if (prevStep != null)
+                foreach (var item in prevStep)
+                {
+                    if (!item.Equals(thisStep[i]))
+                    {
+                        strBld2.Append(indent);
+                        strBld2.Append("// ");
+                        strBld2.AppendLine(thisStep[i]);
+                    }
+                    i++;
+                }
+            var str2 = strBld2.ToString();
+            if(!string.IsNullOrEmpty(str2))
+            {
+                Console.WriteLine($"{indent}// State Changes Step: {step}");
+                Console.Write(strBld2);
+            }
+            Console.Write(strBld.ToString());
+
+            return thisStep;
         }
     }
 }
