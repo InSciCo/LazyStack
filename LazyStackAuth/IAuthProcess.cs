@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
     public interface IAuthProcess: INotifyPropertyChanged
     {
         public IAuthProvider AuthProvider { get; }
         public AuthChallengeEnum CurrentChallenge { get; }
         public AuthProcessEnum CurrentAuthProcess { get; }
+
+        public string LanguageCode { get; set; }
 
         public string Login { get; set; }
         public string Password { get; set; }
@@ -49,26 +51,29 @@ namespace __ProjName__
         // Challenge states
         public bool HasChallenge { get; }
         public bool NoChallenge { get; }
-        
-        public bool CollectLogin { get; }
+
         public bool CurrentChallengeIsLogin { get; }
+        public bool CollectLogin { get; }
 
-        public bool CollectPassword { get; }
         public bool CurrentChallengeIsPassword { get; }
+        public bool CollectPassword { get; }
 
-        public bool CollectNewPassword { get; }
         public bool CurrentChallengeIsNewPassword { get; }
+        public bool CollectNewPassword { get; }
 
-        public bool CollectEmail { get; }
         public bool CurrentChallengeIsEmail { get; }
+        public bool CollectEmail { get; }
 
-        public bool CollectPhone { get; }
         public bool CurrentChallengeIsPhone { get; }
+        public bool CollectPhone { get; }
 
-        public bool CollectCode { get; }
         public bool CurrentChallengeIsCode { get; }
+        public bool CollectCode { get; }
 
-        //public Dictionary<string, Dictionary<AuthEventEnum, string>> AlertMessages { get; }
+        // Alert States
+        public string AlertMessage { get; }
+        public bool HasAlert { get; }
+
 
         // Currently Allowed AuthProcess
         public bool CanSignOut { get; }
@@ -78,6 +83,8 @@ namespace __ProjName__
         public bool CanUpdateEmail { get; }
         public bool CanUpdatePassword { get; }
         public bool CanUpdatePhone { get; }
+
+        // Methods
 
         public AuthEventEnum Clear();
         public AuthEventEnum SignOut();

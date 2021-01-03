@@ -8,11 +8,14 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
+    /// <summary>
+    /// Opens your gmail account and retrieves authorization codes sent to that 
+    /// email account by the AuthProvider.
+    /// </summary>
     public static class AuthEmail
     {
-      
         public static string GetAuthCode(IConfiguration appConfig, DateTime verificationCodeSendTime, string emailTo)
         {
             // Start SignUp process - will send  a verification code to specified email account

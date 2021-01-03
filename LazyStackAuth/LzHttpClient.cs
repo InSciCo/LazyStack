@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
@@ -7,9 +7,7 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Configuration;
 
-using __SDKProj__;
-
-namespace __ProjName__
+namespace LazyStackAuth
 {
     
     public class LzHttpClient : ILzHttpClient

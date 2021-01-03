@@ -44,10 +44,6 @@ namespace LazyStack
         {
             await ProcessClientSDKProjectAsync(); // also generates schema project
 
-            await ProcessClientAWSProjectAsync();
-
-            await ProcessClientAWSDevProjectAsync();
-
             // Generate Controller and Lambda function project for each OpenApi tag
             foreach (KeyValuePair<string, AWSLambda> lambda in solutionModel.Lambdas)
             {
@@ -162,124 +158,6 @@ namespace LazyStack
             var schemaRoot = CSharpSyntaxTree.ParseText(schemaCode).GetCompilationUnitRoot();
             schemaRoot = RemoveClass(schemaRoot, appName);
             ProcessSchemaProjectAsync(schemaRoot); // Create shcema project
-        }
-
-        /// <summary>
-        /// Generate the <AppName>ClientAWS project.
-        /// The ClientAWS project is used in client applications to enable the client
-        /// application to use the ClientSDK to call AWS Stacks.
-        /// </summary>
-        private async Task ProcessClientAWSProjectAsync()
-        {
-            var appName = solutionModel.AppName; // PetStore
-            var projName = $"{appName}ClientAWS";  // PetStoreClientAWS
-            var projFileName = $"{projName}.csproj"; // PetStoreClientAWS.csproj 
-            var projFileRelativePath = Path.Combine(projName, projFileName); // PetStoreClientAWS/PetStoreClientAWS.csproj
-            var projFolderPath = Path.Combine(solutionModel.SolutionRootFolderPath, projName);
-            var projFilePath = Path.Combine(projFolderPath, projFileName);
-
-            solutionModel.Projects.Add(projName, new ProjectInfo(
-                    solutionFolder: string.Empty,
-                    path: projFilePath,
-                    relativePath: projFileRelativePath,
-                    folderPath: projFolderPath
-                    ));
-
-            await logger.InfoAsync($"Generating/updating {projName}");
-
-            if (Directory.Exists(projFolderPath))
-                foreach (var file in Directory.GetFiles(projFolderPath))
-                    File.Delete(file);
-
-            var openApiDocument = OpenApiYamlDocument.FromYamlAsync(solutionModel.OpenApiSpecText).GetAwaiter().GetResult();
-
-            // Copy project templates with replacements and renames as necessary
-            Utilities.DirectoryCopy(
-                Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ClientAWS"),
-                projFolderPath,
-                copySubDirs: true,
-                overwrite: true,
-                removeTplExtension: true,
-                    new Dictionary<string, string>
-                    {
-                        {"__ProjName__", projName },
-                        {"__SDKProj__", $"{appName}ClientSDK" }
-                    }
-                );
-
-            // Rename project file
-            File.Move(Path.Combine(projFolderPath, "ClientAWS.csproj"), projFilePath);
-
-            // Modify csproj
-            UpdateProjectFile(
-                projFilePath,
-                "ClientAWSProjects",
-                projName,
-                localProjectReferences: 
-                    new List<string>
-                    {
-                        //< ProjectReference Include = "..\PetStoreClientSDK\PetStoreClientSDK.csproj" />
-                        Path.Combine("..",$"{appName}ClientSDK", $"{appName}ClientSDK.csproj"),
-                    },
-                localPackageReferences: null,
-                localProperties: null
-                );
-        }
-
-        private async Task ProcessClientAWSDevProjectAsync()
-        {
-            var appName = solutionModel.AppName; // PetStore
-            var projName = $"{appName}ClientAWSDev";  // PetStoreClientAWSDev
-            var projFileName = $"{projName}.csproj"; // PetStoreClientAWSDev.csproj 
-            var projFileRelativePath = Path.Combine(projName, projFileName); // PetStoreClientAWS/PetStoreClientAWSDev.csproj
-            var projFolderPath = Path.Combine(solutionModel.SolutionRootFolderPath, projName);
-            var projFilePath = Path.Combine(projFolderPath, projFileName);
-
-            solutionModel.Projects.Add(projName, new ProjectInfo(
-                    solutionFolder: string.Empty,
-                    path: projFilePath,
-                    relativePath: projFileRelativePath,
-                    folderPath: projFolderPath
-                    ));
-
-            await logger.InfoAsync($"Generating/updating {projName}");
-
-            if (Directory.Exists(projFolderPath))
-                foreach (var file in Directory.GetFiles(projFolderPath))
-                    File.Delete(file);
-
-            // Copy project templates with replacements and renames as necessary
-            Utilities.DirectoryCopy(
-                Path.Combine(solutionModel.LazyStackTemplateFolderPath, "ClientAWSDev"),
-                projFolderPath,
-                copySubDirs: true,
-                overwrite: true,
-                removeTplExtension: true,
-                new Dictionary<string, string>
-                {
-                    {"__ProjName__", projName },
-                    {"__ProjAWS__", $"{appName}ClientAWS" },
-                    {"__ProjSDK__", $"{appName}ClientSDK" },
-               }
-                );
-
-            // Rename project file
-            File.Move(Path.Combine(projFolderPath, "ClientAWSDev.csproj"), projFilePath);
-
-            // Modify csproj
-            UpdateProjectFile(
-                projFilePath,
-                "ClientAWSDevProjects",
-                projName,
-                localProjectReferences: new List<string>
-                {
-                    //< ProjectReference Include = "..\PetStoreClientSDK\PetStoreClientSDK.csproj" />
-                    Path.Combine("..",$"{appName}ClientAWS", $"{appName}ClientAWS.csproj"),
-                    Path.Combine("..",$"{appName}ClientSDK", $"{appName}ClientSDK.csproj"),
-                }, localPackageReferences: null,
-                localProperties: null
-                );
-
         }
 
         private async Task ProcessSchemaProjectAsync( CompilationUnitSyntax schemaRoot)
@@ -433,7 +311,6 @@ namespace __NameSpace__
             var configureSvcsFilePath = Path.Combine(solutionModel.LazyStackTemplateFolderPath, "Lambda", "ConfigureSvcs.cs.tpl");
             var configureSvcsText = File.ReadAllText(configureSvcsFilePath);
             CompilationUnitSyntax root = CSharpSyntaxTree.ParseText(configureSvcsText).GetCompilationUnitRoot();
-            var istr = root.ToFullString();
 
             var serviceStatements = solutionModel.GetConfigPropertyItems($"LambdaProjects/ServiceRegistrations", errorIfMissing: false);
             var serviceStatements2 = solutionModel.GetConfigPropertyItems($"{projName}/ServiceRegistrations", errorIfMissing: false);

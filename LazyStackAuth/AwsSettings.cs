@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Amazon.CognitoIdentity;
 using Amazon.Extensions.CognitoAuthentication;
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
    public class AwsSettings
    {

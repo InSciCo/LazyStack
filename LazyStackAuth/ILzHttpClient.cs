@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
     // This interface surfaces only those HttpClient members actually
     // required by the generated code.

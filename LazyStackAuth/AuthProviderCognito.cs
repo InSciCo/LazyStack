@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
@@ -13,8 +13,6 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
-
-using __SDKProj__;
 
 /// <summary>
 /// AWS Authentication and Authorization Strategy
@@ -50,7 +48,7 @@ using __SDKProj__;
 /// .ConfigureAwait(false) on all async calls.
 /// 
 /// </summary>
-namespace __ProjName__
+namespace LazyStackAuth
 {
     /// <summary>
     /// Implements ICognitoAuthProvider

@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Microsoft.Extensions.Configuration;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -10,27 +12,27 @@ using System.Threading.Tasks;
 // Private members start with lowercase ex: myYada
 // Local varaibles start with lowercase ex: bool result
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
-/// <summary>
+    /// <summary>
     /// AuthProcess add events, INotifyPropertyChanged
     /// and workflow to classes implementing IAuthProvider
     /// </summary>
     public class AuthProcess : INotifyPropertyChanged, IAuthProcess
     {
-        public AuthProcess(IAuthProvider authProvider)
+        public AuthProcess(IConfiguration appConfig, IAuthProvider authProvider )
         {
             _authProvider = authProvider;
-
-
-
-
+            this.appConfig = appConfig;
         }
 
         #region Fields
+        readonly IConfiguration appConfig;
         #endregion 
 
         #region Properties
+        public string LanguageCode { get; set; } = "en-US";
+
         readonly IAuthProvider _authProvider;
         public IAuthProvider AuthProvider { get { return _authProvider; } }
         public AuthChallengeEnum CurrentChallenge => _authProvider.CurrentChallenge;
@@ -350,10 +352,15 @@ namespace __ProjName__
         protected virtual AuthEventEnum RaiseAuthModuleEventAndProperties(AuthEventEnum r)
         {
             OnAuthModuleEvent(new AuthModuleEventArgs(r));
-            _alertMessage =
-                ((int)r >= (int)AuthEventEnum.Alert) // All enum items after the enum Alert are Alerts
-                ? r.ToString()
-                : string.Empty;
+            _alertMessage = string.Empty;
+            if ((int)r >= (int)AuthEventEnum.Alert) // All enum items after the enum Alert are Alerts
+            {
+                string message = appConfig[$"AuthMessages:{LanguageCode}:{r.ToString()}"];
+                _alertMessage =
+                    string.IsNullOrEmpty(message)
+                    ? r.ToString()
+                    :message;
+            }
 
             if (r == AuthEventEnum.SignedIn 
                 || r==AuthEventEnum.SignedUp 

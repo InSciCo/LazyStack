@@ -149,7 +149,7 @@ namespace LazyStack
 
             try
             {
-                var cfClient = new AmazonCloudFormationClient(creds);
+                var cfClient = new AmazonCloudFormationClient(creds); 
                 var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
                 var describeStackResourcesResponse = await cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest);
 

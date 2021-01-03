@@ -1,5 +1,5 @@
-﻿using System;
-namespace __ProjName__
+using System;
+namespace LazyStackAuth
 {
     public enum AuthProcessEnum
     {

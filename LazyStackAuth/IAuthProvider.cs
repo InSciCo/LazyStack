@@ -1,8 +1,7 @@
-﻿using System.ComponentModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace __ProjName__
+namespace LazyStackAuth
 {
     /// <summary>
     /// General authentication flow Interface
