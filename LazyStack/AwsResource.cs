@@ -6,62 +6,59 @@ namespace LazyStack
 {
     public class AwsResource
     {
-        /// <summary>
-        /// Call when creating resource from aws_default.yaml or sam template
-        /// </summary>
-        /// <param name="resourceName"></param>
-        /// <param name="rootNode"></param>
-        /// <param name="solutionModel"></param> 
-        public AwsResource(string resourceName, YamlMappingNode rootNode, SolutionModel solutionModel, bool isDefault) 
+        public AwsResource() { }
+
+        public static AwsResource MakeGeneralResource(string resourceName, YamlMappingNode rootNode, SolutionModel solutionModel, bool isDefault)
         {
-            RootNode = rootNode;
-            Name = resourceName;
-            IsDefault = isDefault;
+            var awsResource = new AwsResource()
+            {
+                RootNode = rootNode,
+                Name = resourceName,
+                IsDefault = isDefault,
+            };
 
             if (rootNode.Children.TryGetValue("Type", out YamlNode node))
-                AwsType = node.ToString();
+                awsResource.AwsType = node.ToString();
             else
-                throw new Exception($"Error: Missing Type property for x-lz-AwsResource {resourceName}");
+                throw new Exception($"Error: Missing Type property for AwsResource {resourceName}");
 
             if (solutionModel.Resources.ContainsKey(resourceName))
             {
                 if (!solutionModel.Resources[resourceName].IsDefault)
                     throw new Exception($"Error: Duplicate resource {resourceName} found");
                 else
-                if (!solutionModel.Resources[resourceName].AwsType.Equals(AwsType))
+                if (!solutionModel.Resources[resourceName].AwsType.Equals(awsResource.AwsType))
                     throw new Exception($"Error: Mismatched AWS Type for resource {resourceName}");
                 else
-                    MergeResourceConfiguration(solutionModel.Resources[resourceName].RootNode, rootNode, solutionModel);
+                    AwsResource.MergeLambdaResourceConfiguration(solutionModel.Resources[resourceName].RootNode, rootNode, solutionModel);
             }
             else
-                solutionModel.Resources.Add(Name, this);
+                solutionModel.Resources.Add(resourceName, awsResource);
 
-            if (IsRestApi && !solutionModel.Apis.ContainsKey(Name))
-                solutionModel.Apis.Add(Name, new AwsApiRestApi(this, solutionModel));
+            if (awsResource.IsRestApi && !solutionModel.Apis.ContainsKey(resourceName))
+                solutionModel.Apis.Add(resourceName, new AwsApiRestApi(awsResource, solutionModel, resourceName));
             else 
-            if (IsHttpApi && !solutionModel.Apis.ContainsKey(Name))
-                    solutionModel.Apis.Add(Name, new AwsApiHttpApi(this, solutionModel));
+            if (awsResource.IsHttpApi && !solutionModel.Apis.ContainsKey(resourceName))
+                    solutionModel.Apis.Add(resourceName, new AwsApiHttpApi(awsResource, solutionModel, resourceName));
+
+            return awsResource;
         }
 
-        /// <summary>
-        /// Call when parsing Tags Object directive to create AWS::Serverless::Function objects
-        /// </summary>
-        /// <param name="resourceNode"></param>
-        /// <param name="solutionModel"></param>
-        /// <param name="tag"></param>
-        /// <param name="awsApi"></param>
-        public AwsResource(SolutionModel solutionModel, string tag, AwsApi awsApi)
+        public static AwsResource MakeLambdaResource(SolutionModel solutionModel, string tag, AwsApi awsApi)
         {
-            AwsType = "AWS::Serverless::Function";
-            YamlMappingNode resourceDefinitionNode = null;
-
             if (string.IsNullOrEmpty(tag))
                 throw new ArgumentException();
 
-            Name = solutionModel.TagToFunctionName(solutionModel.AppName,tag);
+            var awsResource = new AwsResource()
+            {
+                AwsType = "AWS::Serverless::Function",
+                Name = solutionModel.TagToFunctionName(tag)
+            };
 
-            if (solutionModel.Resources.ContainsKey(Name))
-                throw new Exception($"Error: The {Name} resource requested in tag {tag} already exists");
+            YamlMappingNode resourceDefinitionNode = null;
+
+            if (solutionModel.Resources.ContainsKey(awsResource.Name))
+                throw new Exception($"Error: The {awsResource.Name} resource requested in tag {tag} already exists");
 
             // Create the resource document
             var lambdaResourceDefinition = new YamlMappingNode
@@ -69,34 +66,36 @@ namespace LazyStack
                 { "Type", "AWS::Serverless::Function" }
             };
 
-            lambdaResourceDefinition = MergeResourceConfiguration(lambdaResourceDefinition, resourceDefinitionNode, solutionModel);
+            lambdaResourceDefinition = MergeLambdaResourceConfiguration(lambdaResourceDefinition, resourceDefinitionNode, solutionModel);
 
-            var codeUriTarget = solutionModel.GetConfigProperty($"{Name}/CodeUriTarget", errorIfMissing: false);
-            if(string.IsNullOrEmpty(codeUriTarget))
-                codeUriTarget = solutionModel.GetConfigProperty("LambdaProjects/CodeUriTarget", errorIfMissing: false);
-            if(string.IsNullOrEmpty(codeUriTarget))
-            {
-                throw new Exception($"Error: Missing LambdaProjects/CodeUriTarget directive.");
-            }
+            var codeUriPlatform = solutionModel.GetConfigProperty($"{awsResource.Name}/CodeUriPlatform", errorIfMissing: false);
+            if (string.IsNullOrEmpty(codeUriPlatform))
+                codeUriPlatform = solutionModel.GetConfigProperty("LambdaProjects/CodeUriPlatform", errorIfMissing: false);
+            if (string.IsNullOrEmpty(codeUriPlatform))
+                throw new Exception($"Error: Missing LambdaProjects/CodeUriPlatform directive.");
 
-            var text = SolutionModel.YamlNodeToText(lambdaResourceDefinition);
+
+            var text = SolutionModel.YamlNodeToText(lambdaResourceDefinition); // Grab the lambda template
             text = SolutionModel.ReplaceTargets(
                 text,
-                new Dictionary<string, string> { { "__lambdaName__", Name }, { "__codeUriTarget__", codeUriTarget } }
+                new Dictionary<string, string> { { "__lambdaName__", awsResource.Name }, { "__codeUriPlatform__", codeUriPlatform } }
                 );
             lambdaResourceDefinition = SolutionModel.ParseYamlText(text);
 
-            RootNode = lambdaResourceDefinition;
+            awsResource.RootNode = lambdaResourceDefinition;
 
-            solutionModel.Resources.Add(Name, this);
+            solutionModel.Resources.Add(awsResource.Name, awsResource);
 
             // Note: 
             // AwsLambda adds itself to:
             // solutionModel.LambdasByTag
             // solutionModel.LambdasByName
             // awsApi.Lambdas
-            new AWSLambda(awsApi, this, solutionModel);
+            new AWSLambda(awsApi, awsResource, solutionModel);
+
+            return awsResource;
         }
+        
         
         public string Name { get; set; }
         public string AwsType { get; private set; }
@@ -115,9 +114,8 @@ namespace LazyStack
         /// <param name="userResourceConfiguration"></param>
         /// <param name="AwsType"></param>
         /// <param name="tag"></param>
-        private YamlMappingNode MergeResourceConfiguration(YamlMappingNode resourceDefinition, YamlMappingNode userResourceConfiguration, SolutionModel solutionModel)
+        public static YamlMappingNode MergeLambdaResourceConfiguration(YamlMappingNode resourceDefinition, YamlMappingNode userResourceConfiguration, SolutionModel solutionModel)
         {
-            var msg = string.Empty;
             string awsType;
             if (resourceDefinition.Children.TryGetValue("Type", out YamlNode node))
                 awsType = node.ToString();
@@ -146,20 +144,16 @@ namespace LazyStack
             // Merge in any LazyStack defaults
             if (solutionModel.DefaultResourceConfigurations != null
                && solutionModel.DefaultResourceConfigurations.Children.TryGetValue(awsType, out YamlNode defResourcesMappingNode))
-            {  
                 resourceDefinition = SolutionModel.MergeNode(resourceDefinition, defResourcesMappingNode) as YamlMappingNode;
-            }
 
             // Merge in userResource Definition
             if (userResourceConfiguration != null)
-            {
                 resourceDefinition = SolutionModel.MergeNode(resourceDefinition, userResourceConfiguration) as YamlMappingNode;
-            }
 
             return resourceDefinition;
         }
 
-        public string GetOutputItem()
+        public string GetOutputItem(string prefix)
         {
             string OutputItem = string.Empty;
             switch (AwsType)
@@ -167,7 +161,7 @@ namespace LazyStack
                 case "AWS::Serverless::Api":
                 case "AWS::Serverless::HttpApi":
                   OutputItem =
-                     $"{Name}: \n"
+                     $"{prefix}{Name}: \n"
                     + $"  Description: \"Gateway URL\"\n"
                     + $"  Value:\n"
                     + $"    Fn::Sub: https://${{{Name}}}.execute-api.${{AWS::Region}}.amazonaws.com/${{StageName}}\n"
@@ -176,7 +170,7 @@ namespace LazyStack
                     break;
                 case "AWS::Cognito::UserPool":
                     OutputItem =
-                       $"{Name}: \n"
+                       $"{prefix}{Name}: \n"
                       + $"  Description: \"Cognito UserPoolId\"\n"
                       + $"  Value:\n"
                       + $"    Ref: {Name}\n"
@@ -185,7 +179,7 @@ namespace LazyStack
                     break;
                 case "AWS::Cognito::UserPoolClient":
                     OutputItem =
-                       $"{Name}: \n"
+                       $"{prefix}{Name}: \n"
                       + $"  Description: \"Cognito UserPoolClientId\"\n"
                       + $"  Value:\n"
                       + $"    Ref: {Name}\n"
@@ -194,7 +188,7 @@ namespace LazyStack
                     break;
                 case "AWS::Cognito::IdentityPool":
                     OutputItem =
-                       $"{Name}: \n"
+                       $"{prefix}{Name}: \n"
                       + $"  Description: \"Cognito IdentityPoolId\"\n"
                       + $"  Value:\n"
                       + $"    Ref: {Name}\n"

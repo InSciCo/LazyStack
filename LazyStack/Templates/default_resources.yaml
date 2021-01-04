@@ -2,8 +2,7 @@
   HttpApiUnsecure:
     Type: AWS::Serverless::HttpApi
     Properties:
-      StageName:
-        Ref: StageName
+      StageName: __StageName__
 
   HttpApiSecure:
     Type: AWS::Serverless::HttpApi
@@ -18,16 +17,14 @@
               audience: # careful here, this must be a scalar node or the deploy fails silently with no routes!
               - Ref: UserPoolClient
         DefaultAuthorizer: OpenIdAuthorizer
-      StageName:
-        Ref: StageName
+      StageName: __StageName__
   
   ApiUnsecure:
     Type: AWS::Serverless::Api
     Properties:
       Name: 
         Fn::Sub: ${AWS::Stackname}$-ApiUnsecure
-      StageName:
-        Ref: StageName
+      StageName: __StageName__
       EndpointConfiguration: REGIONAL
       TracingEnabled: true
 
@@ -38,8 +35,7 @@
         DefaultAuthorizer: AWS_IAM
       Name: 
         Fn::Sub: ${AWS::StackName}$-ApiSecure
-      StageName:
-        Ref: StageName
+      StageName: __StageName__
       EndpointConfiguration: REGIONAL
       TracingEnabled: true 
 

@@ -56,7 +56,7 @@
         <Parent guid="guidLazyStackVsExtPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
-          <ButtonText>Invoke LazyStack - Generate Projects</ButtonText>
+          <ButtonText>LazyStack - Generate Projects</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidLazyStackVsExtPackageCmdSet" id="cmdidToolWindow1Command" priority="0x0100" type="Button">
@@ -70,7 +70,7 @@
         <Parent guid="guidLazyStackVsExtPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages2" id="bmpPic1" />
         <Strings>
-          <ButtonText>Invoke LazyStack - Get AWS Resource Ids</ButtonText>
+          <ButtonText>LazyStack - Generate Dev.AwsSettings.json</ButtonText>
         </Strings>
       </Button>
     </Buttons>

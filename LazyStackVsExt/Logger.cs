@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using LazyStack;
 
 namespace LazyStackVsExt
@@ -19,7 +20,18 @@ namespace LazyStackVsExt
             progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message });
         }
 
+        public async Task InfoAsync(string message)
+        {
+            progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message });
+        }
+
+
         public void Error(Exception ex, string message)
+        {
+            progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message + "\n" + ex.Message }); ;
+        }
+
+        public async Task ErrorAsync(Exception ex, string message)
         {
             progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message + "\n" + ex.Message }); ;
         }

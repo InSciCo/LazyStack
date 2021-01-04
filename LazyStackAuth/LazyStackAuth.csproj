@@ -1,24 +1,26 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugType>portable</DebugType>
-    <DebugType>portable</DebugType>
-    <LangVersion>8.0</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <LangVersion>8.0</LangVersion>
-  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="1.0.4" />
-    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.3.110.3" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.0" />
+    <None Remove="AuthMessages.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="AuthMessages.json" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="AuthModuleViewModel.cs" />
+    <PackageReference Include="MailKit" Version="2.10.0" />
+    <PackageReference Include="AwsSignatureVersion4" Version="1.4.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+    <PackageReference Include="JsonSubTypes" Version="1.5.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.0" />
+    <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.0.0" />
+    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.5.1.4" />
   </ItemGroup>
 </Project>

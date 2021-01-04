@@ -9,15 +9,14 @@
     <PackageLicenseFile>license.txt</PackageLicenseFile>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Templates\Controllers\Controller.cs.tpl" />
-  </ItemGroup>
-
 
   <ItemGroup>
     <None Include="license.txt">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
+    </None>
+    <None Include="Templates\ClientSDK\ClientSDK.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
     
@@ -28,47 +27,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
-    <None Update="Templates\ClientSDK\Client\ApiClient.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\ApiException.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\ApiResponse.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\ClientUtils.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\ExceptionFactory.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\HttpMethod.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\IApiAccessor.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\IAsynchronousClient.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\Multimap.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\OpenAPIDateConverter.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-   
-    <None Update="Templates\ClientSDK\Client\RequestOptions.cs.tpl">
+    <None Update="Templates\Controllers\FakeEntryPoint.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
@@ -81,14 +40,6 @@
     </None>
   
     <None Include="Templates\Controllers\Controller.csproj">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>    
-
-    <Content Include="Templates\Controllers\Controller.cs.tpl">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  
-    <None Update="OpenAPIGenerator\openapi-generator-cli.jar">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   
@@ -154,11 +105,14 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.CloudFormation" Version="3.3.106.21" />
+    <PackageReference Include="AWSSDK.CloudFormation" Version="3.5.2.15" />
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="DeepCloner" Version="0.10.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="NSwag.CodeGeneration.CSharp" Version="13.9.4" />
+    <PackageReference Include="NSwag.Core.Yaml" Version="13.9.4" />
+    <PackageReference Include="NSwag.SwaggerGeneration.AspNetCore" Version="12.3.0" />
     <PackageReference Include="YamlDotNet" Version="9.1.0" />
   </ItemGroup>
 

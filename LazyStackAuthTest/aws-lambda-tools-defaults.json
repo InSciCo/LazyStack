@@ -1,9 +1,0 @@
-
-{
-    "region" : "us-east-1",
-    "profile" : "default",
-    "s3-bucket" : "AisImage",
-    "template"  : "serverless.template",
-    "template-parameters" : "\"StageName\"=\"Dev\"",
-    "stack-name"          : "LazyStackAuthTest"
-}

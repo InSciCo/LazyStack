@@ -2,6 +2,7 @@
   "profiles": {
     "LazyStackApp": {
       "commandName": "Project",
+      "commandLineArgs": "projects",
       "workingDirectory": "C:\\Users\\tmay\\source\\repos\\LazyStackTutorial\\PetStore"
     }
   }
