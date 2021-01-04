@@ -387,7 +387,7 @@ namespace PetStoreClientTests
             var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
-            Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp); //todo Should be SignedUp
+            Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp);
             stepResult = ObjectStateDump(15,  authProcess, stepResult);
             // State Changes Step: 15
             // CurrentChallenge==AuthChallengeEnum.None
