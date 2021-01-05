@@ -56,12 +56,12 @@ namespace LazyStackAuth
     /// </summary>
     public class AuthProviderCognito : IAuthProvider
     { 
-        public AuthProviderCognito(IConfiguration appConfig)
+        public AuthProviderCognito(IConfiguration appConfig, string stackName = "Aws")
         {
-            regionEndpoint = RegionEndpoint.GetBySystemName(appConfig["Aws:Region"]);
-            clientId = appConfig["Aws:ClientId"];
-            userPoolId = appConfig["Aws:UserPoolId"];
-            identityPoolId = appConfig["Aws:IdentityPoolId"];
+            regionEndpoint = RegionEndpoint.GetBySystemName(appConfig[$"{stackName}:Region"]);
+            clientId = appConfig[$"{stackName}:ClientId"];
+            userPoolId = appConfig[$"{stackName}:UserPoolId"];
+            identityPoolId = appConfig[$"{stackName}:IdentityPoolId"];
             providerClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), regionEndpoint);
             userPool = new CognitoUserPool(userPoolId, clientId, providerClient);
         }
