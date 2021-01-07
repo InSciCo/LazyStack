@@ -22,9 +22,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		DeploymentNotes.md = DeploymentNotes.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackAuth", "LazyStackAuth\LazyStackAuth.csproj", "{34F8088D-570C-4E42-99A2-149BE16EF8B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuth", "LazyStackAuth\LazyStackAuth.csproj", "{34F8088D-570C-4E42-99A2-149BE16EF8B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackAuthTests", "LazyStackAuthTests\LazyStackAuthTests.csproj", "{E5D16155-F6BE-43EC-8556-32A6F30CFACC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTests", "LazyStackAuthTests\LazyStackAuthTests.csproj", "{E5D16155-F6BE-43EC-8556-32A6F30CFACC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

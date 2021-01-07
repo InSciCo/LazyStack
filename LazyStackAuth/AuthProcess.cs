@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 namespace LazyStackAuth
 {
     /// <summary>
-    /// AuthProcess add events, INotifyPropertyChanged
+    /// AuthProcess add events, INotifyPropertyChangedk
     /// and workflow to classes implementing IAuthProvider
     /// </summary>
     public class AuthProcess : INotifyPropertyChanged, IAuthProcess
@@ -38,17 +38,17 @@ namespace LazyStackAuth
         public AuthChallengeEnum CurrentChallenge => _authProvider.CurrentChallenge;
         public AuthProcessEnum CurrentAuthProcess => _authProvider.CurrentAuthProcess;
 
-        private string _login;
+        private string _login = string.Empty;
         public string Login
         {
             get { return _login; }
             set {
-                SetProperty(ref _login, value);
+                SetProperty(ref _login, value); 
                 CheckLoginFormat();
             }
         }
 
-        private string _password;
+        private string _password = string.Empty;
         public string Password
         {
             get { return _password; }
@@ -58,7 +58,7 @@ namespace LazyStackAuth
             }
         }
 
-        private string _newPassword;
+        private string _newPassword = string.Empty;
         public string NewPassword
         {
             get { return _newPassword; }
@@ -68,7 +68,7 @@ namespace LazyStackAuth
             }
         }
 
-        private string _email;
+        private string _email = string.Empty;
         public string Email
         {
             get { return _email; }
@@ -78,7 +78,7 @@ namespace LazyStackAuth
             }
         }
 
-        private string _code;
+        private string _code = string.Empty;
         public string Code
         {
             get { return _code; }
@@ -88,7 +88,7 @@ namespace LazyStackAuth
             }
         }
 
-        private string _phone;
+        private string _phone = string.Empty;
         public string Phone
         {
             get { return _phone; }
@@ -98,16 +98,22 @@ namespace LazyStackAuth
         // Entry Properties states
         public bool IsLoginFormatOk => _authProvider.IsLoginFormatOk;
         public bool IsLoginVerified => _authProvider.IsLoginVerified;
+        public bool LoginNotVerified => !_authProvider.IsLoginVerified;
         public bool IsEmailFormatOk => _authProvider.IsEmailFormatOk;
         public bool IsEmailVerified => _authProvider.IsEmailVerified;
+        public bool EmailNotVerified => !_authProvider.IsEmailVerified;
         public bool IsPasswordFormatOk => _authProvider.IsPasswordFormatOk;
         public bool IsPasswordVerified => _authProvider.IsPasswordVerified;
+        public bool PasswordNotVerified => !_authProvider.IsPasswordVerified;
         public bool IsCodeFormatOk => _authProvider.IsCodeFormatOk;
         public bool IsCodeVerified => _authProvider.IsCodeVerified;
+        public bool CodeNotVerified => !_authProvider.IsCodeVerified;
         public bool IsNewPasswordFormatOk => _authProvider.IsNewPasswordFormatOk;
         public bool IsNewPasswordVerified => _authProvider.IsNewPasswordVerified;
+        public bool NewPasswordNotVerified => !_authProvider.IsNewPasswordVerified;
         public bool IsPhoneFormatOk => _authProvider.IsPhoneFormatOk;
         public bool IsPhoneVerified => _authProvider.IsPhoneVerified;
+        public bool PhoneNotVerified => !_authProvider.IsPhoneVerified;
 
         // Auth state
         public bool IsSignedIn => _authProvider.IsSignedIn;
@@ -159,6 +165,7 @@ namespace LazyStackAuth
         public bool CanUpdateEmail => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
         public bool CanUpdatePassword => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
         public bool CanUpdatePhone => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanCancel => CurrentAuthProcess != AuthProcessEnum.None;
 
         //public Dictionary<string, Dictionary<AuthEventEnum, string>> AlertMessages =
         //    new Dictionary<string, Dictionary<AuthEventEnum, string>> 
@@ -190,16 +197,22 @@ namespace LazyStackAuth
 
             RaisePropertyChanged(nameof(IsLoginFormatOk));
             RaisePropertyChanged(nameof(IsLoginVerified));
+            RaisePropertyChanged(nameof(LoginNotVerified));
             RaisePropertyChanged(nameof(IsEmailFormatOk));
             RaisePropertyChanged(nameof(IsEmailVerified));
+            RaisePropertyChanged(nameof(EmailNotVerified));
             RaisePropertyChanged(nameof(IsPasswordFormatOk));
             RaisePropertyChanged(nameof(IsPasswordVerified));
+            RaisePropertyChanged(nameof(PasswordNotVerified));
             RaisePropertyChanged(nameof(IsCodeFormatOk));
             RaisePropertyChanged(nameof(IsCodeVerified));
+            RaisePropertyChanged(nameof(CodeNotVerified));
             RaisePropertyChanged(nameof(IsNewPasswordFormatOk));
             RaisePropertyChanged(nameof(IsNewPasswordVerified));
+            RaisePropertyChanged(nameof(NewPasswordNotVerified));
             RaisePropertyChanged(nameof(IsPhoneFormatOk));
             RaisePropertyChanged(nameof(IsPhoneVerified));
+            RaisePropertyChanged(nameof(PhoneNotVerified));
 
             RaisePropertyChanged(nameof(HasActiveAuthProcess));
             RaisePropertyChanged(nameof(NoActiveAuthProcess));
@@ -246,6 +259,7 @@ namespace LazyStackAuth
             RaisePropertyChanged(nameof(CanUpdateEmail));
             RaisePropertyChanged(nameof(CanUpdatePassword));
             RaisePropertyChanged(nameof(CanUpdatePhone));
+            RaisePropertyChanged(nameof(CanCancel));
 
         }
 
@@ -256,16 +270,11 @@ namespace LazyStackAuth
             Code = string.Empty;
         }
 
-        public AuthEventEnum Clear()
-        {
-            ClearSensitiveFields();
-            return RaiseAuthModuleEventAndProperties(_authProvider.Clear());
-        }
+        public AuthEventEnum Clear() => RaiseAuthModuleEventAndProperties(_authProvider.Clear());
 
-        public AuthEventEnum SignOut()
-        {
-            return RaiseAuthModuleEventAndProperties(_authProvider.SignOut());
-        }
+        public AuthEventEnum Cancel() => RaiseAuthModuleEventAndProperties(_authProvider.Cancel());
+
+        public AuthEventEnum SignOut() => RaiseAuthModuleEventAndProperties(_authProvider.SignOut());
 
         public async Task<AuthEventEnum> StartSignInAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartSignInAsync());
 

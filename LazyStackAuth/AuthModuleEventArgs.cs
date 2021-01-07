@@ -35,6 +35,7 @@ namespace LazyStackAuth
         PhoneUpdateDone,
         EmailUpdateDone,
         VerificationCodeSent,
+        Canceled,
 
         // Alert events 
         Alert, // Any enum value >= than this enum item is an Alert - Alert not used itself.

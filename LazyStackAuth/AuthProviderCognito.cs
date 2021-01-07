@@ -156,18 +156,34 @@ namespace LazyStackAuth
             return AuthEventEnum.SignedOut;
         } 
 
+        // Cancel the currently executing auth process
+        public virtual AuthEventEnum Cancel()
+        {
+            switch(CurrentAuthProcess)
+            {
+                case AuthProcessEnum.None:
+                    return AuthEventEnum.Canceled;
+                case AuthProcessEnum.ResettingPassword:
+                case AuthProcessEnum.SigningIn:
+                case AuthProcessEnum.SigningUp:
+                    return Clear();
+                case AuthProcessEnum.UpdatingEmail:
+                case AuthProcessEnum.UpdatingPassword:
+                case AuthProcessEnum.UpdatingPhone:
+                    CurrentAuthProcess = AuthProcessEnum.None;
+                    return AuthEventEnum.Canceled;
+                default:
+                    return AuthEventEnum.Canceled;
+            }
+        }
+
+
         public virtual async Task<AuthEventEnum> StartSignInAsync()
         {
             await NoOp(); // used when the method doesn't call service
 
             if (IsSignedIn)
                 return AuthEventEnum.Alert_AlreadySignedIn;
-
-            if (CurrentAuthProcess == AuthProcessEnum.SigningIn)
-                return AuthEventEnum.Alert_AuthProcessAlreadyStarted;
-
-            if (CurrentAuthProcess != AuthProcessEnum.None)
-                return AuthEventEnum.Alert_DifferentAuthProcessActive;
 
             Clear();
 
@@ -183,6 +199,7 @@ namespace LazyStackAuth
 
             if (IsSignedIn)
                 return AuthEventEnum.Alert_AlreadySignedIn;
+
             Clear();
 
             CurrentAuthProcess = AuthProcessEnum.SigningUp;
@@ -199,9 +216,6 @@ namespace LazyStackAuth
 
             if (IsSignedIn)
                 return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
-
-            if (HasChallenge)
-                return AuthEventEnum.Alert_AuthAlreadyStarted;
 
             Clear();
 

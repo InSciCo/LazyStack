@@ -44,6 +44,8 @@ namespace LazyStackAuth
 
         public AuthEventEnum Clear();
 
+        public AuthEventEnum Cancel();
+
         public AuthEventEnum SignOut();
 
         public Task<AuthEventEnum> StartSignInAsync();

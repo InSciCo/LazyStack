@@ -22,16 +22,22 @@ namespace LazyStackAuth
         // Property States
         public bool IsLoginFormatOk { get; }
         public bool IsLoginVerified { get; }
+        public bool LoginNotVerified { get; }
         public bool IsEmailFormatOk { get; }
         public bool IsEmailVerified { get; }
+        public bool EmailNotVerified { get; }
         public bool IsPasswordFormatOk { get; }
         public bool IsPasswordVerified { get; }
+        public bool PasswordNotVerified { get; }
         public bool IsCodeFormatOk { get; }
         public bool IsCodeVerified { get; }
+        public bool CodeNotVerified { get; }
         public bool IsNewPasswordFormatOk { get; }
         public bool IsNewPasswordVerified { get; }
+        public bool NewPasswordNotVerified { get; }
         public bool IsPhoneFormatOk { get; }
         public bool IsPhoneVerified { get; }
+        public bool PhoneNotVerified { get; }
 
         // Auth state
         public bool IsSignedIn { get; }
@@ -83,10 +89,12 @@ namespace LazyStackAuth
         public bool CanUpdateEmail { get; }
         public bool CanUpdatePassword { get; }
         public bool CanUpdatePhone { get; }
+        public bool CanCancel { get; }
 
         // Methods
 
         public AuthEventEnum Clear();
+        public AuthEventEnum Cancel();
         public AuthEventEnum SignOut();
 
         public Task<AuthEventEnum> StartSignInAsync(); // Happy Path Challenges: Login, Password
