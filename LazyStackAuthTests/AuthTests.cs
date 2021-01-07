@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Reflection;
-using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -323,6 +324,8 @@ namespace PetStoreClientTests
             #endregion Step: 13
 
             // VerifyEmailAsync
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(1000);
             authProcess.Email = email;
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(14,  authProcess, stepResult);
@@ -384,6 +387,7 @@ namespace PetStoreClientTests
             #endregion Step: 14
 
             // VerifyCodeAsync
+            Thread.Sleep(1000);
             var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
@@ -834,6 +838,8 @@ namespace PetStoreClientTests
             #endregion Step: 31
 
             // VerifyNewPasswordAsync
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(1000);
             password = "TestUser1!reset";
             authProcess.NewPassword = password;
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.AuthChallenge );
@@ -897,9 +903,11 @@ namespace PetStoreClientTests
             #endregion Step: 32
 
             // VerifyCodeAsync
+            Thread.Sleep(1000);
             verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
+
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.PasswordResetDone);
             ObjectStateDump(33,  authProcess, stepResult);
             // State Changes Step: 33
@@ -1432,6 +1440,8 @@ namespace PetStoreClientTests
             #endregion Step: 50
 
             // VerifyEmailAsync
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(1000);
             authProcess.Email = email2;
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(51,  authProcess, stepResult);
@@ -1491,6 +1501,7 @@ namespace PetStoreClientTests
             #endregion Step: 51
 
             // VerifyCodeAsync
+            Thread.Sleep(1000);
             verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email2);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;

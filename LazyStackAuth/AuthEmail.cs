@@ -28,7 +28,6 @@ namespace LazyStackAuth
             do
             {
                 Debug.WriteLine($"tryCount {tryCount}");
-                Thread.Sleep(3000);
                 try
                 {
                     tryCount++;
@@ -76,6 +75,9 @@ namespace LazyStackAuth
                 }
                 if (tryCount > 5)
                     throw new Exception("Failed to find email with auth code");
+
+                if(!foundCode)
+                    Thread.Sleep(1000);
 
             } while (!foundCode);
 
