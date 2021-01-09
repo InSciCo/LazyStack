@@ -48,6 +48,18 @@ namespace LazyStackAuth
 
         public bool HasChallenge { get; }
 
+        public bool CanSignOut { get; }
+        public bool CanSignUp { get; }
+        public bool CanSignIn { get; }
+        public bool CanResetPassword { get; }
+        public bool CanUpdateLogin { get; }
+        public bool CanUpdateEmail { get; }
+        public bool CanUpdatePassword { get; }
+        public bool CanUpdatePhone { get; }
+        public bool CanCancel { get; }
+        public bool CanResendCode { get; }
+
+        public bool IsChallengeLongWait { get; }
 
         // Methods
         public AuthEventEnum Clear();

@@ -221,16 +221,18 @@ namespace LazyStackAuth
         public bool HasAlert { get { return _alertMessage.Length > 0; } }
 
         // Currently Allowed AuthProcess
-        public bool CanSignOut => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanSignIn => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanSignUp => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanResetPassword => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanUpdateLogin => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanUpdateEmail => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanUpdatePassword => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanUpdatePhone => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
-        public bool CanCancel => CurrentAuthProcess != AuthProcessEnum.None;
-        public bool CanResendCode => CurrentChallengeIsCode;
+        public bool CanSignOut => _authProvider.CanSignOut;
+        public bool CanSignIn => _authProvider.CanSignIn;
+        public bool CanSignUp => _authProvider.CanSignUp;
+        public bool CanResetPassword => _authProvider.CanResetPassword;
+        public bool CanUpdateLogin => _authProvider.CanUpdateLogin;
+        public bool CanUpdateEmail => _authProvider.CanUpdateEmail;  
+        public bool CanUpdatePassword => _authProvider.CanUpdatePassword;
+        public bool CanUpdatePhone => _authProvider.CanUpdatePhone;
+        public bool CanCancel => _authProvider.CanCancel;
+        public bool CanResendCode => _authProvider.CanResendCode;
+
+        public bool IsChallengeLongWait => _authProvider.IsChallengeLongWait;
 
         #endregion
 

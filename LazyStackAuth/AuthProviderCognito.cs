@@ -142,6 +142,54 @@ namespace LazyStackAuth
 
         public bool HasChallenge { get { return AuthChallengeList.Count > 0; } }
 
+        public bool CanSignOut => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanSignIn => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanSignUp => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanResetPassword => !IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanUpdateLogin => false; // not supported in AWS Cognito
+        public bool CanUpdateEmail => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanUpdatePassword => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
+        public bool CanUpdatePhone => false; // not currently implemented
+        public bool CanCancel => CurrentAuthProcess != AuthProcessEnum.None;
+        public bool CanResendCode => CurrentChallenge == AuthChallengeEnum.Code;
+
+        public bool IsChallengeLongWait 
+        { 
+            get 
+            { 
+                switch(CurrentChallenge)
+                {
+                    case AuthChallengeEnum.Code:
+                        return true;
+                    
+                    case AuthChallengeEnum.Password:
+                        return CurrentAuthProcess == AuthProcessEnum.SigningIn;
+
+                    case AuthChallengeEnum.Email:
+                        return false;
+
+                    case AuthChallengeEnum.Login:
+                        return false;
+
+                    case AuthChallengeEnum.NewEmail:
+                        return true;
+
+                    case AuthChallengeEnum.NewLogin:
+                        return true;
+
+                    case AuthChallengeEnum.NewPassword:
+                        return true;
+
+                    case AuthChallengeEnum.NewPhone:
+                        return true;
+
+                    case AuthChallengeEnum.None:
+                        return false;
+                }
+                return true; 
+            } 
+        } // will the current challenge do a server roundtrip?
+
         #endregion Properties
 
         #region Challenge Flow Methods -- affect AuthChallengeList or IsAuthorized
