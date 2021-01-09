@@ -42,12 +42,14 @@ namespace LazyStackAuth
 
                     var inbox = mailClient.Inbox;
 
-                    var query =
-                        SearchQuery.SubjectContains("Your verification code")
-                        .And
-                        (SearchQuery.DeliveredAfter(verificationCodeSendTime))
-                        .And
-                        (SearchQuery.ToContains(emailTo));
+                    //var query =
+                    //    SearchQuery.SubjectContains("Your verification code")
+                    //    .And
+                    //    (SearchQuery.DeliveredAfter(verificationCodeSendTime))
+                    //    .And
+                    //    (SearchQuery.ToContains(emailTo));
+
+                    var query = SearchQuery.ToContains(emailTo);
 
                     inbox.Open(FolderAccess.ReadOnly);
 
@@ -56,11 +58,16 @@ namespace LazyStackAuth
                     foreach (var uid in results)
                     {
                         var message = inbox.GetMessage(uid);
-                        Debug.WriteLine($"{message.Date} {verificationCodeSendTime} {message.HtmlBody}");
-                        Debug.WriteLine($"{verificationCodeSendTime}");
-                        Debug.WriteLine($"{message.Date.Subtract(verificationCodeSendTime)}");
-                        Debug.WriteLine($"{message.Date} {verificationCodeSendTime} {message.HtmlBody}");
-                        if (message.Date > verificationCodeSendTime)
+                        // message.Date is a DataTimeOffset of message received
+                        var datetime = message.Date.UtcDateTime; // convert to UTC with no offset
+                        var rcvdTicks = datetime.Ticks;
+                        Debug.WriteLine($"{datetime} {verificationCodeSendTime} {message.HtmlBody}");
+
+                        var sentTicks = verificationCodeSendTime.Ticks;
+                        Debug.WriteLine($" sentTicks {sentTicks}");
+                        Debug.WriteLine($" rcvdTicks {rcvdTicks}");
+                        Debug.WriteLine($" diffTicks {rcvdTicks - sentTicks}");
+                        if (rcvdTicks > sentTicks)
                         {
                             var bodyparts = message.HtmlBody.Split(" ");
                             verificationCode = bodyparts[^1];

@@ -77,23 +77,25 @@ namespace LazyStackAuth
         #endregion Fields
 
         #region AWS specific Properties
+        public string IpIdentity { get; set; } // Identity Pool Identity.
+        public string UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
         public CognitoAWSCredentials Credentials { get; private set; }
         public CognitoUser CognitoUser { get; private set; } // This object contains the AccessToken etc. we get from Amazon
         #endregion
 
         #region Fields
         private string login; // set by VerifyLogin
+        private string newLogin; // set by VerifyNewLogin
         private string password; // set by VerifyPassword
         private string newPassword; // set by VerifyNewPassword
         private string email; // set by VerifyEmail
+        private string newEmail; // set by VerifyNewEmail
         private string phone; // set by VerifyPhone
-        private string code; // set by VerifyCode
+        private string newPhone; // set by VerifyNewPhone
+        private string code; // set by VerifyCode 
         #endregion
 
         #region Properties
-        public string IpIdentity { get; set; } // Identity Pool Identity.
-        public string UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
-        public bool IsSignedIn { get; private set; }
         public AuthProcessEnum CurrentAuthProcess { get; private set; }
 
         public List<AuthChallengeEnum> AuthChallengeList { get; } = new List<AuthChallengeEnum>();
@@ -106,52 +108,67 @@ namespace LazyStackAuth
                   : AuthChallengeEnum.None;
             }
         }
-        public bool HasChallenge { get { return AuthChallengeList.Count > 0; } }
 
         public bool IsLoginFormatOk { get; private set; }
         public bool IsLoginVerified { get; private set; }
 
-        public bool IsPasswordFormatOk { get; private set; }
-        public bool IsPasswordVerified { get; private set; }
-
-        public bool IsCodeFormatOk { get; private set; }
-        public bool IsCodeVerified { get; private set; }
-
-        public bool IsNewPasswordFormatOk { get; private set; }
-        public bool IsNewPasswordVerified { get; private set; }
+        public bool IsNewLoginFormatOk { get; private set; }
+        public bool IsNewLoginVerified { get; private set; }
 
         public bool IsEmailFormatOk { get; private set; }
         public bool IsEmailVerified { get; private set; }
 
+        public bool IsNewEmailFormatOk { get; private set; }
+        public bool IsNewEmailVerified { get; private set; }
+
+        public bool IsPasswordFormatOk { get; private set; }
+        public bool IsPasswordVerified { get; private set; }
+
+        public bool IsNewPasswordFormatOk { get; private set; }
+        public bool IsNewPasswordVerified { get; private set; }
+
         public bool IsPhoneFormatOk { get; private set; }
         public bool IsPhoneVerified { get; private set; }
-        
+
+        public bool IsNewPhoneFormatOk { get; private set; }
+        public bool IsNewPhoneVerified { get; private set; }
+
+        public bool IsCodeFormatOk { get; private set; }
+        public bool IsCodeVerified { get; private set; }
+
         public bool IsCleared { get { return !IsPasswordFormatOk && !IsNewPasswordFormatOk && !IsCodeFormatOk; } }
 
-        public string Login { get { return login; } }
-        public string Email { get { return email; } }
-        public string Phone { get { return phone; } }
+        public bool IsSignedIn { get; private set; }
+
+        public bool HasChallenge { get { return AuthChallengeList.Count > 0; } }
+
         #endregion Properties
 
         #region Challenge Flow Methods -- affect AuthChallengeList or IsAuthorized
 
+        private void ClearSensitiveFields()
+        {
+            login = newLogin = string.Empty;
+            password = newPassword = string.Empty;
+            email = newEmail = string.Empty;
+            phone = newPhone = string.Empty;
+            code = string.Empty;
+        }
+
         public virtual AuthEventEnum Clear()
         {
             ClearSensitiveFields();
-            login = string.Empty;
-            email = string.Empty;
-            phone = string.Empty; 
             CognitoUser = null;
             AuthChallengeList.Clear();
             authFlowResponse = null;
             IsSignedIn = false;
             CurrentAuthProcess = AuthProcessEnum.None;
-            return AuthEventEnum.Alert_NotAuthorized;
+
+            return AuthEventEnum.Cleared;
         }
 
         public virtual AuthEventEnum SignOut()
         {
-            login = string.Empty;
             Clear();
             return AuthEventEnum.SignedOut;
         } 
@@ -162,17 +179,15 @@ namespace LazyStackAuth
             switch(CurrentAuthProcess)
             {
                 case AuthProcessEnum.None:
-                    return AuthEventEnum.Canceled;
-                case AuthProcessEnum.ResettingPassword:
                 case AuthProcessEnum.SigningIn:
                 case AuthProcessEnum.SigningUp:
+                case AuthProcessEnum.ResettingPassword:
                     return Clear();
-                case AuthProcessEnum.UpdatingEmail:
-                case AuthProcessEnum.UpdatingPassword:
-                case AuthProcessEnum.UpdatingPhone:
-                    CurrentAuthProcess = AuthProcessEnum.None;
-                    return AuthEventEnum.Canceled;
+
                 default:
+                    ClearSensitiveFields();
+                    AuthChallengeList.Clear();
+                    CurrentAuthProcess = AuthProcessEnum.None;
                     return AuthEventEnum.Canceled;
             }
         }
@@ -217,14 +232,18 @@ namespace LazyStackAuth
             if (IsSignedIn)
                 return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
 
-            Clear();
-
             CurrentAuthProcess = AuthProcessEnum.ResettingPassword;
 
             AuthChallengeList.Add(AuthChallengeEnum.Login);
             AuthChallengeList.Add(AuthChallengeEnum.NewPassword);
             return AuthEventEnum.AuthChallenge;
 
+        }
+
+        public virtual async Task<AuthEventEnum> StartUpdateLoginAsync()
+        {
+            await NoOp(); // used when the method doesn't call service
+            return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
         }
 
         public virtual async Task<AuthEventEnum> StartUpdateEmailAsync()
@@ -236,7 +255,7 @@ namespace LazyStackAuth
 
             CurrentAuthProcess = AuthProcessEnum.UpdatingEmail;
 
-            AuthChallengeList.Add(AuthChallengeEnum.Email);
+            AuthChallengeList.Add(AuthChallengeEnum.NewEmail);
             return AuthEventEnum.AuthChallenge;
         }
 
@@ -293,10 +312,9 @@ namespace LazyStackAuth
 
                     case AuthProcessEnum.ResettingPassword:
                         if (IsSignedIn)
-                            return AuthEventEnum.Alert_AlreadySignedIn;
+                            return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
                         // This step may throw an exception if the call to ForgotPasswordAsync fails.
                         CognitoUser = new CognitoUser(login, clientId, userPool, providerClient);
-                        await CognitoUser.ForgotPasswordAsync().ConfigureAwait(false);
                         this.login = login;
                         IsLoginVerified = true;
                         AuthChallengeList.Remove(AuthChallengeEnum.Login);
@@ -314,6 +332,12 @@ namespace LazyStackAuth
                 CognitoUser = null;
                 return AuthEventEnum.Alert_Unknown;
             }
+        }
+
+        public virtual async Task<AuthEventEnum> VerifyNewLoginAsync(string login)
+        {
+            await NoOp(); // used when the method doesn't call service
+            return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
         }
 
         public virtual async Task<AuthEventEnum> VerifyPasswordAsync(string password)
@@ -387,6 +411,62 @@ namespace LazyStackAuth
 
         }
 
+        public virtual async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
+        {
+            if (CurrentChallenge != AuthChallengeEnum.NewPassword)
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
+
+            if (!CheckPasswordFormat(newPassword))
+                return AuthEventEnum.Alert_PasswordFormatRequirementsFailed;
+
+            try
+            {
+                switch (CurrentAuthProcess)
+                {
+                    case AuthProcessEnum.SigningUp:
+                        authFlowResponse = await CognitoUser.RespondToNewPasswordRequiredAsync(
+                            new RespondToNewPasswordRequiredRequest()
+                            {
+                                SessionID = authFlowResponse.SessionID,
+                                NewPassword = newPassword
+                            }
+                            ).ConfigureAwait(false);
+
+                        this.newPassword = newPassword;
+                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
+                        return await NextChallenge();
+
+                    case AuthProcessEnum.ResettingPassword:
+                        this.newPassword = newPassword;
+                        CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
+                        await user.ForgotPasswordAsync().ConfigureAwait(false); //todo - is this wrong?
+                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
+                        AuthChallengeList.Add(AuthChallengeEnum.Code);
+                        return await NextChallenge();
+
+                    case AuthProcessEnum.UpdatingPassword:
+                        this.newPassword = newPassword;
+                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
+                        return await NextChallenge();
+
+                    default:
+                        return AuthEventEnum.Alert_InternalProcessError;
+                }
+            }
+            catch (InvalidPasswordException) { return AuthEventEnum.Alert_PasswordFormatRequirementsFailed; }
+            catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (NotAuthorizedException) { return AuthEventEnum.Alert_NotAuthorized; }
+            catch (UserNotFoundException) { return AuthEventEnum.Alert_UserNotFound; }
+            catch (UserNotConfirmedException) { return AuthEventEnum.Alert_NotConfirmed; }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"VerifyPassword() threw an exception {e}");
+                CognitoUser = null;
+                return AuthEventEnum.Alert_Unknown;
+            }
+        }
+
         public virtual async Task<AuthEventEnum> VerifyEmailAsync(string email)
         {
             if (CurrentChallenge != AuthChallengeEnum.Email)
@@ -399,34 +479,6 @@ namespace LazyStackAuth
             {
                 switch(CurrentAuthProcess)
                 {
-                    case AuthProcessEnum.UpdatingEmail:
-                        if (!IsSignedIn)
-                            return AuthEventEnum.Alert_NeedToBeSignedIn;
-                        // Get the current values on the server. 
-                        // This step may throw an exception in RefreshUserDetailsAsync. There seems to be
-                        // no way to recover from this other than retry or abandon the process. Let the
-                        // calling class figure out what is right for their usecase.
-                        AuthEventEnum refreshUserDetailsResult = await RefreshUserDetailsAsync().ConfigureAwait(false);
-                        if (refreshUserDetailsResult != AuthEventEnum.Alert_RefreshUserDetailsDone)
-                            return AuthEventEnum.Alert_CantRetrieveUserDetails;
-
-                        // make sure the values are different
-                        if (this.email.Equals(email)) //todo - check
-                        {
-                            return AuthEventEnum.Alert_EmailAddressIsTheSame;
-                        }
-
-                        // Update the user email on the server
-                        // This may throw an exception in the UpdateAttributesAsync call.
-                        var attributes = new Dictionary<string, string>() { { "email", email } };
-                        // Cognito sends a auth code when the Email attribute is changed
-                        await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
-
-                        AuthChallengeList.Remove(AuthChallengeEnum.Email);
-                        IsEmailVerified = true;
-                        AuthChallengeList.Add(AuthChallengeEnum.Code);
-                        return await NextChallenge();
-
                     case AuthProcessEnum.SigningUp:
                         IsEmailVerified = true;
                         this.email = email;
@@ -445,6 +497,84 @@ namespace LazyStackAuth
                 return AuthEventEnum.Alert_Unknown;
             }
 
+        }
+
+        public virtual async Task<AuthEventEnum> VerifyNewEmailAsync(string newEmail)
+        {
+            if (CurrentChallenge != AuthChallengeEnum.NewEmail)
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
+
+            if (!CheckEmailFormat(newEmail))
+                return AuthEventEnum.Alert_EmailFormatRequirementsFailed;
+
+            try
+            {
+                switch (CurrentAuthProcess)
+                {
+                    case AuthProcessEnum.UpdatingEmail:
+                        if (!IsSignedIn)
+                            return AuthEventEnum.Alert_NeedToBeSignedIn;
+                        // Get the current values on the server. 
+                        // This step may throw an exception in RefreshUserDetailsAsync. There seems to be
+                        // no way to recover from this other than retry or abandon the process. Let the
+                        // calling class figure out what is right for their usecase.
+                        AuthEventEnum refreshUserDetailsResult = await RefreshUserDetailsAsync().ConfigureAwait(false);
+                        if (refreshUserDetailsResult != AuthEventEnum.Alert_RefreshUserDetailsDone)
+                            return AuthEventEnum.Alert_CantRetrieveUserDetails;
+
+                        // make sure the values are different
+                        if (this.email.Equals(newEmail)) //todo - check
+                        {
+                            return AuthEventEnum.Alert_EmailAddressIsTheSame;
+                        }
+
+                        // Update the user email on the server
+                        // This may throw an exception in the UpdateAttributesAsync call.
+                        var attributes = new Dictionary<string, string>() { { "email", newEmail } };
+                        // Cognito sends a auth code when the Email attribute is changed
+                        await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
+
+                        AuthChallengeList.Remove(AuthChallengeEnum.NewEmail);
+                        IsEmailVerified = true;
+                        AuthChallengeList.Add(AuthChallengeEnum.Code);
+                        return await NextChallenge();
+
+                    default:
+                        return AuthEventEnum.Alert_InternalProcessError;
+                }
+            }
+            catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"UpdateEmail() threw an exception {e}");
+                return AuthEventEnum.Alert_Unknown;
+            }
+
+        }
+
+        public virtual async Task<AuthEventEnum> VerifyPhoneAsync(string phone)
+        {
+            if (CurrentChallenge != AuthChallengeEnum.Phone)
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
+
+            if (!CheckPhoneFormat(phone))
+                return AuthEventEnum.Alert_PhoneFormatRequirementsFailed;
+
+            AuthChallengeList.Remove(AuthChallengeEnum.Phone);
+            return await NextChallenge();
+        }
+
+        public virtual async Task<AuthEventEnum> VerifyNewPhoneAsync(string newPhone)
+        {
+            if (CurrentChallenge != AuthChallengeEnum.NewPhone)
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
+
+            if (!CheckPhoneFormat(newPhone))
+                return AuthEventEnum.Alert_PhoneFormatRequirementsFailed;
+
+            AuthChallengeList.Remove(AuthChallengeEnum.NewPhone);
+            return await NextChallenge();
         }
 
         public virtual async Task<AuthEventEnum> VerifyCodeAsync(string code)
@@ -526,90 +656,44 @@ namespace LazyStackAuth
 
         }
 
-        public virtual async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
-        {
-            if (CurrentChallenge != AuthChallengeEnum.NewPassword)
-                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
-
-            if (!CheckPasswordFormat(newPassword))
-                return AuthEventEnum.Alert_PasswordFormatRequirementsFailed;
-
-            try
-            {
-                switch(CurrentAuthProcess)
-                {
-                    case AuthProcessEnum.SigningUp:
-                        authFlowResponse = await CognitoUser.RespondToNewPasswordRequiredAsync(
-                            new RespondToNewPasswordRequiredRequest()
-                            {
-                                SessionID = authFlowResponse.SessionID,
-                                NewPassword = newPassword
-                            }
-                            ).ConfigureAwait(false);
-
-                        this.newPassword = newPassword;
-                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
-                        return await NextChallenge();
-
-                    case AuthProcessEnum.ResettingPassword:
-                        this.newPassword = newPassword;
-                        CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
-                        await user.ForgotPasswordAsync().ConfigureAwait(false); //todo - is this wrong?
-                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
-                        AuthChallengeList.Add(AuthChallengeEnum.Code);
-                        return await NextChallenge();
-
-                    case AuthProcessEnum.UpdatingPassword:
-                        this.newPassword = newPassword;
-                        AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
-                        return await NextChallenge();
-
-                    default:
-                        return AuthEventEnum.Alert_InternalProcessError;
-                }
-            }
-            catch (InvalidPasswordException) { return AuthEventEnum.Alert_PasswordFormatRequirementsFailed; }
-            catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
-            catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
-            catch (NotAuthorizedException) { return AuthEventEnum.Alert_NotAuthorized; }
-            catch (UserNotFoundException) { return AuthEventEnum.Alert_UserNotFound; }
-            catch (UserNotConfirmedException) { return AuthEventEnum.Alert_NotConfirmed; }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"VerifyPassword() threw an exception {e}");
-                CognitoUser = null;
-                return AuthEventEnum.Alert_Unknown;
-            }
-        }
-
-        public virtual async Task<AuthEventEnum> VerifyPhoneAsync(string phone)
-        {
-            if (CurrentChallenge != AuthChallengeEnum.Phone)
-                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
-
-            if (!CheckPhoneFormat(phone))
-                return AuthEventEnum.Alert_PhoneFormatRequirementsFailed;
-
-            AuthChallengeList.Remove(AuthChallengeEnum.Phone);
-            return await NextChallenge();
-        }
-
-
         public virtual async Task<AuthEventEnum> ResendCodeAsync()
         {
-            if (CognitoUser != null)
-                return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
-
-            //if (CurrentChallenge != AuthChallenges.SignUp)
-            //    return AuthModuleEvent.SignUpNotStarted;
-
             try
             {
                 switch(CurrentAuthProcess)
                 {
-                    case AuthProcessEnum.SigningUp:
                     case AuthProcessEnum.UpdatingEmail:
+                        // We need to re-submit the email change request for Amazon to resend the code
+                        if (!IsSignedIn)
+                            return AuthEventEnum.Alert_NeedToBeSignedIn;
+                        // Get the current values on the server. 
+                        // This step may throw an exception in RefreshUserDetailsAsync. There seems to be
+                        // no way to recover from this other than retry or abandon the process. Let the
+                        // calling class figure out what is right for their usecase.
+                        AuthEventEnum refreshUserDetailsResult = await RefreshUserDetailsAsync().ConfigureAwait(false);
+                        if (refreshUserDetailsResult != AuthEventEnum.Alert_RefreshUserDetailsDone)
+                            return AuthEventEnum.Alert_CantRetrieveUserDetails;
+
+                        // make sure the values are different
+                        if (this.email.Equals(email)) //todo - check
+                        {
+                            return AuthEventEnum.Alert_EmailAddressIsTheSame;
+                        }
+
+                        // Update the user email on the server
+                        // This may throw an exception in the UpdateAttributesAsync call.
+                        var attributes = new Dictionary<string, string>() { { "email", email } };
+                        // Cognito sends a auth code when the Email attribute is changed
+                        await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
+
+                        return AuthEventEnum.AuthChallenge;
+
                     case AuthProcessEnum.ResettingPassword:
+                        // we need to issue the ForgotPassword again to resend code
+                        CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
+                        await user.ForgotPasswordAsync().ConfigureAwait(false); //todo - is this wrong?
+                        return AuthEventEnum.AuthChallenge;
+                    case AuthProcessEnum.SigningUp:
                         _ = await providerClient.ResendConfirmationCodeAsync(
                             new ResendConfirmationCodeRequest
                             {
@@ -661,14 +745,6 @@ namespace LazyStackAuth
                             return AuthEventEnum.Alert_NothingToDo;
 
                         case AuthProcessEnum.ResettingPassword:
-
-                            if (authFlowResponse != null && authFlowResponse.ChallengeName == ChallengeNameType.NEW_PASSWORD_REQUIRED) // Update Passsword
-                            {
-                                if (!AuthChallengeList.Contains(AuthChallengeEnum.NewPassword))
-                                    AuthChallengeList.Add(AuthChallengeEnum.NewPassword);
-                                authFlowResponse = null;
-                                return AuthEventEnum.AuthChallenge;
-                            }
 
                             CurrentAuthProcess = AuthProcessEnum.None;
                             ClearSensitiveFields();
@@ -813,12 +889,6 @@ namespace LazyStackAuth
             return IsPhoneFormatOk = false;
         }
 
-        private void ClearSensitiveFields()
-        {
-            password = string.Empty;
-            newPassword = string.Empty;
-            code = string.Empty;
-        }
 
         private async Task NoOp()
         {

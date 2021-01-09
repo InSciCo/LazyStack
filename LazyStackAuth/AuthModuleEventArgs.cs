@@ -1,41 +1,49 @@
 using System;
 namespace LazyStackAuth
 {
+    // SeeAuthMessages.json for language specific messages
     public enum AuthProcessEnum
     {
         None,
         SigningIn,
         SigningUp,
         ResettingPassword,
+        UpdatingLogin,
         UpdatingEmail,
         UpdatingPhone,
         UpdatingPassword
     }
 
-    // Get the specified challenge value(s) and then call a verify method based on CurrentAuthProcess
+    // SeeAuthMessages.json for language specific messages
     public enum AuthChallengeEnum
     {
         None, // No challenge
         Login, 
+        NewLogin,
         Password, 
         NewPassword,
         Email, 
+        NewEmail,
         Phone, 
+        NewPhone,
         Code
     }
 
+    // SeeAuthMessages.json for language specific messages
     public enum AuthEventEnum
     {
         AuthChallenge, // One or more AuthChallenges are pending
         SignedIn, // User is fully authenticated and authorized
         SignedUp, // User is signed up, user needs to sign in to continue
         SignedOut, 
+        LoginUpdateDone,
         PasswordResetDone,
         PasswordUpdateDone,
         PhoneUpdateDone,
         EmailUpdateDone,
         VerificationCodeSent,
         Canceled,
+        Cleared,
 
         // Alert events 
         Alert, // Any enum value >= than this enum item is an Alert - Alert not used itself.
@@ -56,25 +64,26 @@ namespace LazyStackAuth
         Alert_AccountWithThatEmailAlreadyExists,
         Alert_RefreshUserDetailsDone,
         Alert_EmailAddressIsTheSame,
-        Alert_VerifyCalledButNoChallengeFound, // 
-        Alert_CantRetrieveUserDetails, // Suggested Message = "Can not retrieve user details."
-        Alert_NeedToBeSignedIn, // Suggested Message = "Need to be signed in"
-        Alert_InvalidOperationWhenSignedIn, // Suggested Message "Invalid operation when signed in"
-        Alert_UserNotFound,  // Suggested Message = "UserEmail not found"
-        Alert_NotConfirmed,  // Suggested Mesage = "User Password Incorrect"
-        Alert_NotAuthorized, // Suggested Message = "User Account not active"
-        Alert_VerifyFailed, // Suggested Message = "Sorry, code didn't match, try again"
-        Alert_LoginAlreadyUsed, // Suggested Message = "Sorry, that user name is already in use."
+        Alert_VerifyCalledButNoChallengeFound, 
+        Alert_CantRetrieveUserDetails, 
+        Alert_NeedToBeSignedIn, 
+        Alert_InvalidOperationWhenSignedIn, 
+        Alert_UserNotFound,  
+        Alert_NotConfirmed,  
+        Alert_NotAuthorized, 
+        Alert_VerifyFailed, 
+        Alert_LoginAlreadyUsed, 
         Alert_LoginMustBeSuppliedFirst,
         Alert_LoginFormatRequirementsFailed, 
-        Alert_PasswordFormatRequirementsFailed, // Suggested Message = "Sorry, that password doesn't meet minimum complexity requirements"
+        Alert_PasswordFormatRequirementsFailed, 
         Alert_EmailFormatRequirementsFailed,
         Alert_PhoneFormatRequirementsFailed,
-        Alert_TooManyAttempts, // Suggested Message = "Sorry, you have made too many attepts. Please try again later."
+        Alert_TooManyAttempts, 
         Alert_NothingToDo,
+        Alert_OperationNotSupportedByAuthProvider,
 
         // Hail Marys
-        Alert_Unknown // Suggested Message = "We encountered an unknown system error. Please try again."
+        Alert_Unknown 
     }
 
     public class AuthModuleEventArgs : EventArgs
