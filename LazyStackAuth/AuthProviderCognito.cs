@@ -203,7 +203,8 @@ namespace LazyStackAuth
             code = string.Empty;
         }
 
-        public virtual AuthEventEnum Clear()
+
+        public virtual void InternalClearAsync()
         {
             ClearSensitiveFields();
             CognitoUser = null;
@@ -212,25 +213,34 @@ namespace LazyStackAuth
             IsSignedIn = false;
             CurrentAuthProcess = AuthProcessEnum.None;
 
+        }
+
+        public virtual async Task<AuthEventEnum> ClearAsync()
+        {
+            await Task.Delay(0);
+            InternalClearAsync();
             return AuthEventEnum.Cleared;
         }
 
-        public virtual AuthEventEnum SignOut()
+        public virtual async Task<AuthEventEnum> SignOutAsync()
         {
-            Clear();
+            await Task.Delay(0);
+            InternalClearAsync();
             return AuthEventEnum.SignedOut;
         } 
 
         // Cancel the currently executing auth process
-        public virtual AuthEventEnum Cancel()
+        public virtual async Task<AuthEventEnum> CancelAsync()
         {
+            await Task.Delay(0);
             switch(CurrentAuthProcess)
             {
                 case AuthProcessEnum.None:
                 case AuthProcessEnum.SigningIn:
                 case AuthProcessEnum.SigningUp:
                 case AuthProcessEnum.ResettingPassword:
-                    return Clear();
+                    InternalClearAsync();
+                    return AuthEventEnum.Canceled;
 
                 default:
                     ClearSensitiveFields();
@@ -240,16 +250,12 @@ namespace LazyStackAuth
             }
         }
 
-
         public virtual async Task<AuthEventEnum> StartSignInAsync()
         {
-            await NoOp(); // used when the method doesn't call service
-
             if (IsSignedIn)
                 return AuthEventEnum.Alert_AlreadySignedIn;
 
-            Clear();
-
+            InternalClearAsync();
             CurrentAuthProcess = AuthProcessEnum.SigningIn;
             AuthChallengeList.Add(AuthChallengeEnum.Login);
             AuthChallengeList.Add(AuthChallengeEnum.Password);
@@ -258,12 +264,10 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> StartSignUpAsync()
         {
-            await NoOp(); // used when the method doesn't call service
-
             if (IsSignedIn)
                 return AuthEventEnum.Alert_AlreadySignedIn;
 
-            Clear();
+            await ClearAsync();
 
             CurrentAuthProcess = AuthProcessEnum.SigningUp;
 
@@ -275,7 +279,7 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> StartResetPasswordAsync()
         {
-            await NoOp(); // In aws implementation we don't do a round trip to server for VerifyLogin
+            await Task.Delay(0);
 
             if (IsSignedIn)
                 return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
@@ -290,13 +294,13 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> StartUpdateLoginAsync()
         {
-            await NoOp(); // used when the method doesn't call service
+            await Task.Delay(0);
             return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
         }
 
         public virtual async Task<AuthEventEnum> StartUpdateEmailAsync()
         {
-            await NoOp(); // used when the method doesn't call service
+            await Task.Delay(0);
 
             if (!IsSignedIn)
                 return AuthEventEnum.Alert_NeedToBeSignedIn;
@@ -309,13 +313,13 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> StartUpdatePhoneAsync()
         {
-            await NoOp(); // used when the method doesn't call service
+            await Task.Delay(0);
             return AuthEventEnum.Alert_InternalProcessError;
         }
 
         public virtual async Task<AuthEventEnum> StartUpdatePasswordAsync()
         {
-            await NoOp(); // used when the method doesn't call service
+            await Task.Delay(0);
 
             if (!IsSignedIn)
                 return AuthEventEnum.Alert_NeedToBeSignedIn;
@@ -384,7 +388,7 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> VerifyNewLoginAsync(string login)
         {
-            await NoOp(); // used when the method doesn't call service
+            await Task.Delay(0);
             return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
         }
 

@@ -215,6 +215,8 @@ namespace LazyStackAuth
         public bool CurrentChallengeIsCode => _authProvider.CurrentChallenge == AuthChallengeEnum.Code;
         public bool CollectCode => _authProvider.AuthChallengeList.Contains(AuthChallengeEnum.Code);
 
+
+
         // Alert states
         private string _alertMessage = string.Empty;
         public string AlertMessage { get { return _alertMessage; } }
@@ -232,7 +234,19 @@ namespace LazyStackAuth
         public bool CanCancel => _authProvider.CanCancel;
         public bool CanResendCode => _authProvider.CanResendCode;
 
-        public bool IsChallengeLongWait => _authProvider.IsChallengeLongWait;
+        public bool _IsBusy = false;
+        public bool IsBusy 
+        { 
+            get { return _IsBusy; } 
+            set { 
+                SetProperty(ref _IsBusy, value);
+                RaisePropertyChanged(nameof(IsNotBusy));
+                RaisePropertyChanged(nameof(IsLongBusy));
+            }
+        }
+        public bool IsNotBusy { get { return !_IsBusy; } }
+        public bool IsLongBusy => _IsBusy && _authProvider.IsChallengeLongWait;
+        public bool IsNotLongBusy => !IsLongBusy;
 
         #endregion
 
@@ -370,49 +384,49 @@ namespace LazyStackAuth
             Code = string.Empty;
         }
 
-        public AuthEventEnum Clear() => RaiseAuthModuleEventAndProperties(_authProvider.Clear());
+        public async Task<AuthEventEnum> ClearAsync() => await Execute(_authProvider.ClearAsync());
 
-        public AuthEventEnum Cancel() 
+        public async Task<AuthEventEnum> CancelAsync() 
         {
             ClearSensitiveFields();
-            return RaiseAuthModuleEventAndProperties(_authProvider.Cancel()); 
+            return await Execute(_authProvider.CancelAsync()); 
         }
 
-        public AuthEventEnum SignOut() => RaiseAuthModuleEventAndProperties(_authProvider.SignOut());
+        public async Task<AuthEventEnum> SignOutAsync() => await Execute(_authProvider.SignOutAsync());
 
-        public async Task<AuthEventEnum> StartSignInAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartSignInAsync());
+        public async Task<AuthEventEnum> StartSignInAsync() => await Execute(_authProvider.StartSignInAsync());
 
-        public async Task<AuthEventEnum> StartSignUpAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartSignUpAsync());
+        public async Task<AuthEventEnum> StartSignUpAsync() => await Execute(_authProvider.StartSignUpAsync());
 
-        public async Task<AuthEventEnum> StartResetPasswordAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartResetPasswordAsync());
+        public async Task<AuthEventEnum> StartResetPasswordAsync() => await Execute(_authProvider.StartResetPasswordAsync());
 
-        public async Task<AuthEventEnum> StartUpdateLoginAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartUpdateLoginAsync());
+        public async Task<AuthEventEnum> StartUpdateLoginAsync() => await Execute( _authProvider.StartUpdateLoginAsync());
 
-        public async Task<AuthEventEnum> StartUpdateEmailAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartUpdateEmailAsync());
+        public async Task<AuthEventEnum> StartUpdateEmailAsync() => await Execute( _authProvider.StartUpdateEmailAsync());
 
-        public async Task<AuthEventEnum> StartUpdatePhoneAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartUpdatePhoneAsync());
+        public async Task<AuthEventEnum> StartUpdatePhoneAsync() => await Execute( _authProvider.StartUpdatePhoneAsync());
 
-        public async Task<AuthEventEnum> StartUpdatePasswordAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.StartUpdatePasswordAsync());
+        public async Task<AuthEventEnum> StartUpdatePasswordAsync() => await Execute( _authProvider.StartUpdatePasswordAsync());
 
-        public async Task<AuthEventEnum> VerifyLoginAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyLoginAsync(Login));
+        public async Task<AuthEventEnum> VerifyLoginAsync() => await Execute( _authProvider.VerifyLoginAsync(Login));
 
-        public async Task<AuthEventEnum> VerifyNewLoginAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyNewLoginAsync(NewLogin));
+        public async Task<AuthEventEnum> VerifyNewLoginAsync() => await Execute( _authProvider.VerifyNewLoginAsync(NewLogin));
 
-        public async Task<AuthEventEnum> VerifyPasswordAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyPasswordAsync(Password));
+        public async Task<AuthEventEnum> VerifyPasswordAsync() => await Execute( _authProvider.VerifyPasswordAsync(Password));
 
-        public async Task<AuthEventEnum> VerifyNewPasswordAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyNewPasswordAsync(NewPassword));
+        public async Task<AuthEventEnum> VerifyNewPasswordAsync() => await Execute( _authProvider.VerifyNewPasswordAsync(NewPassword));
 
-        public async Task<AuthEventEnum> VerifyEmailAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyEmailAsync(Email));
+        public async Task<AuthEventEnum> VerifyEmailAsync() => await Execute( _authProvider.VerifyEmailAsync(Email));
 
-        public async Task<AuthEventEnum> VerifyNewEmailAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyNewEmailAsync(NewEmail));
+        public async Task<AuthEventEnum> VerifyNewEmailAsync() => await Execute( _authProvider.VerifyNewEmailAsync(NewEmail));
 
-        public async Task<AuthEventEnum> VerifyPhoneAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyPhoneAsync(Phone));
+        public async Task<AuthEventEnum> VerifyPhoneAsync() => await Execute( _authProvider.VerifyPhoneAsync(Phone));
 
-        public async Task<AuthEventEnum> VerifyNewPhoneAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyNewPhoneAsync(NewPhone));
+        public async Task<AuthEventEnum> VerifyNewPhoneAsync() => await Execute( _authProvider.VerifyNewPhoneAsync(NewPhone));
 
-        public async Task<AuthEventEnum> VerifyCodeAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.VerifyCodeAsync(Code));
+        public async Task<AuthEventEnum> VerifyCodeAsync() => await Execute( _authProvider.VerifyCodeAsync(Code));
 
-        public async Task<AuthEventEnum> ResendCodeAsync() => RaiseAuthModuleEventAndProperties(await _authProvider.ResendCodeAsync());
+        public async Task<AuthEventEnum> ResendCodeAsync() => await Execute( _authProvider.ResendCodeAsync());
 
         public bool CheckLoginFormat() 
         {
@@ -423,6 +437,7 @@ namespace LazyStackAuth
 
         public bool CheckEmailFormat()
         {
+
             var result = _authProvider.CheckEmailFormat(Email);
             RaisePropertyChanged(nameof(IsEmailFormatOk));
             return result;
@@ -456,6 +471,15 @@ namespace LazyStackAuth
             return result;
         }
 
+        // Wrap an execution in a IsBusy and BusyDelay
+        protected async virtual Task<AuthEventEnum> Execute(Task<AuthEventEnum> func)
+        {
+            IsBusy = true;
+            var result = await RaiseAuthModuleEventAndProperties(await func);
+            IsBusy = false;
+            return result;
+        }
+
         #endregion
 
         #region AuthProcessEvents
@@ -471,7 +495,7 @@ namespace LazyStackAuth
             AuthModuleEventFired?.Invoke(this, e);
         }
 
-        protected virtual AuthEventEnum RaiseAuthModuleEventAndProperties(AuthEventEnum r)
+        protected async virtual Task<AuthEventEnum> RaiseAuthModuleEventAndProperties(AuthEventEnum r)
         {
             OnAuthModuleEvent(new AuthModuleEventArgs(r));
             // update alert message

@@ -62,11 +62,11 @@ namespace LazyStackAuth
         public bool IsChallengeLongWait { get; }
 
         // Methods
-        public AuthEventEnum Clear();
+        public Task<AuthEventEnum> ClearAsync();
 
-        public AuthEventEnum Cancel();
+        public Task<AuthEventEnum> CancelAsync();
 
-        public AuthEventEnum SignOut();
+        public Task<AuthEventEnum> SignOutAsync();
 
         public Task<AuthEventEnum> StartSignInAsync();
 

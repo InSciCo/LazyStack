@@ -112,6 +112,11 @@ namespace LazyStackAuth
         public string AlertMessage { get; }
         public bool HasAlert { get; }
 
+        // Outher states
+        public bool IsBusy { get; }
+        public bool IsNotBusy { get; }
+        public bool IsLongBusy { get; }
+        public bool IsNotLongBusy { get; }
 
         // Currently Allowed AuthProcess
         public bool CanSignOut { get; }
@@ -126,9 +131,9 @@ namespace LazyStackAuth
         public bool CanResendCode { get; }
 
         // Methods
-        public AuthEventEnum Clear();
-        public AuthEventEnum Cancel();
-        public AuthEventEnum SignOut();
+        public Task<AuthEventEnum> ClearAsync();
+        public Task<AuthEventEnum> CancelAsync();
+        public Task<AuthEventEnum> SignOutAsync();
 
         public Task<AuthEventEnum> StartSignInAsync(); // Happy Path Challenges: Login, Password
         public Task<AuthEventEnum> StartSignUpAsync(); // Happy Path Challenges: Login, Password, Email, SignUp

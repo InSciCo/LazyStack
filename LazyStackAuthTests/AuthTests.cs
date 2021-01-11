@@ -66,7 +66,7 @@ namespace PetStoreClientTests
         /// <returns></returns>
         [TestMethod]
         public async Task TestAuth()
-        {
+        { 
 
             var authProcess = serviceProvider.GetService<IAuthProcess>();
             var appConfig = serviceProvider.GetService<IConfiguration>();
@@ -160,6 +160,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 10
 
             // StartSignUpAsync
@@ -253,6 +257,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 11
 
             // VerifyLoginAsync
@@ -339,6 +347,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 12
 
             // VerifyPasswordAsync
@@ -425,6 +437,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 13
 
             // VerifyEmailAsync
@@ -515,6 +531,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == true, "CanResendCode==true");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 14
 
             // VerifyCodeAsync
@@ -523,7 +543,6 @@ namespace PetStoreClientTests
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp);
             stepResult = ObjectStateDump(15,  authProcess, stepResult);
-
             // State Changes Step: 15
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
@@ -614,7 +633,13 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 15
+            
+
             // Test SignIn to new account
             // SignIn Happy Path
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
@@ -706,11 +731,17 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 16
+
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(20,  authProcess, stepResult);
+
             // State Changes Step: 20
             // CurrentChallenge==AuthChallengeEnum.Password
             // CurrentChallengeIsLogin==false
@@ -788,11 +819,18 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 20
+
+
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
             stepResult = ObjectStateDump(21,  authProcess, stepResult);
+
             // State Changes Step: 21
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
@@ -806,10 +844,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsPassword==false
             // CollectPassword==false
             // CanSignOut==true
-            // CanUpdateLogin==true
             // CanUpdateEmail==true
             // CanUpdatePassword==true
-            // CanUpdatePhone==true
             // CanCancel==false
             #region Step: 21
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
@@ -877,16 +913,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanSignIn == false, "CanSignIn==false");
             Assert.IsTrue(authProcess.CanSignUp == false, "CanSignUp==false");
             Assert.IsTrue(authProcess.CanResetPassword == false, "CanResetPassword==false");
-            Assert.IsTrue(authProcess.CanUpdateLogin == true, "CanUpdateLogin==true");
+            Assert.IsTrue(authProcess.CanUpdateLogin == false, "CanUpdateLogin==false");
             Assert.IsTrue(authProcess.CanUpdateEmail == true, "CanUpdateEmail==true");
             Assert.IsTrue(authProcess.CanUpdatePassword == true, "CanUpdatePassword==true");
-            Assert.IsTrue(authProcess.CanUpdatePhone == true, "CanUpdatePhone==true");
+            Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 21
 
             // SignOut
-            Assert.IsTrue(authProcess.SignOut() == AuthEventEnum.SignedOut);
+            Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
             stepResult = ObjectStateDump(22,  authProcess, stepResult);
             // State Changes Step: 22
             // IsSignedIn==false
@@ -895,10 +935,8 @@ namespace PetStoreClientTests
             // CanSignIn==true
             // CanSignUp==true
             // CanResetPassword==true
-            // CanUpdateLogin==false
             // CanUpdateEmail==false
             // CanUpdatePassword==false
-            // CanUpdatePhone==false
             #region Step: 22
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -971,6 +1009,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 22
 
             // Test Reset Password
@@ -1063,6 +1105,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 30
 
             // VerifyLoginAsync
@@ -1146,6 +1192,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 31
 
             // VerifyNewPasswordAsync
@@ -1237,6 +1287,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == true, "CanResendCode==true");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 32
 
             // VerifyCodeAsync
@@ -1335,6 +1389,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 33
 
             // Test Update Password
@@ -1425,6 +1483,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 40
 
             // VerifyLoginAsync
@@ -1510,6 +1572,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 41
 
             // VerifyPasswordAsync
@@ -1529,10 +1595,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsPassword==false
             // CollectPassword==false
             // CanSignOut==true
-            // CanUpdateLogin==true
             // CanUpdateEmail==true
             // CanUpdatePassword==true
-            // CanUpdatePhone==true
             // CanCancel==false
             #region Step: 42
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
@@ -1600,12 +1664,16 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanSignIn == false, "CanSignIn==false");
             Assert.IsTrue(authProcess.CanSignUp == false, "CanSignUp==false");
             Assert.IsTrue(authProcess.CanResetPassword == false, "CanResetPassword==false");
-            Assert.IsTrue(authProcess.CanUpdateLogin == true, "CanUpdateLogin==true");
+            Assert.IsTrue(authProcess.CanUpdateLogin == false, "CanUpdateLogin==false");
             Assert.IsTrue(authProcess.CanUpdateEmail == true, "CanUpdateEmail==true");
             Assert.IsTrue(authProcess.CanUpdatePassword == true, "CanUpdatePassword==true");
-            Assert.IsTrue(authProcess.CanUpdatePhone == true, "CanUpdatePhone==true");
+            Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 42
 
             // Test Update Password -- using previous step's sign in
@@ -1623,10 +1691,8 @@ namespace PetStoreClientTests
             // CollectPassword==true
             // CollectNewPassword==true
             // CanSignOut==false
-            // CanUpdateLogin==false
             // CanUpdateEmail==false
             // CanUpdatePassword==false
-            // CanUpdatePhone==false
             // CanCancel==true
             #region Step: 43
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
@@ -1700,6 +1766,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 43
 
             // VerifyPasswordAsync
@@ -1718,10 +1788,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsNewPassword==true
             // CollectNewPassword==true
             // CanSignOut==false
-            // CanUpdateLogin==false
             // CanUpdateEmail==false
             // CanUpdatePassword==false
-            // CanUpdatePhone==false
             // CanCancel==true
             #region Step: 44
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewPassword, "CurrentChallenge==AuthChallengeEnum.NewPassword");
@@ -1795,6 +1863,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 44
 
             // VerifyNewPasswordAsync
@@ -1815,10 +1887,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsNewPassword==false
             // CollectNewPassword==false
             // CanSignOut==true
-            // CanUpdateLogin==true
             // CanUpdateEmail==true
             // CanUpdatePassword==true
-            // CanUpdatePhone==true
             // CanCancel==false
             #region Step: 45
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
@@ -1886,17 +1956,22 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanSignIn == false, "CanSignIn==false");
             Assert.IsTrue(authProcess.CanSignUp == false, "CanSignUp==false");
             Assert.IsTrue(authProcess.CanResetPassword == false, "CanResetPassword==false");
-            Assert.IsTrue(authProcess.CanUpdateLogin == true, "CanUpdateLogin==true");
+            Assert.IsTrue(authProcess.CanUpdateLogin == false, "CanUpdateLogin==false");
             Assert.IsTrue(authProcess.CanUpdateEmail == true, "CanUpdateEmail==true");
             Assert.IsTrue(authProcess.CanUpdatePassword == true, "CanUpdatePassword==true");
-            Assert.IsTrue(authProcess.CanUpdatePhone == true, "CanUpdatePhone==true");
+            Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 45
 
             // Test Update email -- using previous test signin
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(50,  authProcess, stepResult);
+
             // State Changes Step: 50
             // CurrentChallenge==AuthChallengeEnum.NewEmail
             // CurrentAuthProcess==AuthProcessEnum.UpdatingEmail
@@ -1908,10 +1983,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsNewEmail==true
             // CollectNewEmail==true
             // CanSignOut==false
-            // CanUpdateLogin==false
             // CanUpdateEmail==false
             // CanUpdatePassword==false
-            // CanUpdatePhone==false
             // CanCancel==true
             #region Step: 50
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewEmail, "CurrentChallenge==AuthChallengeEnum.NewEmail");
@@ -1985,6 +2058,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 50
 
             // VerifyEmailAsync
@@ -2072,6 +2149,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == true, "CanCancel==true");
             Assert.IsTrue(authProcess.CanResendCode == true, "CanResendCode==true");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 51
 
             // VerifyCodeAsync
@@ -2092,10 +2173,8 @@ namespace PetStoreClientTests
             // CurrentChallengeIsCode==false
             // CollectCode==false
             // CanSignOut==true
-            // CanUpdateLogin==true
             // CanUpdateEmail==true
             // CanUpdatePassword==true
-            // CanUpdatePhone==true
             // CanCancel==false
             // CanResendCode==false
             #region Step: 52
@@ -2164,16 +2243,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanSignIn == false, "CanSignIn==false");
             Assert.IsTrue(authProcess.CanSignUp == false, "CanSignUp==false");
             Assert.IsTrue(authProcess.CanResetPassword == false, "CanResetPassword==false");
-            Assert.IsTrue(authProcess.CanUpdateLogin == true, "CanUpdateLogin==true");
+            Assert.IsTrue(authProcess.CanUpdateLogin == false, "CanUpdateLogin==false");
             Assert.IsTrue(authProcess.CanUpdateEmail == true, "CanUpdateEmail==true");
             Assert.IsTrue(authProcess.CanUpdatePassword == true, "CanUpdatePassword==true");
-            Assert.IsTrue(authProcess.CanUpdatePhone == true, "CanUpdatePhone==true");
+            Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 52
 
             // Sign Out
-            authProcess.SignOut();
+            Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
             stepResult = ObjectStateDump(53,  authProcess, stepResult);
             // State Changes Step: 53
             // IsPasswordFormatOk==false
@@ -2185,10 +2268,8 @@ namespace PetStoreClientTests
             // CanSignIn==true
             // CanSignUp==true
             // CanResetPassword==true
-            // CanUpdateLogin==false
             // CanUpdateEmail==false
             // CanUpdatePassword==false
-            // CanUpdatePhone==false
             #region Step: 53
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
@@ -2261,6 +2342,10 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CanUpdatePhone == false, "CanUpdatePhone==false");
             Assert.IsTrue(authProcess.CanCancel == false, "CanCancel==false");
             Assert.IsTrue(authProcess.CanResendCode == false, "CanResendCode==false");
+            Assert.IsTrue(authProcess.IsBusy == false, "IsBusy==false");
+            Assert.IsTrue(authProcess.IsNotBusy == true, "IsNotBusy==true");
+            Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
+            Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 53
 
             // Invalid Login Format
@@ -2281,7 +2366,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
             Assert.IsTrue(authProcess.AuthProvider.IsCleared);
 
-            Assert.IsTrue(authProcess.SignOut() == AuthEventEnum.SignedOut);
+            Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
         }
 
         private List<string> ObjectStateDump(int step, IAuthProcess authProcess, List<string> prevStep = null)
