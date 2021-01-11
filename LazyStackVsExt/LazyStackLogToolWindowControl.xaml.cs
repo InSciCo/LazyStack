@@ -20,12 +20,13 @@ namespace LazyStackVsExt
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             Application.Current.Dispatcher.BeginInvoke((Action)(() =>
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
             {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }));
+                  PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+              }));
         }
-
     }
 
     public class CollapsibleLogEntry : LogEntry

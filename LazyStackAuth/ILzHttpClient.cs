@@ -18,6 +18,5 @@ namespace LazyStackAuth
             CancellationToken cancellationToken, 
             [CallerMemberName] string callerMemberName = null);
         
-        public void Dispose();
     }
 }

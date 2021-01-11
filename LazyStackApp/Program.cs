@@ -24,6 +24,7 @@ namespace LazyStackApp
 
         public async Task InfoAsync(string message)
         {
+            await Task.Delay(0);
             Console.WriteLine(message);
         }
 
@@ -35,6 +36,7 @@ namespace LazyStackApp
 
         public async Task ErrorAsync(Exception ex, string message)
         {
+            await Task.Delay(0);
             Console.WriteLine(message);
             Console.WriteLine(ex.Message);
         }

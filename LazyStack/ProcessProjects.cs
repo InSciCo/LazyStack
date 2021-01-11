@@ -157,7 +157,7 @@ namespace LazyStack
             // Stip out the Api classes to create schema code
             var schemaRoot = CSharpSyntaxTree.ParseText(schemaCode).GetCompilationUnitRoot();
             schemaRoot = RemoveClass(schemaRoot, appName);
-            ProcessSchemaProjectAsync(schemaRoot); // Create shcema project
+            await ProcessSchemaProjectAsync(schemaRoot); // Create shcema project
         }
 
         private async Task ProcessSchemaProjectAsync( CompilationUnitSyntax schemaRoot)

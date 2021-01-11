@@ -676,6 +676,7 @@ namespace LazyStack
 
         private async Task PruneResourcesAsync()
         {
+            await Task.Delay(0);
             // Prune un-referenced default resources
             // UserPool
             // UserPoolClient
@@ -763,6 +764,7 @@ namespace LazyStack
 
         public async Task WriteSolutionModelAwsSettings()
         {
+            await Task.Delay(0);
             var awsSettings = new AwsSettings();
             foreach (var kvp in Apis)
                 awsSettings.ApiGateways.Add(kvp.Key,

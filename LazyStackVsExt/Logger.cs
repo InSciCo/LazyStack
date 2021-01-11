@@ -22,6 +22,7 @@ namespace LazyStackVsExt
 
         public async Task InfoAsync(string message)
         {
+            await Task.Delay(0);
             progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message });
         }
 
@@ -33,6 +34,7 @@ namespace LazyStackVsExt
 
         public async Task ErrorAsync(Exception ex, string message)
         {
+            await Task.Delay(0);
             progress.Report(new LogEntry() { DateTime = DateTime.Now, Index = index++, Message = message + "\n" + ex.Message }); ;
         }
 

@@ -497,6 +497,7 @@ namespace LazyStackAuth
 
         protected async virtual Task<AuthEventEnum> RaiseAuthModuleEventAndProperties(AuthEventEnum r)
         {
+            await Task.Delay(0);
             OnAuthModuleEvent(new AuthModuleEventArgs(r));
             // update alert message
             _alertMessage = string.Empty;
