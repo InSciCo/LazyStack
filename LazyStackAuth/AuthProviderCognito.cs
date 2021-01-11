@@ -51,7 +51,7 @@ using Amazon.Runtime;
 namespace LazyStackAuth
 {
     /// <summary>
-    /// Implements ICognitoAuthProvider
+    /// Implements IAuthProvider using AWS Cognito as authentication provider
     /// 
     /// </summary>
     public class AuthProviderCognito : IAuthProvider
@@ -71,7 +71,8 @@ namespace LazyStackAuth
         private readonly string userPoolId;
         private readonly string identityPoolId;
         private readonly RegionEndpoint regionEndpoint;
-        private readonly AmazonCognitoIdentityProviderClient providerClient;
+
+        private readonly AmazonCognitoIdentityProviderClient providerClient; 
         private readonly CognitoUserPool userPool;
         private AuthFlowResponse authFlowResponse; // cleared after interim use
         #endregion Fields
@@ -80,7 +81,11 @@ namespace LazyStackAuth
         public string IpIdentity { get; set; } // Identity Pool Identity.
         public string UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
         public CognitoAWSCredentials Credentials { get; private set; }
-        public CognitoUser CognitoUser { get; private set; } // This object contains the AccessToken etc. we get from Amazon
+
+        // CognitoUser is part of Amazon.Extensions.CognitoAuthentication -- see the following resources
+        // https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/cognito-authentication-extension.html -- very limited docs
+        // https://github.com/aws/aws-sdk-net-extensions-cognito/ -- you really need to read this code to use the lib properly
+        public CognitoUser CognitoUser { get; private set; } // 
         #endregion
 
         #region Fields
@@ -201,8 +206,16 @@ namespace LazyStackAuth
             email = newEmail = string.Empty;
             phone = newPhone = string.Empty;
             code = string.Empty;
+            IsLoginVerified = false;
+            IsNewLoginVerified = false;
+            IsEmailVerified = false;
+            IsNewEmailVerified = false;
+            IsPasswordVerified = false;
+            IsNewPasswordVerified = false;
+            IsPhoneVerified = false;
+            IsNewPhoneVerified = false;
+            IsCodeVerified = false;
         }
-
 
         public virtual void InternalClearAsync()
         {
@@ -252,6 +265,7 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> StartSignInAsync()
         {
+            await Task.Delay(0);
             if (IsSignedIn)
                 return AuthEventEnum.Alert_AlreadySignedIn;
 
@@ -588,7 +602,6 @@ namespace LazyStackAuth
 
                         AuthChallengeList.Remove(AuthChallengeEnum.NewEmail);
                         IsEmailVerified = true;
-                        AuthChallengeList.Add(AuthChallengeEnum.Code);
                         return await NextChallenge();
 
                     default:
@@ -602,7 +615,6 @@ namespace LazyStackAuth
                 Debug.WriteLine($"UpdateEmail() threw an exception {e}");
                 return AuthEventEnum.Alert_Unknown;
             }
-
         }
 
         public virtual async Task<AuthEventEnum> VerifyPhoneAsync(string phone)
@@ -710,6 +722,9 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> ResendCodeAsync()
         {
+            if (CurrentChallenge != AuthChallengeEnum.Code)
+                return AuthEventEnum.Alert_InvalidCallToResendAsyncCode;
+
             try
             {
                 switch(CurrentAuthProcess)
@@ -718,33 +733,36 @@ namespace LazyStackAuth
                         // We need to re-submit the email change request for Amazon to resend the code
                         if (!IsSignedIn)
                             return AuthEventEnum.Alert_NeedToBeSignedIn;
-                        // Get the current values on the server. 
-                        // This step may throw an exception in RefreshUserDetailsAsync. There seems to be
-                        // no way to recover from this other than retry or abandon the process. Let the
-                        // calling class figure out what is right for their usecase.
-                        AuthEventEnum refreshUserDetailsResult = await RefreshUserDetailsAsync().ConfigureAwait(false);
-                        if (refreshUserDetailsResult != AuthEventEnum.Alert_RefreshUserDetailsDone)
-                            return AuthEventEnum.Alert_CantRetrieveUserDetails;
+                        //// Get the current values on the server. 
+                        //// This step may throw an exception in RefreshUserDetailsAsync. There seems to be
+                        //// no way to recover from this other than retry or abandon the process. Let the
+                        //// calling class figure out what is right for their usecase.
+                        //AuthEventEnum refreshUserDetailsResult = await RefreshUserDetailsAsync().ConfigureAwait(false);
+                        //if (refreshUserDetailsResult != AuthEventEnum.Alert_RefreshUserDetailsDone)
+                        //    return AuthEventEnum.Alert_CantRetrieveUserDetails;
 
-                        // make sure the values are different
-                        if (this.email.Equals(email)) //todo - check
-                        {
-                            return AuthEventEnum.Alert_EmailAddressIsTheSame;
-                        }
+                        //// make sure the values are different
+                        //if (this.email.Equals(newEmail)) //todo - check
+                        //{
+                        //    return AuthEventEnum.Alert_EmailAddressIsTheSame;
+                        //}
 
-                        // Update the user email on the server
-                        // This may throw an exception in the UpdateAttributesAsync call.
-                        var attributes = new Dictionary<string, string>() { { "email", email } };
-                        // Cognito sends a auth code when the Email attribute is changed
-                        await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
+                        //// Update the user email on the server
+                        //// This may throw an exception in the UpdateAttributesAsync call.
+                        //var attributes = new Dictionary<string, string>() { { "email", newEmail } };
+                        //// Cognito sends a auth code when the Email attribute is changed
+                        //await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
 
-                        return AuthEventEnum.AuthChallenge;
+                        await CognitoUser.GetAttributeVerificationCodeAsync("email").ConfigureAwait(false);
+
+                        return AuthEventEnum.VerificationCodeSent;
 
                     case AuthProcessEnum.ResettingPassword:
                         // we need to issue the ForgotPassword again to resend code
                         CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
-                        await user.ForgotPasswordAsync().ConfigureAwait(false); //todo - is this wrong?
+                        await user.ForgotPasswordAsync().ConfigureAwait(false); 
                         return AuthEventEnum.AuthChallenge;
+
                     case AuthProcessEnum.SigningUp:
                         _ = await providerClient.ResendConfirmationCodeAsync(
                             new ResendConfirmationCodeRequest
@@ -871,6 +889,12 @@ namespace LazyStackAuth
                             return AuthEventEnum.SignedIn;
 
                         case AuthProcessEnum.UpdatingEmail:
+                            if(!IsCodeVerified)
+                            {
+                                AuthChallengeList.Add(AuthChallengeEnum.Code);
+                                return AuthEventEnum.VerificationCodeSent;
+                            }
+
                             CurrentAuthProcess = AuthProcessEnum.None;
                             ClearSensitiveFields();
                             return AuthEventEnum.EmailUpdateDone;
