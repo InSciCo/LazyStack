@@ -770,12 +770,12 @@ namespace LazyStack
                 awsSettings.ApiGateways.Add(kvp.Key,
                     new AwsSettings.Api()
                     { 
-                        SecurityLevel = kvp.Value.SecurityLevel,
+                        SecurityLevel = kvp.Value.SecurityLevel, 
                     });
 
-            // Generate MethodMap
-            foreach (var endpoint in EndPoints)
-                awsSettings.MethodMap.Add($"{endpoint.Key}Async", endpoint.Value.Api.Name);
+            //// Generate MethodMap
+            //foreach (var endpoint in EndPoints)
+            //    awsSettings.MethodMap.Add($"{endpoint.Key}Async", endpoint.Value.Api.Name);
 
             var settingsFileText = awsSettings.BuildJson();
             File.WriteAllText(Path.Combine(SolutionRootFolderPath, "SolutionModelAwsSettings.json"), settingsFileText);
@@ -1137,6 +1137,8 @@ namespace LazyStack
         {
             var result = new List<string>();
 
+            // var text = YamlNodeToText(ProjectGenerationOptions); // handy for debugging
+
             GetNamedProperty(
                 ProjectGenerationOptions,
                 path,
@@ -1150,7 +1152,7 @@ namespace LazyStack
                 return result;
 
             if (node.NodeType != YamlNodeType.Sequence)
-                throw new Exception($"Error: Nodetype for {path} configuration property is not mapping node");
+                throw new Exception($"Error: Nodetype for {path} configuration property is not a sequence node");
 
             var itemsNode = node as YamlSequenceNode;
             foreach (var item in itemsNode.Children)

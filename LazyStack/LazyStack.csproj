@@ -27,6 +27,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
    
+    <None Update="Templates\ClientSDK\MethodMap.cs.tpl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+   
     <None Update="Templates\Controllers\FakeEntryPoint.cs.tpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using Amazon.CognitoIdentity;
-using Amazon.Extensions.CognitoAuthentication;
 
 namespace LazyStackAuth
 {
@@ -33,7 +30,7 @@ namespace LazyStackAuth
             public int Port { get; set; }
         }
 
-        public string Stackname {get; set;}
+        public string StackName {get; set;}
         public string ClientId { get; set; }
         public string UserPoolId { get; set; }
         public string IdentityPoolId { get; set; }
@@ -41,10 +38,6 @@ namespace LazyStackAuth
 
         public Dictionary<string,Api> ApiGateways { get; } = new Dictionary<string,Api>();
         public Dictionary<string, LocalApi> LocalApis { get; set; } = new Dictionary<string, LocalApi>();
-        public Dictionary<string, string> MethodMap { get; set; } = new Dictionary<string, string>();
-
-        public CognitoUser CognitoUser;
-        public CognitoAWSCredentials CognitoAwsCredentials;
 
         public string BuildJson()
         {

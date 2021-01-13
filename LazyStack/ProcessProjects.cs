@@ -104,6 +104,22 @@ namespace LazyStack
                 new Dictionary<string, string> {{ "__ProjName__", projName }}
                 );
 
+            // Update MethodMap.cs
+            //// Generate MethodMap dictionary entries
+            string methodMap = string.Empty;
+            int i = 0;
+            var sep = ",\n";
+            foreach (var endpoint in solutionModel.EndPoints)
+            {
+                if (solutionModel.EndPoints.Count == ++i) sep = string.Empty;
+                methodMap += $"\t\t\t{{\"{endpoint.Key}\",\"{endpoint.Value.Api.Name}\"}}{sep}";
+            }
+
+            var methodMapFilePath = Path.Combine(projFolderPath, "MethodMap.cs");
+            var methodMapText = File.ReadAllText(methodMapFilePath);
+            methodMapText = methodMapText.Replace("__methodMap__", methodMap); // Insert dictionary entries
+            File.WriteAllText(methodMapFilePath, methodMapText);
+
             // Generate client sdk class using NSwag
             var nswagSettings = new CSharpClientGeneratorSettings
             {
@@ -136,7 +152,6 @@ namespace LazyStack
             //var syntaxRoot = syntaxTree.GetRoot();
             //IEnumerable<InterfaceDeclarationSyntax> interfaceDeclarations = syntaxRoot.DescendantNodes().OfType<InterfaceDeclarationSyntax>();
 
-            
             // Rename project file
             File.Move(Path.Combine(projFolderPath, "ClientSDK.csproj"), projFilePath);
 
@@ -693,7 +708,6 @@ namespace __NameSpace__
                     if (properties.ContainsKey(property.Name.LocalName))
                         property.Value = properties[property.Name.LocalName];
         }
-
 
         private void UpdateProjectFile(
             string projFilePath, 

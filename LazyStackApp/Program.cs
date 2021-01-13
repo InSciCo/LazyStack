@@ -109,9 +109,10 @@ namespace LazyStackApp
                 solutionFilePath = Path.Combine(solutionRootFolderPath, $"{appName}.sln");
             }
 
+
             try
             {
-                AwsConfig.GenerateSettingsFileAsync(solutionRootFolderPath, settingsOptions.Environment, logger).GetAwaiter().GetResult();
+                AwsConfig.GenerateSettingsFileAsync(solutionRootFolderPath,settingsOptions.Environment, logger).GetAwaiter().GetResult();
             }
             catch (Exception e)
             {

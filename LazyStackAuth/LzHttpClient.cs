@@ -12,25 +12,27 @@ namespace LazyStackAuth
     
     public class LzHttpClient : ILzHttpClient
     {
-        public LzHttpClient(IConfiguration appConfig, AuthProviderCognito authProvider, string localApiName = null) : 
+        public LzHttpClient(IConfiguration appConfig, Dictionary<string,string> methodMap, AuthProviderCognito authProvider, string localApiName = null) : 
 #if DEBUG        
-        this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName) {}
+        this(appConfig, methodMap, authProvider, new HttpClient(GetInsecureHandler()), localApiName) {}
 #else
         this(appConfig, authprovider, new HttpClient(), localApiName) {}
 #endif
 
-        public LzHttpClient(IConfiguration appConfig, AuthProviderCognito authProvider, HttpClient httpClient, string localApiName = null)
+        public LzHttpClient(IConfiguration appConfig, Dictionary<string, string> methodMap, AuthProviderCognito authProvider, HttpClient httpClient, string localApiName = null)
         {
             this.httpClient = httpClient;
             this.localApiName = localApiName;
             this.awsSettings = appConfig.GetSection("Aws").Get<AwsSettings>();
             this.authProvider = authProvider;
+            this.methodMap = methodMap;
         }
         
         readonly HttpClient httpClient;
         readonly AwsSettings awsSettings;
         readonly string localApiName = string.Empty;
         AuthProviderCognito authProvider;
+        Dictionary<string, string> methodMap;
 
         // Note: CallerMember is inserted as a literal by the compiler in the IL so there is no 
         // performance penalty for using it.
@@ -40,7 +42,8 @@ namespace LazyStackAuth
             CancellationToken cancellationToken, 
             [CallerMemberName] string callerMemberName = null)
         {
-            if(!awsSettings.MethodMap.TryGetValue(callerMemberName, out string apiGatewayName))
+
+            if(!methodMap.TryGetValue(callerMemberName, out string apiGatewayName))
                 throw new Exception($"Error: {callerMemberName} not found in AwsSettings MethodMap");
 
             if(!awsSettings.ApiGateways.TryGetValue(apiGatewayName, out AwsSettings.Api api))

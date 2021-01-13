@@ -2,34 +2,25 @@
 
 ProjectOptions:
   ClientAWSProjects:
-    
     PackageReferences:
       AwsSignatureVersion4: "1.4.0"
-      System.ComponentModel.Annotations: "4.5.0"
-      JsonSubTypes: "1.5.2"
+      System.ComponentModel.Annotations: "5.0.0"
+      JsonSubTypes: "1.8.0"
       Newtonsoft.Json: "12.0.3"
-      Microsoft.Extensions.Configuration: "3.1.9"
+      Microsoft.Extensions.Configuration: "5.0.0"
       Microsoft.Extensions.Configuration.Binder: "5.0.0"
       System.IdentityModel.Tokens.Jwt: "6.8.0"
-      Amazon.Extensions.CognitoAuthentication: "2.0.0"
-      AWSSDK.CognitoIdentityProvider: "3.5.1.4"
-
-  ClientAWSDevProjects:
-    PackageReferences:
-      MailKit: "2.0.0"
-      AWSSDK.CloudFormation: "3.5.2.4"
+      Amazon.Extensions.CognitoAuthentication: "2.0.3"
+      AWSSDK.CognitoIdentityProvider: "3.5.1.16"
 
   ClientSDKProjects:
-    
     PackageReferences:
-      System.ComponentModel.Annotations: "4.5.0"
-      JsonSubTypes: "1.5.2"
+      System.ComponentModel.Annotations: "5.0.0"
+      JsonSubTypes: "12.0.3"
       Newtonsoft.Json: "12.0.3"
 
-    OpenApiGeneratorOptions:
-      aspnetCoreVersion: "3" 
-      targetFramework: "netcoreapp3.1"
-      netCoreProjectFile: "true"
+    ProjectReferences:
+      - ..\LazyStackAuth\LazyStackAuth.csproj
 
   LambdaProjects:
     CodeUriPlatform: "netcoreapp3.1"
