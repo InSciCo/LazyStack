@@ -16,11 +16,15 @@ ProjectOptions:
   ClientSDKProjects:
     PackageReferences:
       System.ComponentModel.Annotations: "5.0.0"
-      JsonSubTypes: "12.0.3"
+      JsonSubTypes: "1.8.0"
       Newtonsoft.Json: "12.0.3"
 
     ProjectReferences:
       - ..\LazyStackAuth\LazyStackAuth.csproj
+
+  SchemaProjects:
+    PackageReferences:
+      Newtonsoft.Json: "12.0.3"
 
   LambdaProjects:
     CodeUriPlatform: "netcoreapp3.1"

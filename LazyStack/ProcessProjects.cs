@@ -101,7 +101,10 @@ namespace LazyStack
                 copySubDirs: true,
                 overwrite: true,
                 removeTplExtension: true,
-                new Dictionary<string, string> {{ "__ProjName__", projName }}
+                new Dictionary<string, string> {
+                    { "__ProjName__", projName },
+                    {"__AppName__", appName }
+                }
                 );
 
             // Update MethodMap.cs
@@ -112,13 +115,14 @@ namespace LazyStack
             foreach (var endpoint in solutionModel.EndPoints)
             {
                 if (solutionModel.EndPoints.Count == ++i) sep = string.Empty;
-                methodMap += $"\t\t\t{{\"{endpoint.Key}\",\"{endpoint.Value.Api.Name}\"}}{sep}";
+                methodMap += $"\t\t\t{{\"{endpoint.Key}Async\",\"{endpoint.Value.Api.Name}\"}}{sep}";
             }
 
             var methodMapFilePath = Path.Combine(projFolderPath, "MethodMap.cs");
             var methodMapText = File.ReadAllText(methodMapFilePath);
             methodMapText = methodMapText.Replace("__methodMap__", methodMap); // Insert dictionary entries
             File.WriteAllText(methodMapFilePath, methodMapText);
+            File.Move(methodMapFilePath, Path.Combine(projFolderPath, $"{appName}MethodMap.cs"));
 
             // Generate client sdk class using NSwag
             var nswagSettings = new CSharpClientGeneratorSettings
@@ -143,7 +147,10 @@ namespace LazyStack
             // Strip out schema classes, insert using statement, write out final class
             var root = CSharpSyntaxTree.ParseText(code).GetCompilationUnitRoot();
             root = RemoveGeneratedSchemaClasses(root, new List<string> { "ApiException" });
-            root = InsertUsingStatements(root, new List<string> { { $"{appName}Schema.Models" } });
+            root = InsertUsingStatements(root, new List<string> { 
+                { $"{appName}Schema.Models" },
+                { "LazyStackAuth"}
+            });
             code = root.ToFullString();
             File.WriteAllText(Path.Combine(projFolderPath, $"{appName}.cs"), code);
 
@@ -277,6 +284,16 @@ namespace __NameSpace__
                 enumFileContent = enumFileContent.Replace("__Body__", enumCode);
                 File.WriteAllText(Path.Combine(projFolderPath, "Models", $"{enumName}.cs"), enumFileContent);
             }
+
+            // Modify csproj
+            UpdateProjectFile(
+                projFilePath,
+                "SchemaProjects",
+                projName,
+                localProjectReferences: new List<string>(),
+                localPackageReferences: null,
+                localProperties: null
+                );
         }
 
         /// <summary>

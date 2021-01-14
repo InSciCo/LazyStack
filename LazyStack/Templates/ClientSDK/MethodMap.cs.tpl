@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace __NameSpace__
+namespace __ProjName__
 {
-    public static class MethodMap
+    public static class __AppName__MethodMap
     {
         public static Dictionary<string, string> Methods = new Dictionary<string,string>
         {

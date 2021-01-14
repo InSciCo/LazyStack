@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Text;
@@ -9,12 +10,13 @@ using Microsoft.Extensions.Configuration;
 
 namespace LazyStackAuth
 {
-    
+
     public class LzHttpClient : ILzHttpClient
     {
-        public LzHttpClient(IConfiguration appConfig, Dictionary<string,string> methodMap, AuthProviderCognito authProvider, string localApiName = null) : 
-#if DEBUG        
-        this(appConfig, methodMap, authProvider, new HttpClient(GetInsecureHandler()), localApiName) {}
+        public LzHttpClient(IConfiguration appConfig, Dictionary<string, string> methodMap, AuthProviderCognito authProvider, string localApiName = null) :
+#if DEBUG
+        this(appConfig, methodMap, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
+        { }
 #else
         this(appConfig, authprovider, new HttpClient(), localApiName) {}
 #endif
@@ -27,7 +29,7 @@ namespace LazyStackAuth
             this.authProvider = authProvider;
             this.methodMap = methodMap;
         }
-        
+
         readonly HttpClient httpClient;
         readonly AwsSettings awsSettings;
         readonly string localApiName = string.Empty;
@@ -37,85 +39,113 @@ namespace LazyStackAuth
         // Note: CallerMember is inserted as a literal by the compiler in the IL so there is no 
         // performance penalty for using it.
         public async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage requestMessage, 
-            HttpCompletionOption httpCompletionOption, 
-            CancellationToken cancellationToken, 
+            HttpRequestMessage requestMessage,
+            HttpCompletionOption httpCompletionOption,
+            CancellationToken cancellationToken,
             [CallerMemberName] string callerMemberName = null)
         {
 
-            if(!methodMap.TryGetValue(callerMemberName, out string apiGatewayName))
+            if (!methodMap.TryGetValue(callerMemberName, out string apiGatewayName))
                 throw new Exception($"Error: {callerMemberName} not found in AwsSettings MethodMap");
 
-            if(!awsSettings.ApiGateways.TryGetValue(apiGatewayName, out AwsSettings.Api api))
+            if (!awsSettings.ApiGateways.TryGetValue(apiGatewayName, out AwsSettings.Api api))
                 throw new Exception($"Error: {apiGatewayName} not found in AwsSettings ApiGateways dictionary");
 
             var securityLevel = api.SecurityLevel;
 
             if (!string.IsNullOrEmpty(localApiName))
             {
-                if(!awsSettings.LocalApis.ContainsKey(localApiName))
+                if (!awsSettings.LocalApis.ContainsKey(localApiName))
                     throw new Exception($"Error: {localApiName} not found in AwsSettings");
 
                 var localApi = awsSettings.LocalApis[localApiName];
-               
+
                 var uriBuilder = new UriBuilder(localApi.Scheme, localApi.Host, localApi.Port);
-                uriBuilder.Path = requestMessage.RequestUri.ToString();
-                requestMessage.RequestUri = uriBuilder.Uri;
+
+                // Issue: the AspNetCore server rejects a query the the ? encoded as %3F so the following doesn't work
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); // assignment encodes path query as %3F instead of ?
+                // requestMessage.RequestUri = uriBuilder.Uri;
+
+                // Here we encode the path separately and then build a
+                // a new Uri from the uriBuilder and the path.
+                var path = requestMessage.RequestUri.ToString(); // Unencoded
+                path = Uri.EscapeUriString(path); // Encoded properly
+                requestMessage.RequestUri = new Uri(uriBuilder.Uri, path);
+
             }
             else
             {
                 var awshost = $"{api.Id}.{api.Service}.{awsSettings.Region}.{api.Host}";
-               
+
                 var uriBuilder = (api.Port == 443)
                     ? new UriBuilder(api.Scheme, awshost)
                     : new UriBuilder(api.Scheme, awshost, api.Port);
 
-                var path = (!string.IsNullOrEmpty(api.Stage)) 
+                var path = (!string.IsNullOrEmpty(api.Stage))
                     ? "/" + api.Stage + "/" + requestMessage.RequestUri.ToString()
                     : requestMessage.RequestUri.ToString();
-                uriBuilder.Path = path;
-                requestMessage.RequestUri = uriBuilder.Uri;
+
+                // Issue: the AspNetCore server rejects a query the the ? encoded as %3F so the following doesn't work
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); // assignment encodes path query as %3F instead of ?
+                // requestMessage.RequestUri = uriBuilder.Uri;
+
+                // Here we encode the path separately and then build a
+                // a new Uri from the uriBuilder and the path.
+                path = Uri.EscapeUriString(path); // Encoded properly
+                requestMessage.RequestUri = new Uri(uriBuilder.Uri, path);
             }
 
-            HttpResponseMessage response = null;
-            // Note: If the call is being made against a local host then that host
-            // will by default not pay any attention to the authorization header attached by 
-            // the JWT or AwsSignatureVersion4 cases below. We assign the Headers
-            // anyway in case you want to implement handling these headers 
-            // in your local host for testing or any other purpose.
-            switch(securityLevel)
+            Debug.WriteLine($"requestMessage.Path {requestMessage.RequestUri.ToString()}");
+            try
             {
-				case AwsSettings.SecurityLevel.None:
-                    response = await httpClient.SendAsync(
-                        requestMessage,
-                        httpCompletionOption,
-                        cancellationToken);
-                    break;
+                HttpResponseMessage response = null;
+                // Note: If the call is being made against a local host then that host
+                // will by default not pay any attention to the authorization header attached by 
+                // the JWT or AwsSignatureVersion4 cases below. We assign the Headers
+                // anyway in case you want to implement handling these headers 
+                // in your local host for testing or any other purpose.
+                switch (securityLevel)
+                {
+                    case AwsSettings.SecurityLevel.None:
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
+                        break;
 
-				case AwsSettings.SecurityLevel.JWT:
-                    // Use JWT Token signing process
-                    requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);
-                    response = await httpClient.SendAsync(
-                        requestMessage,
-                        httpCompletionOption,
-                        cancellationToken);
-                    break; 
+                    case AwsSettings.SecurityLevel.JWT:
+                        // Use JWT Token signing process
+                        requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
+                        break;
 
-				case AwsSettings.SecurityLevel.AwsSignatureVersion4:
-                    // Use full request signing process
-                    // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
-                    var iCreds = await authProvider.Credentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessary
-                    // Calling AwsSignatureVersion4 extension method -- this signs the request message
-                    response = await httpClient.SendAsync(
-                        requestMessage,
-                        httpCompletionOption,
-                        cancellationToken,
-                        awsSettings.Region,
-                        api.Service,
-                        iCreds);
-                    break;
+                    case AwsSettings.SecurityLevel.AwsSignatureVersion4:
+                        // Use full request signing process
+                        // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
+                        var iCreds = await authProvider.Credentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessary
+                                                                                           // Calling AwsSignatureVersion4 extension method -- this signs the request message
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken,
+                            awsSettings.Region,
+                            api.Service,
+                            iCreds);
+                        break;
+                }
+                return response;
+
             }
-            return response;
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error: {e.Message}");
+            }
+
+            return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+
         }
 #if DEBUG        
         //https://docs.microsoft.com/en-us/xamarin/cross-platform/deploy-test/connect-to-local-web-services

@@ -186,7 +186,7 @@ namespace LazyStack
                     awsSettings.LocalApis = localApis;
 
                 var settingsFileText = awsSettings.BuildJsonWrapped();
-                File.WriteAllText(Path.Combine(solutionRootFolderPath,$"{environmentName}.AwsSettings.json"), settingsFileText);
+                File.WriteAllText(Path.Combine(solutionRootFolderPath,$"{environmentName}_AwsSettings.json"), settingsFileText);
             }
             catch
             {

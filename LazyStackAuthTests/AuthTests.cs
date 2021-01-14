@@ -546,9 +546,13 @@ namespace PetStoreClientTests
             // State Changes Step: 15
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsLoginVerified==false
+            // LoginNotVerified==true
+            // IsEmailVerified==false
+            // EmailNotVerified==true
             // IsPasswordFormatOk==false
-            // IsCodeVerified==true
-            // CodeNotVerified==false
+            // IsPasswordVerified==false
+            // PasswordNotVerified==true
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsSigningUp==false
@@ -565,20 +569,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -589,8 +593,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -638,7 +642,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 15
-            
+
 
             // Test SignIn to new account
             // SignIn Happy Path
@@ -663,20 +667,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -687,8 +691,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -741,9 +745,10 @@ namespace PetStoreClientTests
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(20,  authProcess, stepResult);
-
             // State Changes Step: 20
             // CurrentChallenge==AuthChallengeEnum.Password
+            // IsLoginVerified==true
+            // LoginNotVerified==false
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsPassword==true
@@ -757,14 +762,14 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -775,8 +780,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -830,10 +835,11 @@ namespace PetStoreClientTests
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
             stepResult = ObjectStateDump(21,  authProcess, stepResult);
-
             // State Changes Step: 21
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsLoginVerified==false
+            // LoginNotVerified==true
             // IsSignedIn==true
             // IsNotSignedIn==false
             // HasActiveAuthProcess==false
@@ -851,20 +857,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -875,8 +881,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -941,20 +947,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -965,8 +971,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1037,20 +1043,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.ResettingPassword, "CurrentAuthProcess==AuthProcessEnum.ResettingPassword");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1061,8 +1067,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1117,6 +1123,8 @@ namespace PetStoreClientTests
             ObjectStateDump(31,  authProcess, stepResult);
             // State Changes Step: 31
             // CurrentChallenge==AuthChallengeEnum.NewPassword
+            // IsLoginVerified==true
+            // LoginNotVerified==false
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsNewPassword==true
@@ -1130,14 +1138,14 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1148,8 +1156,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1207,6 +1215,8 @@ namespace PetStoreClientTests
             stepResult = ObjectStateDump(32,  authProcess, stepResult);
             // State Changes Step: 32
             // CurrentChallenge==AuthChallengeEnum.Code
+            // IsLoginVerified==true
+            // LoginNotVerified==false
             // IsPasswordFormatOk==true
             // IsNewPasswordFormatOk==true
             // CurrentChallengeIsLogin==false
@@ -1225,14 +1235,14 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1243,8 +1253,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1303,6 +1313,8 @@ namespace PetStoreClientTests
             // State Changes Step: 33
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsLoginVerified==false
+            // LoginNotVerified==true
             // IsPasswordFormatOk==false
             // IsNewPasswordFormatOk==false
             // HasActiveAuthProcess==false
@@ -1321,20 +1333,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1345,8 +1357,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1401,6 +1413,8 @@ namespace PetStoreClientTests
             // State Changes Step: 40
             // CurrentChallenge==AuthChallengeEnum.Login
             // CurrentAuthProcess==AuthProcessEnum.SigningIn
+            // IsLoginVerified==false
+            // LoginNotVerified==true
             // IsPasswordFormatOk==false
             // IsNewPasswordFormatOk==false
             // IsSigningIn==true
@@ -1415,20 +1429,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Login, "CurrentChallenge==AuthChallengeEnum.Login");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningIn, "CurrentAuthProcess==AuthProcessEnum.SigningIn");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1439,8 +1453,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1496,6 +1510,8 @@ namespace PetStoreClientTests
             stepResult = ObjectStateDump(41,  authProcess, stepResult);
             // State Changes Step: 41
             // CurrentChallenge==AuthChallengeEnum.Password
+            // IsLoginVerified==true
+            // LoginNotVerified==false
             // IsPasswordFormatOk==true
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
@@ -1510,14 +1526,14 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1528,8 +1544,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1584,6 +1600,8 @@ namespace PetStoreClientTests
             // State Changes Step: 42
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsLoginVerified==false
+            // LoginNotVerified==true
             // IsPasswordFormatOk==false
             // IsSignedIn==true
             // IsNotSignedIn==false
@@ -1602,20 +1620,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1626,8 +1644,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1698,20 +1716,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingPassword, "CurrentAuthProcess==AuthProcessEnum.UpdatingPassword");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1722,8 +1740,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1780,6 +1798,8 @@ namespace PetStoreClientTests
             // CurrentChallenge==AuthChallengeEnum.NewPassword
             // CurrentAuthProcess==AuthProcessEnum.UpdatingPassword
             // IsPasswordFormatOk==true
+            // IsPasswordVerified==true
+            // PasswordNotVerified==false
             // HasActiveAuthProcess==true
             // NoActiveAuthProcess==false
             // IsUpdatingPassword==true
@@ -1795,14 +1815,14 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewPassword, "CurrentChallenge==AuthChallengeEnum.NewPassword");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingPassword, "CurrentAuthProcess==AuthProcessEnum.UpdatingPassword");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
@@ -1819,8 +1839,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1878,6 +1898,8 @@ namespace PetStoreClientTests
             // State Changes Step: 45
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsPasswordVerified==false
+            // PasswordNotVerified==true
             // IsNewPasswordFormatOk==true
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
@@ -1894,20 +1916,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -1918,8 +1940,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1971,7 +1993,6 @@ namespace PetStoreClientTests
             // Test Update email -- using previous test signin
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             stepResult = ObjectStateDump(50,  authProcess, stepResult);
-
             // State Changes Step: 50
             // CurrentChallenge==AuthChallengeEnum.NewEmail
             // CurrentAuthProcess==AuthProcessEnum.UpdatingEmail
@@ -1990,20 +2011,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewEmail, "CurrentChallenge==AuthChallengeEnum.NewEmail");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -2014,8 +2035,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -2068,10 +2089,12 @@ namespace PetStoreClientTests
             authProcess.NewEmail = newEmail;
             verificationCodeSendTime = DateTime.UtcNow;
             Thread.Sleep(5000); // Account for a little drift among local and remote clock
-            Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.AuthChallenge);
+            Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.VerificationCodeSent);
             stepResult = ObjectStateDump(51,  authProcess, stepResult);
             // State Changes Step: 51
             // CurrentChallenge==AuthChallengeEnum.Code
+            // IsEmailVerified==true
+            // EmailNotVerified==false
             // CurrentChallengeIsNewEmail==false
             // CollectNewEmail==false
             // CurrentChallengeIsCode==true
@@ -2081,8 +2104,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Code, "CurrentChallenge==AuthChallengeEnum.Code");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
@@ -2093,8 +2116,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -2105,8 +2128,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -2164,6 +2187,8 @@ namespace PetStoreClientTests
             // State Changes Step: 52
             // CurrentChallenge==AuthChallengeEnum.None
             // CurrentAuthProcess==AuthProcessEnum.None
+            // IsEmailVerified==false
+            // EmailNotVerified==true
             // IsCodeFormatOk==true
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
@@ -2181,20 +2206,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -2205,8 +2230,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == true, "IsCodeFormatOk==true");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -2274,20 +2299,20 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
-            Assert.IsTrue(authProcess.IsLoginVerified == true, "IsLoginVerified==true");
-            Assert.IsTrue(authProcess.LoginNotVerified == false, "LoginNotVerified==false");
+            Assert.IsTrue(authProcess.IsLoginVerified == false, "IsLoginVerified==false");
+            Assert.IsTrue(authProcess.LoginNotVerified == true, "LoginNotVerified==true");
             Assert.IsTrue(authProcess.IsNewLoginFormatOk == false, "IsNewLoginFormatOk==false");
             Assert.IsTrue(authProcess.IsNewLoginVerified == false, "IsNewLoginVerified==false");
             Assert.IsTrue(authProcess.NewLoginNotVerified == true, "NewLoginNotVerified==true");
             Assert.IsTrue(authProcess.IsEmailFormatOk == true, "IsEmailFormatOk==true");
-            Assert.IsTrue(authProcess.IsEmailVerified == true, "IsEmailVerified==true");
-            Assert.IsTrue(authProcess.EmailNotVerified == false, "EmailNotVerified==false");
+            Assert.IsTrue(authProcess.IsEmailVerified == false, "IsEmailVerified==false");
+            Assert.IsTrue(authProcess.EmailNotVerified == true, "EmailNotVerified==true");
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
             Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
-            Assert.IsTrue(authProcess.IsPasswordVerified == true, "IsPasswordVerified==true");
-            Assert.IsTrue(authProcess.PasswordNotVerified == false, "PasswordNotVerified==false");
+            Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
+            Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
@@ -2298,8 +2323,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(authProcess.IsNewPhoneVerified == false, "IsNewPhoneVerified==false");
             Assert.IsTrue(authProcess.NewPhoneNotVerified == true, "NewPhoneNotVerified==true");
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
-            Assert.IsTrue(authProcess.IsCodeVerified == true, "IsCodeVerified==true");
-            Assert.IsTrue(authProcess.CodeNotVerified == false, "CodeNotVerified==false");
+            Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
+            Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
