@@ -13,7 +13,11 @@ namespace LazyStackAuth
 
     public class LzHttpClient : ILzHttpClient
     {
-        public LzHttpClient(IConfiguration appConfig, Dictionary<string, string> methodMap, AuthProviderCognito authProvider, string localApiName = null) :
+        public LzHttpClient(
+            IConfiguration appConfig, 
+            Dictionary<string, string> methodMap, 
+            AuthProviderCognito authProvider, 
+            string localApiName = null) :
 #if DEBUG
         this(appConfig, methodMap, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
         { }
@@ -21,7 +25,12 @@ namespace LazyStackAuth
         this(appConfig, authprovider, new HttpClient(), localApiName) {}
 #endif
 
-        public LzHttpClient(IConfiguration appConfig, Dictionary<string, string> methodMap, AuthProviderCognito authProvider, HttpClient httpClient, string localApiName = null)
+        public LzHttpClient(
+            IConfiguration appConfig, 
+            Dictionary<string, string> methodMap, 
+            AuthProviderCognito authProvider, 
+            HttpClient httpClient, 
+            string localApiName = null)
         {
             this.httpClient = httpClient;
             this.localApiName = localApiName;
@@ -62,16 +71,15 @@ namespace LazyStackAuth
 
                 var uriBuilder = new UriBuilder(localApi.Scheme, localApi.Host, localApi.Port);
 
-                // Issue: the AspNetCore server rejects a query the the ? encoded as %3F so the following doesn't work
-                // uriBuilder.Path = requestMessage.RequestUri.ToString(); // assignment encodes path query as %3F instead of ?
-                // requestMessage.RequestUri = uriBuilder.Uri;
-
+                // Issue: the AspNetCore server rejects a query with the ? encoded as %3F 
+                // so the following doesn't work 
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); 
+                // the assignment encodes path query as %3F instead of ?
                 // Here we encode the path separately and then build a
                 // a new Uri from the uriBuilder and the path.
                 var path = requestMessage.RequestUri.ToString(); // Unencoded
                 path = Uri.EscapeUriString(path); // Encoded properly
                 requestMessage.RequestUri = new Uri(uriBuilder.Uri, path);
-
             }
             else
             {
@@ -85,10 +93,10 @@ namespace LazyStackAuth
                     ? "/" + api.Stage + "/" + requestMessage.RequestUri.ToString()
                     : requestMessage.RequestUri.ToString();
 
-                // Issue: the AspNetCore server rejects a query the the ? encoded as %3F so the following doesn't work
-                // uriBuilder.Path = requestMessage.RequestUri.ToString(); // assignment encodes path query as %3F instead of ?
-                // requestMessage.RequestUri = uriBuilder.Uri;
-
+                // Issue: the AspNetCore server rejects a query with the ? encoded as %3F 
+                // so the following doesn't work 
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); 
+                // the assignment encodes path query as %3F instead of ?
                 // Here we encode the path separately and then build a
                 // a new Uri from the uriBuilder and the path.
                 path = Uri.EscapeUriString(path); // Encoded properly
@@ -125,8 +133,10 @@ namespace LazyStackAuth
                     case AwsSettings.SecurityLevel.AwsSignatureVersion4:
                         // Use full request signing process
                         // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
-                        var iCreds = await authProvider.Credentials.GetCredentialsAsync(); // This will refresh immutable credentials if necessary
-                                                                                           // Calling AwsSignatureVersion4 extension method -- this signs the request message
+                        // This will refresh immutable credentials if necessary
+                        // Calling AwsSignatureVersion4 extension method -- this signs the request message
+                        var iCreds = await authProvider.Credentials.GetCredentialsAsync(); 
+                                                                                           
                         response = await httpClient.SendAsync(
                             requestMessage,
                             httpCompletionOption,
@@ -173,3 +183,4 @@ namespace LazyStackAuth
         }
     }
 }
+ 
