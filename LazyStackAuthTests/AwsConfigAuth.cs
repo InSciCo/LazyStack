@@ -36,7 +36,7 @@ namespace LazyStackAuth
     {
         public static async Task<string> GenerateSettingsJson(string region, string stackName)
         {
-            var cfClient = new AmazonCloudFormationClient();
+            var cfClient = new AmazonCloudFormationClient(RegionEndpoint.GetBySystemName(region));
             var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
             var describeStackResourcesResponse = await cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest);
             var awsSettings = new AwsAuthSettings();
