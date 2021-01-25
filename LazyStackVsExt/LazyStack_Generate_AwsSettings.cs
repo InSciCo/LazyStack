@@ -1,28 +1,35 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using Microsoft.VisualStudio.Shell;
+using System.Windows;
 using Task = System.Threading.Tasks.Task;
 using EnvDTE;
 using EnvDTE80;
 using EnvDTE100;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft;
+
 using LazyStack;
-using VSLangProj;
-using System.Windows;
+using Amazon;
+using Amazon.Runtime.CredentialManagement;
+
 
 namespace LazyStackVsExt
 {
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class LazyStack_Generate_Projects
-    {
+    internal sealed class LazyStack_Generate_AwsSettings
+     {
+
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0100;
+        public const int CommandId = 4130;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -36,13 +43,14 @@ namespace LazyStackVsExt
 
         private readonly DTE dte;
 
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="LazyStack_Generate_Projects"/> class.
+        /// Initializes a new instance of the <see cref="LazyStack_Generate_AwsSettings"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private LazyStack_Generate_Projects(AsyncPackage package, DTE dte, OleMenuCommandService commandService)
+        private LazyStack_Generate_AwsSettings(AsyncPackage package, DTE dte, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             this.dte = dte ?? throw new ArgumentNullException(nameof(dte));
@@ -56,7 +64,7 @@ namespace LazyStackVsExt
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static LazyStack_Generate_Projects Instance
+        public static LazyStack_Generate_AwsSettings Instance
         {
             get;
             private set;
@@ -68,14 +76,14 @@ namespace LazyStackVsExt
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in LazyStack___Generate_Projects's constructor requires
+            // Switch to the main thread - the call to AddCommand in GetAWSResources's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             var dte = await package.GetServiceAsync(typeof(DTE)) as DTE;
-            Instance = new LazyStack_Generate_Projects(package, dte, commandService);
 
+            Instance = new LazyStack_Generate_AwsSettings(package, dte, commandService);
         }
 
         /// <summary>
@@ -89,7 +97,6 @@ namespace LazyStackVsExt
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Do the work in this handler async
             this.package.JoinableTaskFactory.RunAsync((Func<Task>)async delegate
             {
                 var solutionFullName = dte?.Solution?.FullName;
@@ -105,7 +112,7 @@ namespace LazyStackVsExt
 
                 var userControl = window.Content as LazyStackLogToolWindowControl;
                 userControl.LogEntries.Clear();
-
+                 
                 // Progress class
                 // Any handler provided to the constructor or event handlers registered with the 
                 // ProgressChanged event are invoked through a SynchronizationContext instance captured 
@@ -118,97 +125,41 @@ namespace LazyStackVsExt
 
                 try
                 {
-                    var solutionRootFolderPath = Path.GetDirectoryName(solutionFullName);
-                    var solutionModel = new SolutionModel(solutionFullName, logger);
-
-                    // Process the API yaml files
-                    await solutionModel.ProcessOpenApiAsync();
-
-                    // Write the new serverless.template file
-                    await solutionModel.WriteSAMAsync();
-
-                    // Create / Update the Projects
-                    var processProjects = new ProcessProjects(solutionModel, logger);
-                    await processProjects.RunAsync();
-
                     // Avoid unnecessary warnings on access to dte etc.
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+
                     var solution = dte.Solution as Solution4;
-                    var appName = solutionModel.AppName;
 
-                    // Solution Items folder
-                    var projectPath = new List<string> { "Solution Items" };
-                    Project solutionItemsProject = GetProject(projectPath);
-                    if (solutionItemsProject == null)
-                        solutionItemsProject = solution.AddSolutionFolder("Solution Items");
+                    var solutionRootFolderPath = Path.GetDirectoryName(solutionFullName);
 
-                    AddFileToProject(solutionItemsProject, Path.Combine(solutionRootFolderPath, $"{appName}.yaml"));
-                    AddFileToProject(solutionItemsProject, Path.Combine(solutionRootFolderPath, "LazyStack.yaml"));
-                    AddFileToProject(solutionItemsProject, Path.Combine(solutionRootFolderPath, "SAM_Review.yaml"));
+                    var solutionModel = new SolutionModel(solutionFullName, logger);
+                    await solutionModel.LoadLazyStackDirectives(); // get the stack environments
 
-                    // Add root level solutionModel projects to root folder 
-                    foreach (var kvp in solutionModel.Projects)
-                        if (string.IsNullOrEmpty(kvp.Value.SolutionFolder))
-                        {
-                            bool found = false;
-                            foreach (Project project in solution.Projects)
-                                if (found = project.Name.Equals(kvp.Key))
-                                    break;
-                            if (!found)
-                            {
-                                await logger.InfoAsync($"Loading project {kvp.Key} from  {kvp.Value.Path}");
-                                solution.AddFromFile(kvp.Value.Path, Exclusive: false);
-                            }
-                        }
+                    if (!solutionModel.Environments.TryGetValue("Dev", out LazyStack.Environment devEnv))
+                    {
+                        MessageBox.Show("Sorry - Stacks/Dev environment was not found in LazyStacks.yaml");
+                        return;
+                    }
 
+                    // We only update the Dev environment settings file from Visual Studio
+                    // We consider it best practice to use the LazyStack command like to generate 
+                    // AwsSettings.json files for other environments.
+                    var jsonText = await AwsConfig.GenerateSettingsJsonAsync(
+                        devEnv.ProfileName,
+                        devEnv.StackName,
+                        devEnv.IncludeLocalApis,
+                        devEnv.LocalApiPort,
+                        logger);
 
-                    // Lambdas folder - add lambda projects under Lambdas SolutionFolder
-                    var folderName = "Lambdas";
-                    projectPath = new List<string> { folderName };
-                    Project lambdasProject = GetProject(projectPath);
-                    if (lambdasProject == null)
-                        lambdasProject = solution.AddSolutionFolder(folderName);
-                    foreach (var kvp in solutionModel.Projects)
-                        if (kvp.Value.SolutionFolder.Equals(folderName))
-                        {
-                            bool found = false;
-                            foreach (ProjectItem projectItem in lambdasProject.ProjectItems)
-                                if (projectItem.FileCount > 0)
-                                    if (found = projectItem.Name.Equals(kvp.Key))
-                                        break;
-                            if (!found)
-                            {
-                                await logger.InfoAsync($"Loading Lambdas project {kvp.Key} from  {kvp.Value.Path}");
-                                ((SolutionFolder)lambdasProject.Object).AddFromFile(kvp.Value.Path);
-                            }
-                        }
+                    var folderPath = Path.Combine(solutionRootFolderPath, "Stacks", "Dev");
+                    if (!Directory.Exists(folderPath))
+                        throw new Exception("Error: Can't find the \"Stacks\\Dev\" folder!");
 
-                    // Controllers folder -- add Controller's projects under Controllers SolutionFolder
-                    folderName = "Controllers";
-                    projectPath = new List<string> { folderName };
-                    Project controllersProject = GetProject(projectPath);
-                    if (controllersProject == null)
-                        controllersProject = solution.AddSolutionFolder(folderName);
-                    foreach (var kvp in solutionModel.Projects)
-                        if (kvp.Value.SolutionFolder.Equals(folderName))
-                        {
-                            bool found = false;
-                            foreach (ProjectItem projectItem in controllersProject.ProjectItems)
-                                if (projectItem.FileCount > 0)
-                                    if (found = projectItem.Name.Equals(kvp.Key))
-                                        break;
-                            if (!found)
-                            {
-                                await logger.InfoAsync($"Loading Controllers project {kvp.Key} from  {kvp.Value.Path}");
-
-                                ((SolutionFolder)controllersProject.Object).AddFromFile(kvp.Value.Path);
-                            }
-                        }
-
+                    File.WriteAllText(Path.Combine(folderPath, "AwsSettings.json"), jsonText);
 
                     // Stacks folder
-                    folderName = "Stacks";
-                    projectPath = new List<string> { folderName };
+                    var folderName = "Stacks";
+                    var projectPath = new List<string> { folderName };
                     Project stacksProject = GetProject(projectPath);
                     if (stacksProject == null)
                     {
@@ -229,34 +180,15 @@ namespace LazyStackVsExt
                             AddFileToProject(envProject, file);
                     }
 
-                    await logger.InfoAsync("LazyStack processing complete");
+                    await logger.InfoAsync($"Generate Dev\\AwsSettings.json File complete");
 
                 }
                 catch (Exception ex)
                 {
                     await logger.ErrorAsync(ex, "LazyStack Encountered an Error");
                 }
-
             });
-
         }
-
-
-        //Notes on Project, Projects, ProjectItems, SolutionFolders etc
-        // Solution
-        //   Projects -- Docs say all project are shown, however, only first level projects are!
-        //     Project
-        //       ProjectItems
-        //         ProjectItem
-        //           if projectItem.SubProject then use SubProject to drill down -- Note SolutionFolders are SubProjects!
-        //           SubProject is not null even if there are no items in the SubProject
-        // SolutionFolder is a type of Project eg. project.Kind == ProjectKinds.vsProjectKindSolutionFolder
-        // solutionFolder = (SolutionFolder)project.Object
-        // solutionFolder.AddFromFile(..)
-        // project.ProjectItems.AddFromFile(..)
-        // projectItem.FileNames[] has an ordinal starting at 1 instead of 0
-
-
         // Find a project based on supplied path
         private Project GetProject(List<string> path, Project subProject = null, int level = 0)
         {
@@ -296,16 +228,15 @@ namespace LazyStackVsExt
             // This is not an error - we only add the file if it exists
             if (!File.Exists(filePath))
                 return;
-            
+
             // just return if the file is already referenced in project
             foreach (ProjectItem projectItem in project.ProjectItems)
-                if(projectItem.FileCount == 1)
+                if (projectItem.FileCount == 1)
                     if (projectItem.FileNames[1].Equals(filePath)) // note bizarre ordinal 1 !
                         return;
 
             project.ProjectItems.AddFromFile(filePath);
 
         }
-
     }
 }

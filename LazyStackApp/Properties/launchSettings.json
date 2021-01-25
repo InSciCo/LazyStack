@@ -2,7 +2,7 @@
   "profiles": {
     "LazyStackApp": {
       "commandName": "Project",
-      "commandLineArgs": "projects",
+      "commandLineArgs": "settings PetStoreDev Stacks\\Dev\\AwsSettings.json",
       "workingDirectory": "C:\\Users\\tmay\\source\\repos\\LazyStackTutorial\\PetStore"
     }
   }

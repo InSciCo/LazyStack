@@ -633,7 +633,7 @@ namespace __NameSpace__
             foreach (var newUsingReference in newUsingReferences)
                 if (existingUsingStatementsList.Count == 0 || !existingUsingStatementsList.Contains($"using {newUsingReference};"))
                 {
-                    var newUsingStatementTree = CSharpSyntaxTree.ParseText($"using {newUsingReference};" + Environment.NewLine);
+                    var newUsingStatementTree = CSharpSyntaxTree.ParseText($"using {newUsingReference};" + System.Environment.NewLine);
                     var newUsingStatementString = newUsingStatementTree.ToString();
                     var newUsingStatement = newUsingStatementTree.GetRoot().ChildNodes().First() as UsingDirectiveSyntax;
                     root = root.AddUsings(newUsingStatement);

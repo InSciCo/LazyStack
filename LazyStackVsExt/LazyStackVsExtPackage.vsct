@@ -52,6 +52,7 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
+      
       <Button guid="guidLazyStackVsExtPackageCmdSet" id="LazyStack___Generate_ProjectsId" priority="0x0100" type="Button">
         <Parent guid="guidLazyStackVsExtPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
@@ -59,18 +60,12 @@
           <ButtonText>LazyStack - Generate Projects</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidLazyStackVsExtPackageCmdSet" id="cmdidToolWindow1Command" priority="0x0100" type="Button">
-        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <Icon guid="guidImages1" id="bmpPic1" />
-        <Strings>
-          <ButtonText>ToolWindow1</ButtonText>
-        </Strings>
-      </Button>
-      <Button guid="guidLazyStackVsExtPackageCmdSet" id="cmdidGetAWSResources" priority="0x0100" type="Button">
+      
+      <Button guid="guidLazyStackVsExtPackageCmdSet" id="LazyStack__Generate_AwsSettingsId" priority="0x0100" type="Button">
         <Parent guid="guidLazyStackVsExtPackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages2" id="bmpPic1" />
         <Strings>
-          <ButtonText>LazyStack - Generate Dev.AwsSettings.json</ButtonText>
+          <ButtonText>LazyStack - Generate Stacks\Dev\AwsSettings.json</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -83,8 +78,7 @@
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\LazyStack___Generate_Projects.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
-      <Bitmap guid="guidImages1" href="Resources\ToolWindow1Command.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
-      <Bitmap guid="guidImages2" href="Resources\GetAWSResources.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages2" href="Resources\LazySTack__Generate_AwsSettings.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
   </Commands>
 
@@ -96,20 +90,10 @@
     <GuidSymbol name="guidLazyStackVsExtPackageCmdSet" value="{74dda08f-2bee-4ed4-97b0-1405b9fbbb16}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="LazyStack___Generate_ProjectsId" value="0x0100" />
-      <IDSymbol value="4129" name="cmdidToolWindow1Command" />
-      <IDSymbol value="4130" name="cmdidGetAWSResources" />
+      <IDSymbol value="4130" name="LazyStack__Generate_AwsSettingsId" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{9222dd9d-112d-433c-b69c-43b5926a00c4}">
-      <IDSymbol name="bmpPic1" value="1" />
-      <IDSymbol name="bmpPic2" value="2" />
-      <IDSymbol name="bmpPicSearch" value="3" />
-      <IDSymbol name="bmpPicX" value="4" />
-      <IDSymbol name="bmpPicArrows" value="5" />
-      <IDSymbol name="bmpPicStrikethrough" value="6" />
-    </GuidSymbol>
-  
-    <GuidSymbol value="{508db966-32d7-4020-bfb0-daf68d6917a6}" name="guidImages1">
       <IDSymbol name="bmpPic1" value="1" />
       <IDSymbol name="bmpPic2" value="2" />
       <IDSymbol name="bmpPicSearch" value="3" />

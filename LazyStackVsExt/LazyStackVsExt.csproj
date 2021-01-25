@@ -45,7 +45,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="GetAWSResources.cs" />
+    <Compile Include="LazyStack_Generate_AwsSettings.cs" />
     <Compile Include="LazyStack_Generate_Projects.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -63,6 +63,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ProjectTemplates\LazyStackWebApi.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <None Include="ExportInstructions.md" />
+    <Content Include="ProjectTemplates\LazyStackAuth.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -105,9 +110,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="Resources\GetAWSResources.png" />
+    <Content Include="Resources\LazyStack__Generate_AwsSettings.png" />
     <Content Include="Resources\LazyStack___Generate_Projects.png" />
-    <Content Include="Resources\ToolWindow1Command.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\LazyStack\LazyStack.csproj">

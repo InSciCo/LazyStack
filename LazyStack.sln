@@ -11,12 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackVsExt", "LazyStack
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackWebApi", "LazyStackWebApi\LazyStackWebApi.csproj", "{9FD27A4C-5845-4AEF-9E6A-E406A5F7E736}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExportedTemplates", "ExportedTemplates", "{2BB2DF1B-6FEA-433E-BCF0-4599FAA2C260}"
-	ProjectSection(SolutionItems) = preProject
-		ExportedTemplates\ExportInstructions.md = ExportedTemplates\ExportInstructions.md
-		ExportedTemplates\LazyStackWebApi.zip = ExportedTemplates\LazyStackWebApi.zip
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6B3576B2-110D-4823-8699-5E48B4917F45}"
 	ProjectSection(SolutionItems) = preProject
 		DeploymentNotes.md = DeploymentNotes.md
