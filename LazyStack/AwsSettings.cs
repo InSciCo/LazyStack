@@ -17,7 +17,7 @@ namespace LazyStack
             public string Scheme { get; set; } = "https";
             public string Id { get; set; }
             public string Service { get; set; } = "execute-api";
-            public string Host { get; set; } = "awsamazon.com";
+            public string Host { get; set; } = "amazonaws.com";
             public int Port { get; set; } = 443;
             public string Stage { get; set; } = "";
             public SecurityLevel SecurityLevel { get; set; }
