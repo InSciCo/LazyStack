@@ -2,7 +2,7 @@
   Properties:
     FunctionName: 
       Fn::Sub: ${AWS::StackName}-__lambdaName__
-    CodeUri: Lambdas/__lambdaName__/bin/__codeUriTarget__/__codeUriPlatform__
+    CodeUri: ../../Lambdas/__lambdaName__/bin/__codeUriTarget__/__codeUriPlatform__
     Handler: __lambdaName__::LambdaFunc.LambdaEntryPoint::FunctionHandlerAsync
     Description: __lambdaName__
     Runtime: dotnetcore3.1

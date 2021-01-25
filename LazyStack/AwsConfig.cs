@@ -1,140 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Reflection;
-using Amazon.CloudFormation;
+﻿using Amazon.CloudFormation;
 using Amazon.CloudFormation.Model;
-using Newtonsoft.Json;
-using Amazon.Runtime.CredentialManagement;
 using Amazon.Runtime;
-using Amazon;
-using YamlDotNet.RepresentationModel;
-using YamlDotNet.Serialization;
-
+using Amazon.Runtime.CredentialManagement;
+using Newtonsoft.Json.Linq;
+using YamlDotNet;
+using System;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace LazyStack
 {
-    public class LzEnvironment
-    {
-        // Add environments in LazyStack.yaml
-        public string ProfileName { get; set; } // required
-        public string RegionName { get; set; } // required
-        public string StackName { get; set; } // Defaults to SolutionName<envName>
-        public string Stage { get; set; } // Defaults to envName
-        public string Domain { get; set; } = "amazonaws.com";
-        public string UriCodeTarget { get; set; } = "Debug";
-        public string UriCodePlatform { get; set; } = "netcoreapp3.1";
-        public bool IncludeLocalApis { get; set; } = false;
-    }
-    
+
     /// <summary>
     /// Read, Write, Generate AwsSettings configuration file for 
     /// a solution.
     /// </summary>
     public class AwsConfig
     {
-
-        /// <summary>
-        /// Generate a AWS settings file for specified environment.
-        /// </summary>
-        /// <param name="environmentName"></param>
-        /// <returns></returns>
-        public static async Task GenerateSettingsFileAsync(string solutionRootFolderPath, string environmentName, ILogger logger)
+        public static async Task<string> GenerateSettingsJsonAsync(
+            string profileName, 
+            string stackName, 
+            bool includeLocalApis, 
+            int localApiPort,
+            ILogger logger)
         {
-            if(logger == null)
+            if (logger == null)
                 throw new Exception($"Error: Logger not configured.");
 
-            if(string.IsNullOrEmpty(solutionRootFolderPath))
-                throw new Exception($"Error: No solutionRootFolderPath provided");
+            if (string.IsNullOrEmpty(profileName))
+                throw new Exception($"Error: No ProfileName provided");
 
-            if(string.IsNullOrEmpty(environmentName))
-                throw new Exception($"Error: No environmentName provided");
-           
-            await logger.InfoAsync($"Generating Settings for environment \"{environmentName}\"");
+            if (string.IsNullOrEmpty(stackName))
+                throw new Exception($"Error: No StackName provided");
 
-            // Read template LazyStack Environments
-            var executingAssemblyFilePath = Assembly.GetExecutingAssembly().Location;
-            var executingAssemblyFolderPath = Path.GetDirectoryName(executingAssemblyFilePath);
-            var lazyStackTemplateFolderPath = Path.Combine(executingAssemblyFolderPath, "Templates");
-            if (!Directory.Exists(lazyStackTemplateFolderPath))
-                throw new System.Exception("LazyStack Templates folder Missing. Check installation.");
-            var templateLazyStackFilePath = Path.Combine(lazyStackTemplateFolderPath, "LazyStack.yaml");
-            if (!File.Exists(templateLazyStackFilePath))
-                throw new Exception($"Error: No LazyStack.yaml found in LazyStack installtion template folder");
+            if (includeLocalApis && localApiPort == 0)
+                throw new Exception($"Error: IncludeLocalApis is true but LocalApiProt is 0");
 
-            var templateLazyStackFileText = File.ReadAllText(templateLazyStackFilePath);
-            var templateLazyStackFileRoot = SolutionModel.ParseYamlText(templateLazyStackFileText);
+            if (logger == null)
+                throw new Exception($"Error: Logger is null");
 
-            // Read LazyStack Environments
-            var lazyStackFilePath = Path.Combine(solutionRootFolderPath, "LazyStack.yaml");
-            if (!File.Exists(lazyStackFilePath))
-                    throw new Exception($"Error: No LazyStack.yaml found in solution folder");
+            await logger.InfoAsync($"Generating Settings Json for AwsStack \"{stackName}\"");
 
-            var lazyStackFileText = File.ReadAllText(lazyStackFilePath);
-            var lazyStackFileRoot = SolutionModel.ParseYamlText(lazyStackFileText);
-
-            // Merge right into left
-            var mergedLazyStackFileRoot = SolutionModel.MergeNode(templateLazyStackFileRoot, lazyStackFileRoot) as YamlMappingNode;
-            var inspectMerge = SolutionModel.YamlNodeToText(mergedLazyStackFileRoot);
-
-            YamlNode outNode;
-            var deserializer = new DeserializerBuilder().Build();
-
-            // Get Environments
-            YamlMappingNode environmentsNode = null;
-            if (SolutionModel.GetNamedProperty(mergedLazyStackFileRoot, "Environments", out outNode))
-                environmentsNode = outNode as YamlMappingNode;
-
-            if (environmentsNode == null)
-                throw new Exception($"Error: No Environments defined in LazyStack.yaml");
-
-            var environments = deserializer.Deserialize<Dictionary<string, LzEnvironment>>(SolutionModel.YamlNodeToText(environmentsNode));
-
-            if(environments.Count == 0)
-                throw new Exception($"Error: No Environments defined in LazyStack.yaml");
-
-            if (!environments.TryGetValue(environmentName, out LzEnvironment environment))
-                throw new Exception($"Error: \"{environmentName}\" not found in LazyStack Environments");
-
-            // Get optional LocalApis
-            YamlMappingNode localApisNode = null;
-            if (SolutionModel.GetNamedProperty(mergedLazyStackFileRoot, "LocalApis", out outNode))
-                localApisNode = outNode as YamlMappingNode;
-
-            var localApis = new Dictionary<string, AwsSettings.LocalApi>();
-            if(localApisNode != null)
-                localApis = deserializer.Deserialize<Dictionary<string, AwsSettings.LocalApi>>(SolutionModel.YamlNodeToText(localApisNode));
-
-            // Load SolutionModelAwsSettings.json file
-            var solutionModelAwsSettingsFilePath = Path.Combine(solutionRootFolderPath, "SolutionModelAwsSettings.json");
-            if (!File.Exists(solutionModelAwsSettingsFilePath))
-                throw new Exception($"Error: \"SolutionModelAwsSettings.json\" not found in solution folder");
-            var awsSettingsText = File.ReadAllText(solutionModelAwsSettingsFilePath);
-            var awsSettings = JsonConvert.DeserializeObject<AwsSettings>(awsSettingsText);
-
-            // Assign some AwsSettings values from selected environment
-            foreach(var apiGateway in awsSettings.ApiGateways.Values)
-            {
-                apiGateway.Host = environment.Domain;
-                apiGateway.Stage = environment.Stage;
-            }
-            var regionName = environment.RegionName;
-            awsSettings.Region = regionName;
-
-            // Use Cloud Formation to get the rest of the configuration values
-            var regions = new Dictionary<string, RegionEndpoint>();
-            foreach (var regionItem in RegionEndpoint.EnumerableAllRegions)
-                regions.Add(regionItem.SystemName, regionItem);
-
-            // Validate Aws Region
-            if (!regions.ContainsKey(regionName))
-                throw new Exception($"Error: AWS Region \"{regionName}\" specified in environment \"{environmentName}\" not found.");
-            var region = regions[environment.RegionName];
-
-            var profileName = environment.ProfileName;
             var sharedCredentialsFile = new SharedCredentialsFile(); // AWS finds the shared credentials store for us
             CredentialProfile profile = null;
             if (!sharedCredentialsFile.TryGetProfile(profileName, out profile))
@@ -142,16 +48,54 @@ namespace LazyStack
 
             AWSCredentials creds = null;
             if (!AWSCredentialsFactory.TryGetAWSCredentials(profile, sharedCredentialsFile, out creds))
-                throw new Exception($"Error: Could not get AWS Credentials using specified profile.");
+                throw new Exception($"Error: Could not get AWS Credentials using specified profile \"{profileName}\".");
 
-            var stackName = environment.StackName;
+            var awsSettings = new AwsSettings();
             awsSettings.StackName = stackName;
 
             try
             {
-                var cfClient = new AmazonCloudFormationClient(creds); 
+                // Get Original Template
+                var cfClient = new AmazonCloudFormationClient(creds);
+                var getTemplateRequestOriginal = new GetTemplateRequest()
+                {
+                    StackName = stackName
+                    , TemplateStage = Amazon.CloudFormation.TemplateStage.Original
+                    
+                };
+
+                var templateReponse = cfClient.GetTemplateAsync(getTemplateRequestOriginal).GetAwaiter().GetResult();
+                //var templateBodyIndex = templateReponse.StagesAvailable.IndexOf("Original");
+                var templateBody = templateReponse.TemplateBody; // Original is in yaml form
+                //var tmplYaml = new StringReader(new YamlDotNet.Serialization.SerializerBuilder().Build().Serialize(templateBody));
+                var tmplYaml = new StringReader(templateBody);
+                var templYamlObj = new YamlDotNet.Serialization.DeserializerBuilder().Build().Deserialize(tmplYaml);
+                templateBody = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(templYamlObj);
+                var jTemplateObjOriginal = JObject.Parse(templateBody);
+
+
+                // Get Processed Template
+                var getTemplateRequestProcessed = new GetTemplateRequest()
+                {
+                    StackName = stackName,
+                    TemplateStage = Amazon.CloudFormation.TemplateStage.Processed
+                };
+
+                templateReponse = cfClient.GetTemplateAsync(getTemplateRequestProcessed).GetAwaiter().GetResult();
+                //var templateBodyIndex = templateReponse.StagesAvailable.IndexOf("Original");
+                templateBody = templateReponse.TemplateBody;
+                var jTemplateObjProcessed = JObject.Parse(templateBody);
+
+                // Get Stack Resources
                 var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
                 var describeStackResourcesResponse = await cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest);
+
+                if (describeStackResourcesResponse.StackResources.Count == 0)
+                    throw new Exception($"Error: No resources found for specified stack.");
+
+                // Extract region from StackId ARN -- "arn:aws:cloudformation:us-east-1:..."
+                var stackIdParts = describeStackResourcesResponse.StackResources[0].StackId.Split(':');
+                awsSettings.Region = stackIdParts[3];
 
                 foreach (var resource in describeStackResourcesResponse.StackResources)
                     switch (resource.ResourceType)
@@ -166,32 +110,66 @@ namespace LazyStack
                             awsSettings.IdentityPoolId = resource.PhysicalResourceId;
                             break;
                         case "AWS::ApiGatewayV2::Api":
-                            if(awsSettings.ApiGateways.TryGetValue(resource.LogicalResourceId, out AwsSettings.Api httpApi))
+                            var httpApi = new AwsSettings.Api();
+                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, httpApi);
+                            httpApi.Id = resource.PhysicalResourceId;
+                            httpApi.Type = "HttpApi";
+                            try
                             {
-                                httpApi.Id = resource.PhysicalResourceId;
-                                httpApi.Type = "HttpApi";
-                            }
+                                var apiName = resource.LogicalResourceId;
+                                var HttpApiSecureAuthType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["components"]["securitySchemes"]["OpenIdAuthorizer"]["type"];
+                                if (HttpApiSecureAuthType.Equals("oauth2"))
+                                    httpApi.SecurityLevel = AwsSettings.SecurityLevel.JWT;
+                                else
+                                    httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
 
+                                // Note that  the processed template moves the stagename into the AWS::ApiGateway::Stage resource
+                                httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
+
+
+                            }
+                            catch
+                            {
+                                httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
                             break;
                         case "AWS::ApiGateway::RestApi":
-                            if (awsSettings.ApiGateways.TryGetValue(resource.LogicalResourceId, out AwsSettings.Api restApi))
+                            var restApi = new AwsSettings.Api();
+                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, restApi);
+                            restApi.Id = resource.PhysicalResourceId;
+                            restApi.Type = "Api";
+                            try
                             {
-                                restApi.Id = resource.PhysicalResourceId;
-                                restApi.Type = "Api";
+                                var apiName = resource.LogicalResourceId;
+                                var apiAuthSecurityType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["securityDefinitions"]["AWS_IAM"]["x-amazon-apigateway-authtype"];
+                                if (apiAuthSecurityType.Equals("awsSignv4"))
+                                    restApi.SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4;
+                                else
+                                    restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                                restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                             }
-                            break; 
+                            catch
+                            {
+                                restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
+                            break;
                     }
 
-                if (environment.IncludeLocalApis && localApis.Count > 0)
-                    awsSettings.LocalApis = localApis;
+                if(includeLocalApis)
+                {
+                    awsSettings.LocalApis.Add("Local", new AwsSettings.LocalApi() { Host = "localhost", Scheme = "https", Port = localApiPort });
+                    awsSettings.LocalApis.Add("LocalAndroid", new AwsSettings.LocalApi() { Host = "10.0.2.2", Scheme = "https", Port = localApiPort });
+                }
 
-                var settingsFileText = awsSettings.BuildJsonWrapped();
-                File.WriteAllText(Path.Combine(solutionRootFolderPath,$"{environmentName}_AwsSettings.json"), settingsFileText);
+                return awsSettings.BuildJsonWrapped();
             }
-            catch
+            catch (Exception e)
             {
-                await logger.InfoAsync($"Warning: Stack \"{stackName}\" in environment \"{environmentName}\" not found by CloudFormation. Has it been published?");
+                await logger.InfoAsync($"Error: {e.Message}");
+                await logger.InfoAsync($"Warning: Stack \"{stackName}\" not found by CloudFormation. Has it been published?");
             }
+            return null;
         }
+
     }
 }

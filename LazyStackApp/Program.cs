@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
-using System.ComponentModel;
-using System.Threading;
 using System.Collections.Generic;
 using CommandLine;
 using LazyStack;
-using Microsoft.DotNet;
-using Microsoft.DotNet.InternalAbstractions;
 
 //using Microsoft.Build.Locator;
 
@@ -55,14 +50,23 @@ namespace LazyStackApp
             public string Environment { get; set; } = "Dev";
         }
 
-        [Verb("settings", HelpText = "Generate/Update AWS settings files")]
+        [Verb("settings", HelpText = "Generate AWS settings files")]
         public class SettingsOptions
         {
-            [Option('s', "solutionfile", Required = false, HelpText = "Specify solution file")]
-            public string SolutionFilePath { get; set; }
+            [Value(0, Required =true, HelpText ="Name of Stack")]
+            public string StackName { get; set; }
 
-            [Option('e', "env", Required = false, HelpText = "Specify environment")]
-            public string Environment { get; set; } = "Dev";
+            [Value(1, Required = false, HelpText ="FilePath")]
+            public string OutputFilePath { get; set; }
+
+            [Option('n', "profilename", Required = false, HelpText = "Specify AWS profile", Default = (string)"default")]
+            public string ProfileName { get; set; }
+
+            [Option('l', "includelocalapis", Required = false, HelpText = "Include local Apis?",Default =(bool)false)]
+            public bool IncludeLocalApis { get; set; }
+
+            [Option('p', "localapiport", Required = false, HelpText = "Local Api Port - defaults to 5001", Default =(int)5001)]
+            public int LocalApiPort { get; set; }
         }
 
         // todo: should be "static Task<int> Main(...) so everything can be async. However, the 
@@ -85,34 +89,34 @@ namespace LazyStackApp
         public static int RunSettings(SettingsOptions settingsOptions)
         {
             var logger = new Logger();
-            var solutionFilePath = settingsOptions.SolutionFilePath;
-
-            var solutionRootFolderPath = Path.GetDirectoryName(solutionFilePath); // may be empty
-            var appName = Path.GetFileNameWithoutExtension(solutionFilePath); // may be empty
-
-            // use current directory if no directory was specified           
-            if (string.IsNullOrEmpty(solutionRootFolderPath))
-                solutionRootFolderPath = Directory.GetCurrentDirectory();
-
-            // find sln file if none was specified
-            if (string.IsNullOrEmpty(appName))
-            {
-                // Find Visual Studio solution file
-                var solFiles = Directory.GetFiles(solutionRootFolderPath, "*.sln");
-                if (solFiles.Length > 1)
-                    throw new System.Exception("More than one .sln file in folder");
-
-                if (solFiles.Length == 0)
-                    throw new System.Exception("Solution file not found");
-
-                appName = Path.GetFileNameWithoutExtension(solFiles[0]);
-                solutionFilePath = Path.Combine(solutionRootFolderPath, $"{appName}.sln");
-            }
-
-
             try
             {
-                AwsConfig.GenerateSettingsFileAsync(solutionRootFolderPath,settingsOptions.Environment, logger).GetAwaiter().GetResult();
+                if (string.IsNullOrEmpty(settingsOptions.StackName))
+                    throw new Exception($"Error: no StackName provided");
+
+                var outputFilePath = settingsOptions.OutputFilePath;
+                if (string.IsNullOrEmpty(outputFilePath))
+                    outputFilePath = "AwsSettings.json";
+                else
+                {
+                    string dirName = Path.GetDirectoryName(outputFilePath);
+                    if (!string.IsNullOrEmpty(dirName))
+                    {
+                        string fileName = Path.GetFileName(outputFilePath);
+                        if(string.IsNullOrEmpty(fileName))
+                            outputFilePath = Path.Combine(outputFilePath, "AwsSettings.json");
+                    }
+                } 
+                var json = AwsConfig.GenerateSettingsJsonAsync(
+                    settingsOptions.ProfileName,
+                    settingsOptions.StackName,
+                    settingsOptions.IncludeLocalApis,
+                    settingsOptions.LocalApiPort,
+                    logger
+                    ).GetAwaiter().GetResult();
+
+                File.WriteAllText(outputFilePath, json);
+
             }
             catch (Exception e)
             {
@@ -134,12 +138,11 @@ namespace LazyStackApp
             { 
                 var solutionModel = new SolutionModel(projectsOptions.SolutionFilePath, logger);
 
+
                 // Process the API yaml files
                 solutionModel.ProcessOpenApiAsync().GetAwaiter().GetResult();
 
                 solutionModel.WriteSAMAsync().GetAwaiter().GetResult();
-
-                solutionModel.WriteSolutionModelAwsSettings().GetAwaiter().GetResult();
 
                 // Create / Update the Projects
                 var processProjects = new ProcessProjects(solutionModel, logger);

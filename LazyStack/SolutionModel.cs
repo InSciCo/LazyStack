@@ -16,7 +16,6 @@ namespace LazyStack
 {
     public class SolutionModel
     {
-
         public SolutionModel(string solutionFilePath, ILogger logger)
         {
             this.logger = logger;
@@ -121,6 +120,7 @@ namespace LazyStack
 
         public string CodeUriTarget { get; set; }
 
+
         /// <summary>
         /// LazyStack default template values keyed by Resource Type.
         /// </summary>
@@ -129,15 +129,20 @@ namespace LazyStack
         public YamlMappingNode OpenApiSpecRootNode;
         public string OpenApiSpecText;
 
-        public Dictionary<string, LzEnvironment> Environments { get; set; } = new Dictionary<string, LzEnvironment>();
+        public Dictionary<string, Environment> Environments { get; set; } = new Dictionary<string, Environment>();
         public Dictionary<string, AwsSettings.LocalApi> LocalApis { get; set; } = new Dictionary<string, AwsSettings.LocalApi>();
 
         #endregion Properties
 
         #region Variables
         YamlMappingNode lzConfigRootNode;
+
+        // LazyStackVersions earliest to latest
+        List<string> LazyStackVersions = new List<string> { "1.0.0" }; 
+        string LazyStackDirectivesVersion = string.Empty;
         YamlMappingNode samRootNode;
         readonly ILogger logger;
+        bool IsConfigurationParsed;
         #endregion Variables
 
         #region Methods
@@ -157,11 +162,79 @@ namespace LazyStack
             fileName = Path.Combine(LazyStackTemplateFolderPath, "LazyStack.yaml");
             if (!File.Exists(fileName))
                 throw new Exception("Error: LazyStack.yaml file missing from LazyStack templates folder");
+
+ 
             var lazyStackNode = ReadAndParseYamlFile(fileName);
             if (!lazyStackNode.Children.TryGetValue("ProjectOptions", out YamlNode node))
                 throw new Exception("Error: ProjectOptions missing from LazyStack.yaml file in LazyStack templates folder ");
             ProjectGenerationOptions = node as YamlMappingNode;
         }
+
+       public async Task LoadLazyStackDirectives()
+        {
+            var earliestLazyStackVersion = LazyStackVersions[0];
+            var latestLazyStackVersion = LazyStackVersions[LazyStackVersions.Count - 1];
+
+            var lzConfigFilePath = Path.Combine(SolutionRootFolderPath, "LazyStack.yaml");
+            if (!File.Exists(lzConfigFilePath))
+            {
+                string fileText =
+@"# LazyStack Version __Version__
+Stacks:
+  Dev:
+    ProfileName: default
+    RegionName: us-east-1
+    Stackname: __AppName__Dev 
+    Stage: Dev
+    IncludeLocalApis: true";
+                fileText = fileText.Replace("__Version__", latestLazyStackVersion);
+                fileText = fileText.Replace("__AppName__", AppName);
+                File.WriteAllText(lzConfigFilePath, fileText);
+            }
+
+            // Load Users LazyStack.ymal
+            await logger.InfoAsync($"\nLoading LazyStack.yaml configuration file");
+            lzConfigRootNode = ReadAndParseYamlFile(lzConfigFilePath);
+            Debug.WriteLine($"lzConfigRootNode \n{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}");
+
+            // Check version of LazyStack.yaml -- must be first line of file
+            var versionErrorString = $"Error: LazyStack.yaml firstline must start with \"# LazyStack Version {latestLazyStackVersion}\" -- where version is {earliestLazyStackVersion} to {latestLazyStackVersion}";
+            var firstLine = string.Empty;
+            using (StreamReader reader = new StreamReader(lzConfigFilePath))
+            {
+                firstLine = reader.ReadLine() ?? string.Empty;
+            }
+            if (string.IsNullOrEmpty(firstLine))
+                throw new Exception(versionErrorString);
+
+            var firstLineParts = firstLine.Split(' ');
+            if(firstLineParts.Length != 4)
+                throw new Exception(versionErrorString);
+
+            if(!firstLineParts[0].Equals("#") || !firstLineParts[1].Equals("LazyStack") || !firstLineParts[2].Equals("Version"))
+                throw new Exception(versionErrorString);
+
+            LazyStackDirectivesVersion = firstLineParts[3];
+            var found = false;
+            foreach (var version in LazyStackVersions)
+                if (found = version.Equals(LazyStackDirectivesVersion))
+                    break;
+
+            if (!found)
+                throw new Exception($"Error: LazyStack.yaml file version {LazyStackDirectivesVersion} is not a recognized version.");
+
+            // TODO - later on we will check if the directives file (and processed projects etc.) need to be upgraded
+            // We will add a LazyStack -- Update Generated Projects to Latest Version command
+
+            // Parse top-level configuration directives from Users LazyStack.yaml file
+            // DefaultApi, AwsTemplate, ProjectOptions, Environments, LocalApis
+            // Note: ProjectOptions add/override existing ProjectOptions that were loaded in InitDefaults processing of template\LazyStack.yaml
+            await ParseLzConfigurationAsync();
+
+            IsConfigurationParsed = true;
+
+        }
+
 
         /// <summary>
         /// Read the solutions OpenApi specification file, and directives in
@@ -172,21 +245,13 @@ namespace LazyStack
             // Load Users OpenApi specification file
             await logger.InfoAsync($"\nLoading OpenApi Specification {OpenApiFilePath}");
             OpenApiSpecText = File.ReadAllText(OpenApiFilePath);
-            OpenApiSpecRootNode = ParseYamlText(OpenApiSpecText); 
+            OpenApiSpecRootNode = ParseYamlText(OpenApiSpecText);
 
-            // Load Users LazyStack.ymal
-            var lzConfigFilePath = Path.Combine(SolutionRootFolderPath, "LazyStack.yaml");
-            if (File.Exists(lzConfigFilePath))
-            {
-                await logger.InfoAsync($"\nLoading LazyStack.yaml configuration file");
-                lzConfigRootNode = ReadAndParseYamlFile(lzConfigFilePath);
-                Debug.WriteLine($"lzConfigRootNode \n{new SerializerBuilder().Build().Serialize(lzConfigRootNode)}"); 
-            }
+            if (!IsConfigurationParsed)
+                await LoadLazyStackDirectives();
 
-            // Parse top-level configuration directives from Users LazyStack.yaml file
-            // DefaultApi, AwsTemplate, ProjectOptions, Environments, LocalApis
-            // Note: ProjectOptions add/override existing ProjectOptions that were loaded in InitDefaults processing of template\LazyStack.yaml
-            await ParseLzConfigurationAsync();
+            // Create folders for each environment
+            await CreateEnvironmentFolders();
 
             // HttpApiUnsecure, HttpApiSecure, ApiUnsecure, ApiSecure, 
             // UserPool, UserPoolClient, IdentityPool, CognitoIdentityPoolRoles, AuthRole, UnAuthRole
@@ -258,6 +323,7 @@ namespace LazyStack
             if (lzConfigRootNode == null)
                 return;
 
+
             await logger.InfoAsync($"\nLoading LazyStack Configuration");
 
             var deserializer = new YamlDotNet.Serialization.DeserializerBuilder().Build();
@@ -306,16 +372,20 @@ namespace LazyStack
                         Debug.WriteLine($"ProjectGenerationOptions\n {new SerializerBuilder().Build().Serialize(ProjectGenerationOptions)}");
                         break;
 
-                    case "Environments":
+                    case "Stacks": 
                         // Load values - environments are used by the Generate Settings process
                         var envYamlStr = SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode);
                         try
                         {
-                            Environments = deserializer.Deserialize<Dictionary<string, LzEnvironment>>(SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode));
+                            Environments = deserializer.Deserialize<Dictionary<string, Environment>>(SolutionModel.YamlNodeToText(kvp.Value as YamlMappingNode));
+                            if (Environments.Count == 0)
+                                throw new Exception("No Stacks defined");
+                            if (!Environments.TryGetValue("Dev", out Environment devEnv))
+                                throw new Exception("No \"Dev\" stack defined");
                         }
                         catch (Exception e)
                         {
-                            throw new Exception($"Error: Could not parse Environments section. {e.InnerException.Message}");
+                            throw new Exception($"Error: Could not parse Stacks section. {e.InnerException.Message}");
                         }
                         break;
 
@@ -335,6 +405,39 @@ namespace LazyStack
                     default: // stop on any unrecognized directives
                         throw new Exception($"Unknown directive {kvp.Key}");
                 }
+        }
+
+
+        private async Task CreateEnvironmentFolders()
+        {
+            await Task.Delay(0); // avoid no await warning 
+            try
+            {
+                var envFoldersPath = Path.Combine(SolutionRootFolderPath, "Stacks");
+                if (!Directory.Exists(envFoldersPath))
+                    Directory.CreateDirectory(envFoldersPath);
+                foreach (var kvp in Environments)
+                {
+                    var envFolderPath = Path.Combine(envFoldersPath, kvp.Key);
+                    if (!Directory.Exists(envFolderPath))
+                        Directory.CreateDirectory(envFolderPath);
+                }
+                var existingEnvFolders = Directory.GetDirectories(envFoldersPath);
+                foreach(var folder in existingEnvFolders)
+                {
+                    
+                    var dirParts = folder.Split('\\');
+                    var dir = dirParts[dirParts.Length - 1]; 
+
+                    // remove any obsolete env folders
+                    if (!Environments.ContainsKey(dir))
+                        Directory.Delete(folder);
+                }
+            }
+            catch
+            {
+                throw new Exception($"Error: Could not create stack folder(s)");
+            }
         }
 
         /// <summary>
@@ -741,8 +844,6 @@ namespace LazyStack
         // 
         public async Task WriteSAMAsync()
         {
-            var fileName = "serverless.template";
-
             await logger.InfoAsync($"\nWriting SAM File(s)");
 
             var resources = new YamlMappingNode();
@@ -752,68 +853,21 @@ namespace LazyStack
             samRootNode.Add("Resources", resources);
             var fileText = new YamlDotNet.Serialization.Serializer().Serialize(samRootNode);
 
+            var samReviewMsg =
+                "# SAM Template Review - DO NOT ATTEMPT TO PUBLISH THIS SAM TEMPLATE\n" +
+                "# Publish for a specific stack instead (ex: Stacks/Dev/serverless.template).\n" +
+                "# This file is generated for genral review of generated template. Environment specific content targets\n" +
+                "# like __codeUriTarget__ and __StageName__ are not resolved.\n\n";
+
+            File.WriteAllText(Path.Combine(SolutionRootFolderPath, "SAM_Review.yaml"), samReviewMsg + fileText);
+             
             foreach(var env in Environments)
             {
                 var envFileText = fileText.Replace("__codeUriTarget__", env.Value.UriCodeTarget);
                 envFileText = envFileText.Replace("__StageName__", env.Value.Stage);
-                File.WriteAllText(Path.Combine(SolutionRootFolderPath,$"{env.Key}.{fileName}"), envFileText);
-                if(env.Key.Equals("Dev"))
-                    File.WriteAllText(Path.Combine(SolutionRootFolderPath, $"{fileName}"), envFileText);
+                File.WriteAllText(Path.Combine(SolutionRootFolderPath,"Stacks",env.Key,"serverless.template"), envFileText);
             }
         }
-
-        public async Task WriteSolutionModelAwsSettings()
-        {
-            await Task.Delay(0);
-            var awsSettings = new AwsSettings();
-            foreach (var kvp in Apis)
-                awsSettings.ApiGateways.Add(kvp.Key,
-                    new AwsSettings.Api()
-                    { 
-                        SecurityLevel = kvp.Value.SecurityLevel, 
-                    });
-
-            //// Generate MethodMap
-            //foreach (var endpoint in EndPoints)
-            //    awsSettings.MethodMap.Add($"{endpoint.Key}Async", endpoint.Value.Api.Name);
-
-            var settingsFileText = awsSettings.BuildJson();
-            File.WriteAllText(Path.Combine(SolutionRootFolderPath, "SolutionModelAwsSettings.json"), settingsFileText);
-        }
-
-        // old version where we added an Output section
-        //public async Task WriteSAMAsync(string envName)
-        //{
-        //    var filePath = $"{AppName}.{envName}.template.yaml";
-        //    await logger.InfoAsync($"\nWriting SAM File {filePath}");
-        //    if (!Environments.TryGetValue(envName, out LzEnvironment env))
-        //        throw new Exception($"Error: {envName} not found!");
-        //    // We must prefix output variables becuase they have to be globally unique - no two stacks, in the same account, can use the same output variable name
-        //    var resourcePrefix = $"{AppName}{envName}"; // ex: PetStoreDev
-        //    var OutputSection = string.Empty;
-        //    var resources = new YamlMappingNode();
-        //    foreach (var resource in Resources)
-        //        if (resource.Value.IsHttpApi || resource.Value.IsRestApi)
-        //        {   // Emit the Api only if it services a lambda 
-        //            if (Apis[resource.Key].Lambdas.Count > 0)
-        //            {
-        //                resources.Add(resource.Key, resource.Value.RootNode);
-        //                OutputSection += resource.Value.GetOutputItem(resourcePrefix);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            resources.Add(resource.Key, resource.Value.RootNode);
-        //            OutputSection += resource.Value.GetOutputItem(resourcePrefix);
-        //        }
-        //    samRootNode.Add("Resources", resources);
-        //    if (!string.IsNullOrEmpty(OutputSection))
-        //        samRootNode.Add("Outputs", ParseYamlText(OutputSection));
-        //    var fileText = new YamlDotNet.Serialization.Serializer().Serialize(samRootNode);
-        //    fileText = fileText.Replace("__codeUriTarget__", env.UriCodeTarget);
-        //    File.WriteAllText(filePath, fileText);
-        //}
-
 
         #endregion
 
