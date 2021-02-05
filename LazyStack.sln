@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuth", "LazyStackAuth\LazyStackAuth.csproj", "{040A2363-D90F-4A3C-AE69-1CB8757D051E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTests", "LazyStackAuthTests\LazyStackAuthTests.csproj", "{27DBAE02-13E9-4727-9987-756A81386519}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAwsSettings", "LazyStackAwsSettings\LazyStackAwsSettings.csproj", "{920D9F56-BFD6-4402-9025-56DC0B1FEB36}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackDynamoDBRepo", "LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj", "{AAC0F776-6670-498A-AE71-56B84A5CC9AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackGetAwsSettings", "LazyStackGetSettings\LazyStackGetAwsSettings.csproj", "{21A4AFE2-8160-4901-9D6E-BBF83A176706}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{022D49A6-541D-47DA-8FF0-7E3A1EFB5050}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{040A2363-D90F-4A3C-AE69-1CB8757D051E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{040A2363-D90F-4A3C-AE69-1CB8757D051E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{040A2363-D90F-4A3C-AE69-1CB8757D051E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{040A2363-D90F-4A3C-AE69-1CB8757D051E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27DBAE02-13E9-4727-9987-756A81386519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27DBAE02-13E9-4727-9987-756A81386519}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27DBAE02-13E9-4727-9987-756A81386519}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27DBAE02-13E9-4727-9987-756A81386519}.Release|Any CPU.Build.0 = Release|Any CPU
+		{920D9F56-BFD6-4402-9025-56DC0B1FEB36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{920D9F56-BFD6-4402-9025-56DC0B1FEB36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{920D9F56-BFD6-4402-9025-56DC0B1FEB36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{920D9F56-BFD6-4402-9025-56DC0B1FEB36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAC0F776-6670-498A-AE71-56B84A5CC9AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAC0F776-6670-498A-AE71-56B84A5CC9AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAC0F776-6670-498A-AE71-56B84A5CC9AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAC0F776-6670-498A-AE71-56B84A5CC9AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21A4AFE2-8160-4901-9D6E-BBF83A176706}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21A4AFE2-8160-4901-9D6E-BBF83A176706}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21A4AFE2-8160-4901-9D6E-BBF83A176706}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21A4AFE2-8160-4901-9D6E-BBF83A176706}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9CF40041-34A3-426B-952C-84C4644828E8}
+	EndGlobalSection
+EndGlobal

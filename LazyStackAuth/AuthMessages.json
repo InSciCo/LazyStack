@@ -1,0 +1,83 @@
+{
+  "AuthProcessLabels": {
+    "en-US": {
+      "None": "",
+      "SigningIn": "Sign In",
+      "SigningUp": "Sign Up",
+      "ResettingPassword": "Reset Password",
+      "UpdatingLogin": "Update Login",
+      "UpdatingEmail": "Update Email",
+      "UpdatingPhone": "Update Phone",
+      "UpdatingPassword": "Update Password",
+      "SigningOut": "Sign Out"
+    }
+  },
+
+  "AuthProcessMessages": {
+    "en-US": {
+      "None": "",
+      "SigningIn": "Signing In",
+      "SigningUp": "Signing Up",
+      "ResettingPassword": "Resetting Password",
+      "UpdatingLogin": "Updating Login",
+      "UpdatingEmail": "Updating Email",
+      "UpdatingPhone": "Updating Phone",
+      "UpdatingPassword": "Updating Password",
+      "SigningOut": "Signing Out"
+    }
+  },
+  "AuthChallengeMessages": {
+    "en-US": {
+      "None": "",
+      "Login": "Enter your Login",
+      "NewLogin": "Enter new Login",
+      "Password": "Enter your Password",
+      "NewPassword": "Enter a new Password",
+      "Email": "Enter your Email address",
+      "NewEmail": "Enter your new Email address",
+      "Phone": "Enter your mobile phone number",
+      "NewPhone": "Enter you new mobile phone number",
+      "Code": "Enter authentication code"
+    }
+  },
+  "AuthAlertMessages": {
+    "en-US": {
+      "Alert_AuthProcessAlreadyStarted": "Another Authentication Process is already started.",
+      "Alert_DifferentAuthProcessActive": "Different Authentication Process is active.",
+      "Alert_IncorrectAuthProcess": "Invalid call for currently active Authentication Process.",
+      "Alert_NoActiveAuthProcess": "No Authentication Process is active.",
+      "Alert_AlreadySignedIn": "You are already Signed In.",
+      "Alert_InternalSignInError": "Internal Sign In Error.",
+      "Alert_InternalSignUpError": "Internal Sign Up Error.",
+      "Alert_InternalProcessError": "Internal Authentication Process Error.",
+      "Alert_SignUpMissingLogin": "Attempt to Sign Up with no Login value.",
+      "Alert_SignUpMissingPassword": "Attempt to Sign UP with no Password value.",
+      "Alert_SignUpMissingEmail": "Attempt to Sign Up with no Email value.",
+      "Alert_SignUpMissingCode": "Attempt to Sign Up with no Code value.",
+      "Alert_AuthAlreadyStarted": "Authentication is already started.",
+      "Alert_InvalidCallToResendAsyncCode": "Invalid request to resend authentication code.",
+      "Alert_AccountWithThatEmailAlreadyExists": "Another account with that email already exists.",
+      "Alert_RefreshUserDetailsDone": "Refresh of user details completed.",
+      "Alert_EmailAddressIsTheSame": "New email address is the same as currently registered email address.",
+      "Alert_VerifyCalledButNoChallengeFound": "A verify challenge was called but no current challenge was found.",
+      "Alert_CantRetrieveUserDetails": "Can't retrieve user details.",
+      "Alert_NeedToBeSignedIn": "You need to be signed in to perform the requested operation.",
+      "Alert_InvalidOperationWhenSignedIn": "You need to be signed out to perform the requested operation.",
+      "Alert_UserNotFound": "User Login not found.",
+      "Alert_NotConfirmed": "User credentials can not be confirmed.",
+      "Alert_NotAuthorized": "User is not authorized.",
+      "Alert_VerifyFailed": "User verification failed.",
+      "Alert_LoginAlreadyUsed": "Sorry, that user login is already used. Please choose another.",
+      "Alert_LoginMustBeSuppliedFirst": "Login must be supplied first.",
+      "Alert_LoginFormatRequirementsFailed": "Login format requirements not satisfied.",
+      "Alert_PasswordFormatRequirementsFailed": "Password format requirements not satisfied.",
+      "Alert_EmailFormatRequirementsFailed": "The supplied Email is not valid.",
+      "Alert_PhoneFormatRequirementsFailed": "The supplied Phone is not valid.",
+      "Alert_TooManyAttempts": "You have exceeded the login attempt limit. Try again later.",
+      "Alert_NothingToDo": "",
+      "Alert_OperationNotSupportedByAuthProvider": "Operation not supported by current auth provider.",
+      "Alert_Unknown": "Unknown Alert Raised."
+    }
+  }
+}
+
