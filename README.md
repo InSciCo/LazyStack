@@ -1,4 +1,4 @@
-# LazyStack
+# <a href="https://inscico.github.io/LazyStack/">LazyStack</a>
 ## LazyStack Libraries
 This repo contains a number of open-source MIT licensed libraries and tools you may use in client applications. 
 Our intention is to ensure that these libraries are useful even if you are not using LazyStack to generate your stacks.
