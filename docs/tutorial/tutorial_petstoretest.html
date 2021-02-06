@@ -121,62 +121,62 @@
 <div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
     <ul class="vertical menu dropdown">
         <li >
-            <a  href="/tutorial/tutorial_overview.html">
+            <a  href="./tutorial/tutorial_overview.html">
                 <span class="">Overview</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_petstore.html">
+            <a  href="./tutorial/tutorial_petstore.html">
                 <span class="">1) PetStore</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_controllers.html">
+            <a  href="./tutorial/tutorial_controllers.html">
                 <span class="">2) Implement Controllers</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_configure01.html">
+            <a  href="./tutorial/tutorial_configure01.html">
                 <span class="">3) Configure LazyStack</span>
             </a>
         </li>
         
         <li >
-            <a  href="/tutorial/tutorial_publishtoaws.html">
+            <a  href="./tutorial/tutorial_publishtoaws.html">
                 <span class="">4) Publish to AWS</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_testlocalwebapi.html">
+            <a  href="./tutorial/tutorial_testlocalwebapi.html">
                 <span class="">5) Test Local WebApi</span>
             </a>
         </li>
 
 
         <li >
-            <a  href="/tutorial/tutorial_petstoretest.html">
+            <a  href="./tutorial/tutorial_petstoretest.html">
                 <span class="lz-r-topicitem">6) PetStore Test</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_consoleapp.html">
+            <a  href="./tutorial/tutorial_consoleapp.html">
                 <span class="">7) Console App</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_xamarinapp.html">
+            <a  href="./tutorial/tutorial_xamarinapp.html">
                 <span class="">8) Xamarin App</span>
             </a>
         </li>
 
         <li >
-            <a  href="/tutorial/tutorial_blazorapp.html">
+            <a  href="./tutorial/tutorial_blazorapp.html">
                 <span class="">9) Blazor App</span>
             </a>
         </li>
@@ -278,12 +278,12 @@
         insights into how you should use the libraries in your client apps. Take note of the 
     following implementation elements:</p>
     <ul>
-        <li><a href="/clientsdk/clientsdk_awssettings.html">AwsSettings.json</a> is an embedded resource that is loaded by ConfigurationBuilder. This embedded resource 
+        <li><a href="./clientsdk/clientsdk_awssettings.html">AwsSettings.json</a> is an embedded resource that is loaded by ConfigurationBuilder. This embedded resource 
             references \Stacks\Dev\AwsSettings.json. In a client app, you would introduce condition logic in the 
             csproj file to use \Stacks\Prod\AwsSettings.json for release builds or just distribute the AwsSettings.json 
             file separately to developers using the PetStoreClientSDK.
         </li>
-        <li><a href="/libraries/lazystackauth/lazystackauth_authmessages.html">AuthMessages.json</a> is a embedded resource that is loaded by ConfigurationBuilder. Extend 
+        <li><a href="./libraries/lazystackauth/lazystackauth_authmessages.html">AuthMessages.json</a> is a embedded resource that is loaded by ConfigurationBuilder. Extend 
             this file with new message sets by language to localize the messages emitted by the AuthProcess class.
             This test does not demonstrate the use of AuthProcess messages but later Tutorial steps will.
         </li>
@@ -292,10 +292,10 @@
         </li>
         <li>This test only exercises the simple Happy Path SignUp and SignIn process. If you want 
             to see much more extensive integration tests for AuthProcess, view the LazyStack solution 
-            on GitHub. Also read the <a href="/libraries/lazystackauth/lazystackauth_lazystackauth.html">LazyStackAuth</a> documentation for 
+            on GitHub. Also read the <a href="./libraries/lazystackauth/lazystackauth_lazystackauth.html">LazyStackAuth</a> documentation for 
             more details.
         </li>
-        <li>The <a href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">LzHttpClient</a> class implements the logic necessary for 
+        <li>The <a href="./libraries/lazystackauth/lazystackauth_lzhttpclient.html">LzHttpClient</a> class implements the logic necessary for 
             your client to make secure calls to the AWS Stack ApiGateways. The LzHttpClient class uses the Aws, LoadApis and 
             MethodMap sections in the appConfig.
         </li>
