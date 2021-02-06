@@ -22597,10 +22597,10 @@ module.exports = function (module) {
 
 /***/ }),
 
-/***/ "./src/assets/js/app.js":
-/*!******************************!*\
-  !*** ./src/assets/js/app.js ***!
-  \******************************/
+/***/ "./src/LazyStack/assets/js/app.js":
+/*!****************************************!*\
+  !*** ./src/LazyStack/assets/js/app.js ***!
+  \****************************************/
 /*! no exports provided */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -22629,13 +22629,13 @@ jquery__WEBPACK_IMPORTED_MODULE_0___default()(document).foundation();
 /***/ }),
 
 /***/ 0:
-/*!************************************!*\
-  !*** multi ./src/assets/js/app.js ***!
-  \************************************/
+/*!**********************************************!*\
+  !*** multi ./src/LazyStack/assets/js/app.js ***!
+  \**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! C:\Users\tmay\source\repos\LazyStackWebSite\src\assets\js\app.js */"./src/assets/js/app.js");
+module.exports = __webpack_require__(/*! C:\Users\tmay\source\repos\LazyStackWebSite\src\LazyStack\assets\js\app.js */"./src/LazyStack/assets/js/app.js");
 
 
 /***/ })
