@@ -1,0 +1,457 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../../assets/css/app.css">
+    <link href="../../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#lazystackauth_lzhttpclient").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">Libraries</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="lz-r-sectionitem">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">LzHttpClient</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li>
+        <li>
+            <a  href="/libraries/libraries_overview.html">
+                <span class="">Overview</span>
+            </a>
+        </li>
+    
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_lazystackauth.html">
+                <span class="">LazyStackAuth</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authmessages.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthMessages</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authprovider.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthProvider</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authprocess.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthProcess</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="lz-r-topicitem">LzHttpClient</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/getawssettings/getawssettings_getawssettings.html">
+                <span class="">GetAwsSettings</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/dynamodb/dynamodb_overview.html">
+                <span class="">DynamoDBRepo</span>
+            </a>
+        </li>
+
+    </ul>
+</div><div class=lz-r-content> 
+<h4>LzHttpClient Class</h4>
+<p>The LzHttpClient class is responsible for making signed and unsigned calls to AWS ApiGateways. 
+    There are two types of signed HttpRequests used in LazyStack calls to AWS Gateways:</p> 
+    <ul>
+        <li><a href="https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-controlling-access-to-apis.html">
+        JWT token</a> - typically used by AWS::Serverless:HttpApi ApiGateways</li>
+        <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html">AWS Signature Version 4</a>
+             - highly secure option for AWS::Serverless::Api ApiGateways 
+            <p><i>LzHttpClient uses the very well engineered <a href="https://github.com/FantasticFiasco/aws-signature-version-4">
+                AwsSignatureVersion4</a> library to sign these types of requests.</i></p></li>
+    </ul>
+</p>
+
+<p>The AWS "special sauce" is isolated in the LzHttpClient. Let's examine the implementation of 
+    LzHttpClient to answer the following questions:
+</p>
+<ul>
+    <li>How does LzHttpClass know which ApiGateway to call?</li>
+    <li>How does LzHttpClass know what security scheme to apply on the call?</li>
+    <li>How do we configure LzHttpClass to call the local WebApi? (where WebApi was generated by LazyStack)</li>
+</ul>
+<p>First, take the time to read through the LzHttpClient class code.</p>
+<pre class="line-numbers"><code class="language-csharp">using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace LazyStackAuth
+{
+    public class LzHttpClient : ILzHttpClient
+    {
+        public LzHttpClient(
+            IConfiguration appConfig,
+            AuthProviderCognito authProvider,
+            string localApiName = null) :
+#if DEBUG
+        this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
+        { }
+#else
+        this(appConfig, methodMap, authProvider, new HttpClient(), localApiName)
+        { }
+#endif
+
+        public LzHttpClient(
+            IConfiguration appConfig,
+            AuthProviderCognito authProvider,
+            HttpClient httpClient,
+            string localApiName = null)
+        {
+            this.httpClient = httpClient;
+            this.localApiName = localApiName;
+            if (!string.IsNullOrEmpty(localApiName))
+                this.localApi = appConfig.GetSection($"LocalApis:{localApiName}").Get&lt;LocalApi>();
+            this.awsSettings = appConfig.GetSection("Aws").Get&lt;AwsSettings>();
+            this.authProvider = authProvider;
+            this.methodMap = appConfig.GetSection("MethodMap").GetChildren().ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        readonly HttpClient httpClient;
+        readonly AwsSettings awsSettings;
+        readonly LocalApi localApi;
+        readonly string localApiName = string.Empty;
+        AuthProviderCognito authProvider;
+        Dictionary&lt;string, string> methodMap;
+
+
+        // Note: CallerMember is inserted as a literal by the compiler in the IL so there is no 
+        // performance penalty for using it.
+        public async Task&lt;HttpResponseMessage> SendAsync(
+            HttpRequestMessage requestMessage,
+            HttpCompletionOption httpCompletionOption,
+            CancellationToken cancellationToken,
+            [CallerMemberName] string callerMemberName = null)
+        {
+
+            if (!methodMap.TryGetValue(callerMemberName, out string apiGatewayName))
+                throw new Exception($"Error: {callerMemberName} not found in AwsSettings MethodMap");
+
+            if (!awsSettings.ApiGateways.TryGetValue(apiGatewayName, out AwsSettings.Api api))
+                throw new Exception($"Error: {apiGatewayName} not found in AwsSettings ApiGateways dictionary");
+
+            var securityLevel = api.SecurityLevel;
+
+            if (!string.IsNullOrEmpty(localApiName))
+            {
+                var uriBuilder = new UriBuilder(localApi.Scheme, localApi.Host, localApi.Port);
+
+                // Issue: the AspNetCore server rejects a query with the ? encoded as %3F 
+                // so the following doesn't work 
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); 
+                // the assignment encodes path query as %3F instead of ?
+                // Here we encode the path separately and then build a
+                // a new Uri from the uriBuilder and the path.
+                var path = requestMessage.RequestUri.ToString(); // Unencoded
+                path = Uri.EscapeUriString(path); // Encoded properly
+                requestMessage.RequestUri = new Uri(uriBuilder.Uri, path);
+            }
+            else
+            {
+                var awshost = $"{api.Id}.{api.Service}.{awsSettings.Region}.{api.Host}";
+
+                var uriBuilder = (api.Port == 443)
+                    ? new UriBuilder(api.Scheme, awshost)
+                    : new UriBuilder(api.Scheme, awshost, api.Port);
+
+                var path = (!string.IsNullOrEmpty(api.Stage))
+                    ? "/" + api.Stage + "/" + requestMessage.RequestUri.ToString()
+                    : requestMessage.RequestUri.ToString();
+
+                // Issue: the AspNetCore server rejects a query with the ? encoded as %3F 
+                // so the following doesn't work 
+                // uriBuilder.Path = requestMessage.RequestUri.ToString(); 
+                // the assignment encodes path query as %3F instead of ?
+                // Here we encode the path separately and then build a
+                // a new Uri from the uriBuilder and the path.
+                path = Uri.EscapeUriString(path); // Encoded properly
+                requestMessage.RequestUri = new Uri(uriBuilder.Uri, path);
+            }
+
+            Debug.WriteLine($"requestMessage.Path {requestMessage.RequestUri.ToString()}");
+            try
+            {
+                HttpResponseMessage response = null;
+                // Note: If the call is being made against a local host then that host
+                // will by default not pay any attention to the authorization header attached by 
+                // the JWT or AwsSignatureVersion4 cases below. We assign the Headers
+                // anyway in case you want to implement handling these headers 
+                // in your local host for testing or any other purpose.
+                switch (securityLevel)
+                {
+                    case AwsSettings.SecurityLevel.None:
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
+                        break;
+
+                    case AwsSettings.SecurityLevel.JWT:
+                        // Use JWT Token signing process
+                        requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
+                        break;
+
+                    case AwsSettings.SecurityLevel.AwsSignatureVersion4:
+                        // Use full request signing process
+                        // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
+                        // This will refresh immutable credentials if necessary
+                        // Calling AwsSignatureVersion4 extension method -- this signs the request message
+                        var iCreds = await authProvider.Credentials.GetCredentialsAsync();
+
+                        response = await httpClient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken,
+                            awsSettings.Region,
+                            api.Service,
+                            iCreds);
+                        break;
+                }
+                return response;
+
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error: {e.Message}");
+            }
+
+            return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+
+        }
+#if DEBUG        
+        //https://docs.microsoft.com/en-us/xamarin/cross-platform/deploy-test/connect-to-local-web-services
+        //Attempting to invoke a local secure web service from an application running in the iOS simulator 
+        //or Android emulator will result in a HttpRequestException being thrown, even when using the managed 
+        //network stack on each platform.This is because the local HTTPS development certificate is self-signed, 
+        //and self-signed certificates aren't trusted by iOS or Android.
+        public static HttpClientHandler GetInsecureHandler()
+        {
+            var handler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
+                {
+                    if (cert.Issuer.Equals("CN=localhost"))
+                        return true;
+                    return errors == System.Net.Security.SslPolicyErrors.None;
+                }
+            };
+            return handler;
+        }
+#endif
+        public void Dispose()
+        {
+            httpClient.Dispose();
+        }
+    }
+}
+</code></pre>
+  
+<p>Now, let's examine and discuss the LzHttpClient class constructor(s) arguments:</p>
+<pre><code class="language-csharp">
+    public LzHttpClient(
+        IConfiguration appConfig,
+        AuthProviderCognito authProvider,
+        HttpClient httpClient,
+        string localApiName = null)
+    {
+        this.httpClient = httpClient;
+        this.localApiName = localApiName;
+        if (!string.IsNullOrEmpty(localApiName))
+            this.localApi = appConfig.GetSection($"LocalApis:{localApiName}").Get&lt;LocalApi>();
+        this.awsSettings = appConfig.GetSection("Aws").Get&lt;AwsSettings>();
+        this.authProvider = authProvider;
+        this.methodMap = appConfig.GetSection("MethodMap").GetChildren().ToDictionary(x => x.Key, x => x.Value);
+    }</code></pre>
+<p>It's useful to see how an instance of LzHttpStack is created to establish some context. Consider 
+    this snippet of code.
+</p>
+
+<h5>How does LzHttpClass know which ApiGateway to call?</h5>
+<p>LzHttpClient reads the "MessageMap" section of appConfig to get the MessageMap dictionary where the 
+    key is the ClientSDK method name and the value is the ApiGateway to call.
+</p>
+
+<h5>How does LzHttpClass know what security scheme to apply on the call?</h5>
+<p>The LzHttpClass reads the "Aws" section in appConfig. The AwsSettings include connection and security information for 
+    each ApiGateway used in the stack. See the <a href="/clientsdk/clientsdk_awssettings.html">AwsSettings</a> documentation 
+    for details on this configuration.
+</p>
+<h5>How dow we configure LzHttpClass to call a the local WebApi?</h5>
+<p>LzHttpClient reads the "LocalApis" section of appConfg to get the local WebApi project configuration instead of ApiGateways. 
+    To enable that feature you pass the constructor the local api name in the localApiName parameter. By default, LazyStack configures two local 
+    WebApi hosts:
+</p>
+<pre><code class="language-json">
+{
+    "LocalApis": {
+        "Local": {
+        "Scheme": "https",
+        "Host": "localhost",
+        "Port": 5001
+        },
+        "LocalAndroid": {
+        "Scheme": "https",
+        "Host": "10.0.2.2",
+        "Port":  5001
+        }
+    }
+}</code></pre>
+<p>The LocalAndriod api is necessary when using the Andriod device emulator as the emulator includes a proxy on 
+    port 10.0.2.2 that redirects traffic to localhost.
+</p>
+<p>In addition, both the iOS simulator and Android emulator require special handling for the https scheme 
+    as explained in the Microsoft documentation 
+    <a href="https://docs.microsoft.com/en-us/xamarin/cross-platform/deploy-test/connect-to-local-web-services">here</a>.
+</p>
+<p>
+Attempting to invoke a local secure web service from an application running in the iOS simulator 
+or Android emulator will result in a HttpRequestException being thrown, even when using the managed 
+network stack on each platform.This is because the local HTTPS development certificate is self-signed, 
+and self-signed certificates aren't trusted by iOS or Android. 
+</p>
+<p>LzHttpClient includes the GetInsecureHandler() method to avoid this exception when calling the local WebApi.</p>
+<p></p>
+</div>
+            <div id=hacky-privacy-spacer></div>
+            <script src="../../assets/js/app.js"></script>
+            <script src="../../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

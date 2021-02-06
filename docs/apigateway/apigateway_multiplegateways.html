@@ -1,0 +1,252 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#apigateway_multiplegateways").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body>
+    
+    <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#443d6e; height: 100vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: 80vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-header-img" style="position:fixed;top: 0px; height:129px;width:100vw;background-image: url(/assets/img/pic5.jpg);padding: top -20px; z-index: 2;"></div>
+    <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div>
+
+    
+    <div class="lz-r-sitemenu" style="position: fixed;top:-36px;z-index: 2;">
+        
+        <!--
+        <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+            <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+        </div>
+        -->
+        
+        <div class="cell shrink header medium-cell-block-container">
+            <div id="header-banner" style="position: relative;height:129px">
+            </div>
+            <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+            </div>
+            
+        </div>        <div class="title-bar lz-r-sitemenu apigateway_multiplegateways hamburger" data-responsive-toggle="lz-hamburger-menu"
+          data-hide-for="medium">
+          <button class="menu-icon" type="button" data-toggle></button>
+          <div class="title-bar-title" style="padding-left: 8px;">ApiGateways</div>
+        </div>
+        
+        <div class="top-bar fast bg-fill-dl lz-r-sitemenu apigateway_multiplegateways dropdown outer" id="lz-hamburger-menu"
+          data-animate="slide-in-down slide-out-up">
+          <div class="top-bar-left">
+            <ul class="vertical medium-horizontal menu bg-fill-dl apigateway_multiplegateways dropdown inner">
+        
+              <li  id="index">
+                <a href="/index.html"><span class="">Home</span></a>
+              </li>
+        
+              <li id="introdocs" >
+                <a href="/intro/intro.html"><span class="">Introduction</span></a>
+              </li>
+        
+              <li id="generatordocs">
+                <a href="/generator/generator_gettingstarted.html">
+                    <span class="">Generator</span>
+                </a>
+              </li>
+        
+              <li id="apigatewaydocs">
+                <a href="/apigateway/apigateway_overview.html">
+                  <span class="lz-r-sectionitem">ApiGateways</span>
+                </a>
+              </li>
+        
+              <li id="lambdadocs">
+                <a href="/lambda/lambda_overview.html">
+                  <span class="">Lambdas</span>
+                </a>
+              </li>
+        
+              <li id="clientsdkdocs">
+                <a href="/clientsdk/clientsdk_overview.html">
+                  <span class="">ClientSDK</span>
+                </a>
+              </li>
+        
+              <li id="tutorialdocs">
+                <a href="/tutorial/tutorial_overview.html">
+                  <span class="">Tutorial</span>
+                </a>
+              </li>
+        
+            </ul>
+          </div>
+        </div>
+        <div class="title-bar" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+            <button class="menu-icon" type="button" data-toggle></button>
+            <div class="title-bar-title" style="padding-left: 8px">
+                Multiple Gateways
+            </div>
+        </div>
+
+    </div>
+<!-- Note the indent of the body insert below HAS to be on the leftmost position to accommodate Code display -->
+<div id="topics-collapse" class=lz-r-topicmenu>
+    <ul class="vertical menu">
+        <li >
+            <a  href="/apigateway/apigateway_overview.html">
+                <span class="">Overview</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/apigateway/apigateway_multiplegateways.html">
+                <span class="lz-r-topicitem">Multiple Api Gateways</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class=lz-r-content>
+    <h3>Using Multiple ApiGateways</h3>
+    <p>LazyStack can generate stacks with one or more ApiGateways. This is normally done to optimize
+        the cost and security for different functionality in your app. Here is an example where
+        we provide three ApiGateways and map our OpenApi routes to four tags. Your application may
+        have very different security requirements; but this example should give you a good idea of
+        the flexibility you have to address your specific requirements.
+    </p>
+    <p>Your OpenApi tags must reflect the security requirement. This is best understood by example. In previous 
+        examples we had only two tags: order and pet. Here's an updated OpenApiSpec with four tags that allow
+        us to specify some routes need to be handled in a "secure" way.
+    </p>
+    <pre><code class="language-yaml"># PetStore.yaml
+    openapi: 3.0.0
+    info:
+    ... 
+    tags:
+    - name: order
+    - name: orderSecure
+    - name: pet
+    - name: petSecure
+    ...</code></pre>
+    <p>Each tag generates a Lambda Function project and AWS Resource.</p>
+    <table>
+        <tr class="text-left">
+            <th>Tag</th>
+            <th>Project</th>
+            <th>AWS Resource</th>
+        </tr>
+        <tr>
+            <td>order</td>
+            <td>Order.csproj</td>
+            <td>Order <br/> AWS::Serverless:Function</td>
+        </tr>
+        <tr>
+            <td>orderSecure</td>
+            <td>OrderSecure.csproj</td>
+            <td>OrderSecure<br/> AWS::Serverless:Function</td>
+        </tr>
+        <tr>
+            <td>pet</td>
+            <td>Pet.csproj</td>
+            <td>Pet<br/> AWS::Serverless:Function</td>
+        </tr>
+        <tr>
+            <td>petSecure</td>
+            <td>PetSecure.csproj</td>
+            <td>PetSecure<br/> AWS::Serverless:Function</td>
+        </tr>    
+    </table>
+    
+    
+    <p>Next you we map the tags to ApiGateways that provide the desired security. This is accomplished using 
+        the ApiTagMap directive in the LazyStack.yaml file:
+    </p>
+    <pre><code class="language-yaml"># LazyStack.yaml
+    ApiTagMap: 
+      ApiSecure:
+      - orderSecure
+      HttpApi:
+      - pet
+      HttpApiSecure:
+      - order
+      - petSecure</code></pre>
+    <table>
+        <tr class="text-left">
+            <th>Tag</th>
+            <th>Project</th>
+            <th>AWS Resource</th>
+            <th>ApiGateway</th>
+        </tr>
+        <tr>
+            <td>order</td>
+            <td>Order.csproj</td>
+            <td>Order <br/> AWS::Serverless:Function</td>
+            <td>HttpApiSecure<br/>AWS::ApiGateway::HttpApi</td>
+        </tr>
+        <tr>
+            <td>orderSecure</td>
+            <td>OrderSecure.csproj</td>
+            <td>OrderSecure<br/> AWS::Serverless:Function</td>
+            <td>ApiSecure<br/>AWS::ApiGateway::Api</td>
+        </tr>
+        <tr>
+            <td>pet</td>
+            <td>Pet.csproj</td>
+            <td>Pet<br/> AWS::Serverless:Function</td>
+            <td>HttpApi<br/>AWS::ApiGateway::HttpApi</td>
+        </tr>
+        <tr>
+            <td>petSecure</td>
+            <td>PetSecure.csproj</td>
+            <td>PetSecure<br/> AWS::Serverless:Function</td>
+            <td>HttpApiSecure<br/>AWS::ApiGateway::HttpApi</td>
+        </tr>    
+    </table>
+    <p>The references to HttpApiSecure, HttpApi and HttpApiSecure will cause these predefined ApiGateways resources to be included
+        in your application's serverless.template file. The lambdas will be configured to be called from the ApiGateway they are 
+        mapped to as shown in the following diagram:
+    </p>
+    <img src="./assets/img/MultipleApiGateways.svg"/>
+    <p></p>
+    <p>The ApiGateways, not the Lambda Functions, provide end-point security in this model. The Lambda Functions are provisioned to 
+        allow access only from the ApiGateway they are associated with.
+    </p>
+    <ul>
+        <li>ApiSecure - Client computes unique signature for each request. Signature is in HttpRequest Authorization header. </li>
+        <li>HttpApiUnsecure - Anyone can call this API. The HttpRequest Authorization header is empty.</li>
+        <li>HttpApiSecure - Client acquires single JWT token. JWT token is in HttpRequest Authorization header.</li>
+    </ul>
+    
+    <p>The LazyStackAuth and ClientSDK libraries handle the signing of HttpRequests for you.</p>
+    
+    <strong>Routes</strong>
+    <p>The final step in configuring your security is to assign one of the four tags to each of the routes in your 
+        OpenApi specification. The LazyStack ClientSDK will ensure the route associated with the tag is available in the 
+        correct ApiGateway and the correct security is applied to that route.
+    </p>
+    
+    
+</div>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../assets/prism/prism.js"></script>
+
+</body>
+
+</html>

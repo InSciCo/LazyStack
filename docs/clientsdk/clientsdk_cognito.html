@@ -1,0 +1,181 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#clientsdk_cognito").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body>
+    
+    <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#443d6e; height: 100vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: 80vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-header-img" style="position:fixed;top: 0px; height:129px;width:100vw;background-image: url(/assets/img/pic5.jpg);padding: top -20px; z-index: 2;"></div>
+    <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div>
+
+    
+    <div class="lz-r-sitemenu" style="position: fixed;top:-36px;z-index: 2;">
+        
+        <!--
+        <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+            <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+        </div>
+        -->
+        
+        <div class="cell shrink header medium-cell-block-container">
+            <div id="header-banner" style="position: relative;height:129px">
+            </div>
+            <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+            </div>
+            
+        </div>        <div class="title-bar lz-r-sitemenu clientsdk_cognito hamburger" data-responsive-toggle="lz-hamburger-menu"
+          data-hide-for="medium">
+          <button class="menu-icon" type="button" data-toggle></button>
+          <div class="title-bar-title" style="padding-left: 8px;">ClientSDK</div>
+        </div>
+        
+        <div class="top-bar fast bg-fill-dl lz-r-sitemenu clientsdk_cognito dropdown outer" id="lz-hamburger-menu"
+          data-animate="slide-in-down slide-out-up">
+          <div class="top-bar-left">
+            <ul class="vertical medium-horizontal menu bg-fill-dl clientsdk_cognito dropdown inner">
+        
+              <li  id="index">
+                <a href="/index.html"><span class="">Home</span></a>
+              </li>
+        
+              <li id="introdocs" >
+                <a href="/intro/intro.html"><span class="">Introduction</span></a>
+              </li>
+        
+              <li id="generatordocs">
+                <a href="/generator/generator_gettingstarted.html">
+                    <span class="">Generator</span>
+                </a>
+              </li>
+        
+              <li id="apigatewaydocs">
+                <a href="/apigateway/apigateway_overview.html">
+                  <span class="">ApiGateways</span>
+                </a>
+              </li>
+        
+              <li id="lambdadocs">
+                <a href="/lambda/lambda_overview.html">
+                  <span class="">Lambdas</span>
+                </a>
+              </li>
+        
+              <li id="clientsdkdocs">
+                <a href="/clientsdk/clientsdk_overview.html">
+                  <span class="lz-r-sectionitem">ClientSDK</span>
+                </a>
+              </li>
+        
+              <li id="tutorialdocs">
+                <a href="/tutorial/tutorial_overview.html">
+                  <span class="">Tutorial</span>
+                </a>
+              </li>
+        
+            </ul>
+          </div>
+        </div>
+        <div class="title-bar" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+            <button class="menu-icon" type="button" data-toggle></button>
+            <div class="title-bar-title" style="padding-left: 8px">
+                Cognito
+            </div>
+        </div>
+
+    </div>
+<!-- Note the indent of the body insert below HAS to be on the leftmost position to accommodate Code display -->
+<div id="topics-collapse" class=lz-r-topicmenu>
+    <ul class="vertical menu">
+        <li>
+            <a  href="/clientsdk/clientsdk_overview.html">
+                <span class="">Overview</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/clientsdk/clientsdk_cognito.html">
+                <span class="lz-r-topicitem">AWS Cognito</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/clientsdk/clientsdk_lazystackauth.html">
+                <span class="">LazyStackAuth Library</span>
+            </a>
+        </li>
+
+    </ul>
+</div><div class=lz-r-content>
+    <h3>Cognito</h3>
+    <p>"Amazon Cognito handles user authentication and authorization for your web and mobile apps. With user pools, you can
+        easily and securely add sign-up and sign-in functionality to your apps. With identity pools (federated identities),
+        your apps can get temporary credentials that grant users access to specific AWS resources, whether the users are
+        anonymous or are signed in." AWS</p>
+    
+    <p>Does Cognito live up to this billing? Well yes, but there is a steep learning curve where you need to understand
+        how AWS Cognito resources interact with other AWS resources and it is a big challenge to understand
+        the breadth of configuration and process options available in AWS Cognito.
+    </p>
+    
+    <p>When you use one of the predefined secure ApiGateways (ApiSecure or HttpApiSecure), LazyStack creates Cognito
+        resources in the serverless.template SAM specification. These include:</p>
+    <ul>
+        <li>UserPool AWS::Cognito::UserPool</li>
+        <li>UserPoolClient AWS::Cognito::UserPoolClient</li>
+        <li>IdentityPool AWS::Cognito::IdentityPool</li>
+        <li>CognitoIdentityPoolRoles AWS::Cognito::IdentityPoolRoleAttachment</li>
+        <li>AuthRole AWS::IAM::Role</li>
+    </ul>
+    
+    <h4>User Pool</h4>
+    <p>A AWS::Cognito::UserPool is a user directory. It is used to authenticate users and often referred to as
+        an Authentication Provider. You can use UserPool Federation to allow users to authenticate from other
+        authentication providers like Facebook, Google, Login with Amazon, Sign in with Apple, and SAML providers.
+        The current LazyStackAuth library supports only Cognito sign-in but support for using Cognito User Pool
+        federation with other authentication providers is planned. 
+    </p>
+    <h4>Identity Pool</h4>
+    <p>A AWS::Cognito::IdentityPool is a federated identity manager. When used, it also enables additional services
+        we care about:</p>
+    <ul>
+        <li><strong>Cognito Sync</strong> - syncing data across user devices</li>
+        <li><strong>Secure AWS::Serverless::Api</strong> - sign HttpRequests with Signature Version 4 process</li>
+    </ul>
+    <p>The hardest challenge of Cognito is digging through tons of documentation and getting everything configured 
+        properly. LazyStack configures your application stack with what we intend to be a <em>future-proof</em> strategy. 
+        For instance, it is possible to implement an application stack using only Cognito User Pools if you are willing 
+        to forgo access to the more secure AwsVer4 signing of HttpRequests. By using both User Pools and Identity Pools, 
+        you can use any of the ApiGateway models. Since LazyStack has already set up the AWS Resources and provided the 
+        LazyStackAuth library, there isn't any compelling reason to take the short cut.
+    </p>
+    
+</div>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../assets/prism/prism.js"></script>
+
+</body>
+
+</html>

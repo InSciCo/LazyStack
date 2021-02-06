@@ -1,0 +1,291 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../../assets/css/app.css">
+    <link href="../../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#lazystackauth_lazystackauth").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">Libraries</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="lz-r-sectionitem">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">LazyStackAuth Library</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li>
+        <li>
+            <a  href="/libraries/libraries_overview.html">
+                <span class="">Overview</span>
+            </a>
+        </li>
+    
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_lazystackauth.html">
+                <span class="lz-r-topicitem">LazyStackAuth</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authmessages.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthMessages</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authprovider.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthProvider</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_authprocess.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">AuthProcess</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">&nbsp;&nbsp;&nbsp;&nbsp;
+                <span class="">LzHttpClient</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/getawssettings/getawssettings_getawssettings.html">
+                <span class="">GetAwsSettings</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/libraries/dynamodb/dynamodb_overview.html">
+                <span class="">DynamoDBRepo</span>
+            </a>
+        </li>
+
+    </ul>
+</div><div class=lz-r-content>
+    <h3>LazyStackAuth Library</h3>
+    <p>LazyStackAuth is an independent library that you can use from a C# app to authenticate with an AWS Stack.
+        There is no <em>special</em> or proprietary sauce here but the library does make some
+        assumptions about the configuration of your AWS Cognito resources. If you are using LazyStack to 
+        generate these serverless.template files then that is all handled for you. You can certainly use 
+        LazyStackAuth with your own stack, review the serverless.template files generated by LazyStack to 
+        see how Cognito resources are configured for this library. The LazyStack tutorial  is a comprehensive  
+        example of using LazyStackAuth and a LazyStack generated ClientSDK in a .NET app.
+    </p>
+    <ul>
+        <li><a  href="/libraries/lazystackauth/lazystackauth_authprovider.html">AuthProvider classes</a> 
+            <p>One or more IAuthProvider implementations implementing calls to the Cognito and/or other 
+                auth providers. The AuthProviderCognito class implements comprehensive sign-up, sign-in 
+                and user management features against the AWS Cognito UserPool authentication provider. 
+            </p>
+        </li>
+        <li><a  href="/libraries/lazystackauth/lazystackauth_authprocess.html">AuthProcess class</a> 
+            <p>The AuthProcess class implements an INotifyPropertyChanged wrapper around the IAuthProvider 
+                interface to provide bindable properties and events suitable for use in an event driven UI.
+            </p>
+        </li>
+        <li><a  href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">LzHttpClient class</a> 
+            <p>The LzHttpClient class is a thin wrapper around the standard HttpClient class that
+                knows how to select an appropriate ApiGateway call and then sign the HttpRequests 
+                to that AWS ApiGateway appropriately.</p>
+        </li>
+    </ul>
+
+    <h4>State Driven Authentication with AuthProcess</h4>
+    <p>AuthProcess provides a state driven authentication machine implementing a iterative authentication challenge
+        process. The properties and methods of the AuthProcess class are largely self-explanatory so we introduce 
+        the AuthProcess class by presenting the simplest happy-path use-cases;
+    </p>
+    
+    <h5>Sign In Happy Path</h5>
+    <ol>
+        <li>AuthProcess.IsSignedIn == false // User is not signed in</li>
+        <li>AuthProcess.StartSignInAsync();</li>
+        <li>AuthProcess.Login = "login";</li>
+        <li>AuthProcess.VerifyLoginAsync();</li>
+        <li>AuthProcess.Password = "password";</li>
+        <li>VerifyPassword();</li>
+        <li>AuthProcess.IsSignedIn == true</li>
+    </ol>
+    
+    <h5>Sign Up Happy Path</h5>
+    <ol>
+        <li>AuthProcess.IsSignedIn == false // User is not signed in</li>
+        <li>AuthProcess.StartSignUpAsync();</li>
+        <li>AuthProcess.Login = "login";</li>
+        <li>AuthProcess.VerifyLoginAsync();</li>
+        <li>AuthProcess.Password = "password";</li>
+        <li>VerifyPasswordAsync();</li>
+        <li>AuthProcess.Email = "myemail@gmail.com";</li>
+        <li>AuthProcess.VerifyEmail();</li>
+        <li>// Cognito sends auth code to user's email;</li>
+        <li>AuthProcess.Code = "code";</li>
+        <li>AuthProcess.VerifyCodeAsync();</li>
+        <li>// The user can now Sign In with specified login and password.</li>
+    </ol>
+    
+    <h5>Reset Password Happy Path</h5>
+    <ol>
+        <li>AuthProcess.IsSignedIn == false // must be signed out to do password reset</li>
+        <li>AuthProcess.StartResetPasswordAsync();</li>
+        <li>AuthProcess.Login = "login"</li>
+        <li>AuthProcess.VerifyLoginAsync();</li>
+        <li>AuthProcess.NewPassword = "newpassword"</li>
+        <li>AuthProcess.VerifyNewPasswordAsync();</li> 
+        <li> // AWS Sends validation code to user's email.</li>
+        <li>AuthProcess.Code = "code";</li>
+        <li>AuthProcess.VerifyCodeAsync();</li>
+        <li>// The user can now Sign In with the new password.</li>
+    </ol>
+    
+    <h5>Update Password Happy Path</h5>
+    <ol>
+        <li>AuthProcess.IsSignedIn == true  // must be signed in to update password</li>
+        <li>AuthProcess.StartUpdatePasswordAsync();</li>
+        <li>AuthProcess.Password = "currentpassword";</li>
+        <li>VerifyPasswordAsync();</li>
+        <li>AuthProcess.NewPassword = "newpassword";</li>
+        <li>VerifyNewPasswordAsync();</li>
+        <li>// Password has been changed and should be used on next Sign In.</li>
+    </ol>
+    
+    <h5>Update Email Happy Path</h5>
+    <ol>
+        <li>AuthProcess.IsSignedIn == true // must be signed in to update email</li>
+        <li>StartEmailUpdateAsync();</li>
+        <li>AuthProcess.Email = "newemail@gmail.com"</li>
+        <li>VerifyEmailAsync();</li>
+        <li>// AWS sends validation code to user's new email.</li>
+        <li>AuthProcess.Code = "code";</li>
+        <li>AuthProcess.VerifyCodeAsync();</li>
+        <li>// Email has been updated.</li>
+    </ol>
+    
+    <H4>Comprehensive State Management and Events</H4>
+    <p>The AuthProcess class implements numerous properties and events that make
+        it very simple to build UI page(s) to support user authentication tasks. The
+        LazyStack tutorial provides a Xamarin single page implementation that illustrates best 
+        practice use of AuthProcess in a MVVM architecture. 
+    </p>
+    <p></p>
+    
+</div>
+            <div id=hacky-privacy-spacer></div>
+            <script src="../../assets/js/app.js"></script>
+            <script src="../../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

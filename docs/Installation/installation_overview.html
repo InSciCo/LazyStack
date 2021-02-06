@@ -1,0 +1,184 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#installation_overview").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">Install</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="lz-r-sectionitem">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">GettingStarted</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li >
+            <a  href="/installation/installation_overview.html">
+                <span class="lz-r-topicitem">Overview</span>
+            </a>
+        </li>
+        <li >
+            <a  href="/installation/installation_visualstudio.html">
+                <span class="">Visual Studio Extension</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/installation/installation_netcorecli.html">
+                <span class="">NETCORE CLI</span>
+            </a>
+        </li>
+
+    </ul>
+</div>
+<div class=lz-r-content>
+    <h3>Installation Overview</h4>
+    <h4>Free - Forever</h4>
+    <p>A free version of the LazyStack Generator is available as a Visual Studio Extension and as a .NET Core CLI tool.
+        We will continue to enhance and publish the free version going forward to support small business and 
+        entrepreneur efforts to field commercial grade applications quickly at a very low cost.
+    </p>
+    <h5>No Lock In</h5>
+    <ul>
+        <li><strong>Maintenance</strong> - The stack configurations and generated code can be manually maintained and enhanced 
+            so there is no code "lock-in".</li>
+        <li><strong>No Proprietary Dependencies</strong> - The stack configurations and generated code produced by the LazyStack 
+             Generator have no proprietary LazyStack dependencies.</li>
+        <li><strong>MIT Licensed Libraries</strong> - We maintain the LazyStackLibs repository on GitHub containing
+            libraries and utilities primarily focused on supporting LazyStack generated clients and stacks. Everything 
+            in the LazyStackLibs repository is released under the very permissive open-source MIT license.</li>
+    </ul>
+
+    <h4>Enterprise Version in Development</h4>
+    <p>
+        An Enterprise version of the LazyStack Generator, with features far beyond those in the free version, is in 
+        development. The Enterprise version features will serve the needs of larger organizations with very sophisticated 
+        requirements. However, we are committed to support the needs of the entrepreneur in the free version as well!
+    </p>
+
+    <h4>Prerequisites</h4>
+    <ul>
+        <li>AWS Account</li>
+        <li>AWS CLI installed and/or AWS Visual Studio Extension</li>
+        <li>Visual Studio and/or .NET Core CLI</li>
+    </ul>
+    
+</div>
+            <div id=hacky-privacy-spacer></div>
+            <script src="../assets/js/app.js"></script>
+            <script src="../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

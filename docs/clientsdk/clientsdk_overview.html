@@ -1,0 +1,241 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#clientsdk_overview").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">ClientSDK</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="lz-r-sectionitem">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">Overview</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li>
+            <a  href="/clientsdk/clientsdk_overview.html">
+                <span class="lz-r-topicitem">Overview</span>
+            </a>
+        </li>
+
+        <li>
+            <a  href="/clientsdk/clientsdk_clientsdk.html">
+                <span class="">ClientSDK Project</span>
+            </a>
+        </li>        
+
+        <li>
+            <a  href="/clientsdk/clientsdk_schema.html">
+                <span class="">Schema Project</span>
+            </a>
+        </li>        
+
+        <li>
+            <a href="/clientsdk/clientsdk_awssettings.html">
+                <span class="">AwsSettings</span>
+            </a>
+        </li>
+
+        <li>
+            <a href="/clientsdk/clientsdk_using.html">
+                <span class="">Using the ClientSDK</span>
+            </a>
+        </li>
+
+    </ul>
+</div><div class=lz-r-content>
+    <h3>ClientSDK Overview</h3>
+    <p>LazyStack generates the application {appName}ClientSDK library project and the {appName}Schema library project. You 
+        uses these libraries, along with the LazyStackAuth library, in in your client application to make secure calls 
+        against your AWS Application Stack. Consider the following diagram of the PetStore application.
+    </p>
+    <img src="/assets/img/ClientSDK_Overview.svg" width="100%"/>
+    <p></p>
+    <ul>
+        <li><a  href="/libraries/lazystackauth/lazystackauth_lazystackauth.html">LazyStackAuth</a>
+            <p>The AWS Cognito Authentication libraries are rather involved and require a substantial time investment
+                to master. They are also 100% AWS specific and do not attempt to present a generalized process. On the 
+                other hand, these Cognito libraries are robust and implement a well known challenge/response pattern. The 
+                LazyStackAuth library wraps the AWS Cognito authentication libraries with a fully generalized 
+                challenge/response model that provides for the implementation of other authentication providers or 
+                for extensions to the the Cognito authentication process.
+            </p>
+            <p>The LazyStackAuth project is available as a Nuget package, a LazyStack template project and 
+                as a MIT licensed source project in the LazyStackLibs GitHub repository. 
+            It provides a generalized challenge/response based user management library that uses the 
+            Amazon.Extension.CognitoAuthentication library to make calls against the 
+            Cognito authentication service. Note that it also calls AWS STS to get temporary credentials if necessary.</p>
+            
+            <p>The LazyStackAuth authentication classes require configuration to reach the AWS Application Stack. This 
+                configuration is provided in the <a href="/clientsdk/clientsdk_awssettings.html">AwsSettings.json</a>
+                 file described below. The "AwsSettings.json" file is usually included as an embedded resource in 
+                 the client app and read into the applications IConfiguration appConfig. This appConfig is passed 
+                 into the LazyStackAuth AuthProcess class constructor so that AuthProcess has the necessary 
+                 information to connect to your AWS Application Stack.
+            </p>
+
+            <p>After authenticating against Cognito, your client application uses the LazyStackAuth 
+                <a  href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">LzHttpClient</a> class
+                to make secure calls against AWS ApiGateways. This class uses configuration information 
+                from AwsSettings.json along with configuration information in the "MethodMap.json" configuration 
+                file provided in the ClientSDK. 
+            </p>
+            <p>The "MethodMap.json" file is an embedded resource in the ClientSDK. Like "AwsSettings.json", this resource 
+                is generally loaded into the applications IConfiguration appConfig. This appConfig reference is passed 
+                into the LzHttpClient constructor. The LazyStack generated file "MethodMap.json" contains a map of methods to 
+                ApiGateways that LzHttpClient uses to discover which ApiGateway services each method.
+            </p>
+        </li>
+        <li><a  href="/clientsdk/clientsdk_clientsdk.html">PetStoreClientSDK</a>
+            <p>The PetStoreClientSDK is comprised of two files. The ClientSDK library class (PetStore.cs) generated by NSwag and the 
+                MethodMap.json file generated by LazyStack. PetStore.cs contains methods that make calls to your 
+                ApiGateway endpoints. The PetStore class constructor is passed a reference to an instance of 
+                the <a  href="/libraries/lazystackauth/lazystackauth_lzhttpclient.html">LzHttpClient</a> class so that calls against 
+                the PetStore.cs class can be securely made against one or more AWS ApiGateways.
+        </p>
+        <p>Note:<i>There are a variety of OpenApi &RightArrow; C# code generators available. Some of these offer 
+            substantially more features than the current version of NSwag. However, NSwag is native C#, very robust 
+            and under active development so we have chosen to use it.</i>
+        </p>
+
+        <li> <a  href="/clientsdk/clientsdk_schema.html">PetStoreSchema</a>
+            <p>The PetStoreSchema project is a library of data schema types that are used to transport 
+                data among the client and server. This library is used on both the client and server. LazyStack 
+            uses NSwag to generate this library. </li>
+
+            <p>Note:<i>Users familiar with NSwag know that NSWag generates separate schema classes for the client 
+                and server code. LazyStack extracts the Schema class from the NSwag generated client library into a 
+                single separate project for use in both client and server code. This makes writing dependent libraries 
+                that can be references by both client and server code simple.</i></p>
+        </li>
+
+        <li> <a href="/clientsdk/clientsdk_awssettings.html">AwsSettings</a>
+            <p>The AwsSettings.json file contains the configuration values necessary to configure the client 
+                to use the AWS application stack. It is normally an embedded resource in the client application. 
+                LazyStack generates the AwsSettings.json file for you. There are separate versions of the AwsSettings.json 
+                file for each stack environment. For instance you might have separate stacks for Dev, Test and Prod. Each 
+                of these will have their own AwsSettings.json file. See the <a href="/clientsdk/clientsdk_awssettings.html">
+                    AwsSettings</a> for instructions on how to generate AwsSettings.json files.
+
+            </p>
+        </li>
+    </ul>
+</div>
+            <div id=hacky-privacy-spacer></div>
+            <script src="../assets/js/app.js"></script>
+            <script src="../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,265 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#tutorial_configure01").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">Tutorial</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="lz-r-sectionitem">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">Configure LazyStack</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li >
+            <a  href="/tutorial/tutorial_overview.html">
+                <span class="">Overview</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_petstore.html">
+                <span class="">1) PetStore</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_controllers.html">
+                <span class="">2) Implement Controllers</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_configure01.html">
+                <span class="lz-r-topicitem">3) Configure LazyStack</span>
+            </a>
+        </li>
+        
+        <li >
+            <a  href="/tutorial/tutorial_publishtoaws.html">
+                <span class="">4) Publish to AWS</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_testlocalwebapi.html">
+                <span class="">5) Test Local WebApi</span>
+            </a>
+        </li>
+
+
+        <li >
+            <a  href="/tutorial/tutorial_petstoretest.html">
+                <span class="">6) PetStore Test</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_consoleapp.html">
+                <span class="">7) Console App</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_xamarinapp.html">
+                <span class="">8) Xamarin App</span>
+            </a>
+        </li>
+
+        <li >
+            <a  href="/tutorial/tutorial_blazorapp.html">
+                <span class="">9) Blazor App</span>
+            </a>
+        </li>
+
+    </ul>
+</div>
+<div class=lz-r-content>
+<h3>Configure LazyStack Projects and DynamoDB</h3>
+<p>In this step we make some additions to the LazyStack.yaml file to support the use of DynamoDB. Before we look at 
+    the configuration directives in detail, here is a high-level summary of what we need to do:
+</p>
+<ul>
+    <li>Use <a href="../generator/generator_apitagmap.html">ApiTagMap</a> directive to map API endpoints to two ApiGateways.</li>
+    <li>Use <a href="../generator/generator_projectoptions.html">ProjectOptions</a> directive to configure these project options
+        <ul>
+            <li><a href="../generator/generator_properties.html">Properties</a></li>
+            <li><a href="../generator/generator_projectreferences.html">ProjectReferences</a> - tell Lambda projects and WebApi projects about the new PetStoreRepo project.</li>
+            <li><a href="../generator/generator_serviceregistrations.html">ServiceRegistrations</a> - use dependency injection to get instances of PetStoreRepo and DynamoDB.</li>
+        </ul>
+    </li>
+    <li>Use <a href="../generator/generator_awsresources.html">AwsResources</a> directive to define AWS::DynamoDB::Table resource for our stack.</li>
+</ul>
+<h4>Update LazyStack.yaml and Generate Projects</h4>
+<ol>
+   <li>Download this <a href="../../assets/tutorial/LazyStack01.yaml">LazyStack.yaml</a> file and move it into the 
+    solution's root folder.</li>
+    <li>Update the LazyStack.yaml file ProfileName and RegionName values.</li>
+    <li>Save the LazyStack.yaml file.</li>
+    <li>Select Tools &RightArrow; LazyStack - Generate Projects. 
+        <p>The LazyStack.log tab opens and logs are produced as Projects and generated files are updated.</p>
+    </li> 
+    <li>Rebuild Solution. All projects in the solution are compiled successfully.</li>
+</ol>
+<h4>Update WebApi project (PetStore in this case) launchSettings.json file</h4>
+<ol>
+    <li>Open the PetStore\Properties\launchSettings.json file.</li>
+    <li>Add the "TABLE_NAME" environmental variable as shown below on line 25.</li>
+</ol>
+<pre class="line-numbers"><code class="language-json">
+{
+    "iisSettings": {
+      "windowsAuthentication": false, 
+      "anonymousAuthentication": true, 
+      "iisExpress": {
+        "applicationUrl": "http://localhost:62817",
+        "sslPort": 44399
+      }
+    },
+    "profiles": {
+      "IIS Express": {
+        "commandName": "IISExpress",
+        "launchBrowser": true,
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
+      "PetStore": {
+        "commandName": "Project",
+        "launchBrowser": true,
+        "applicationUrl": "https://localhost:5001;http://localhost:5000",
+        "environmentVariables": {
+          "ASPNETCORE_ENVIRONMENT": "Development",
+          "TABLE_NAME": "PetStoreDev-DB"
+        }
+      }
+    }
+  }
+</code></pre>
+<p></p>
+<h4>Step Summary</h4>
+<p>In this step we updated the LazyStack.yaml file to create a DynamoDB resource and configure the 
+    WebApi (PetStore) project and Lambdas projects to reference the PetStoreRepo project. We also 
+    inserted an environment variable "TABLE_NAME" in the WebApi project's launchSettings.json file to 
+    reference a table called "PetStoreDev-DB" in the DynamoDb resource.
+</p>
+</div> 
+            <div id=hacky-privacy-spacer></div>
+            <script src="../assets/js/app.js"></script>
+            <script src="../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

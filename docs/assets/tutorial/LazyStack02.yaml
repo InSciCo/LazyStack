@@ -1,0 +1,22 @@
+# PetStore LazyStack.yaml Configurations
+ProjectOptions:
+  PetStoreClientSDK:
+    ProjectReferences:
+    - ..\LazyStackAuth\LazyStackAuth.csproj
+    Properties:
+      DocumentationFile: bin\$(Configuration)\$(TargetFramework)\PetStoreClientSDK.xml
+      RepositoryUrl: https://github.com/USER_ID/REPO_ID.git
+      PackageReleaseNotes: 'Minor update'
+  
+  ControllerProjects:
+    ProjectReferences:
+    - ..\..\PetStoreRepo\PetStoreRepo.csproj
+  
+  LambdaProjects:
+    ServiceRegistrations:
+    - services.AddSingleton<PetStoreRepo.IPetStoreRepo,PetStoreRepo.PetStoreRepo>(); 
+  
+  WebApiProjects:
+    ServiceRegistrations:
+    - services.AddSingleton<PetStoreRepo.IPetStoreRepo,PetStoreRepo.PetStoreRepo>();
+  

@@ -11,7 +11,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script>
     $(document).ready(function(){
-      $("#index").addClass("is-active");
+      $("#contactus").addClass("is-active");
       console.log("hello");
     });
     </script>
@@ -29,7 +29,6 @@
           </div>
           <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
       </div>      <div id="static-bg" style="position:fixed; top:300px;z-index: initial;">
-          <img id="biker" src="./assets/img/pic1.jpg" style="width: 100vw;height: 100vh;object-fit:cover;z-index:initial;max-width: 1500px;">
           <div id="bg-fill-cont-1" style="z-index:1;position:absolute;top:0px;">
               <div id:="bg-fill-1" style="background-image: linear-gradient(#181525,#443d6e);min-height:160px;width:100vw;max-width: 1500px;">
               </div>
@@ -109,92 +108,42 @@
                       </ul>
                   </div>        </div>
           </div>
-      
-          <div id="big-content-1" style="position: relative;z-index: 2;">
-      
-              <div id=spacer-1 class="debug-r" style="height:5px;">
-              </div>
-      
-              <div id=cardflex style="position:sticky;top:48px;display:flex;flex-direction:row;justify-content:space-around;align-items:center;flex-wrap: wrap;min-height:100px;width:100vw;z-index:2;margin-bottom: 0px; max-width: 1500px;">
-                  <div id="card-1" class="card">
-                      <h4>Play With Ideas</h4>
-                      <img class="card-image" style="object-position:0% 0%" src="./assets/img/pic10.jpg">
-                      <p class="card-p-font">Ever find yourself cursing your early design decisions? Work with the 
-                          confidence that refactoring your application will be (almost) painless.</p>
-                  </div>
-                  <div id="card-2" class="card">
-                      <h4>Accelerate Dev</h4>
-                      <img class="card-image" src="./assets/img/pic11.jpg">
-                      <p class="card-p-font">Everyone likes speed. It just doesn't get any easier than this. LazyStack lets 
-                          you set a blistering pace that other tools won't match.</p>
-                  </div>
-                  <div id="card-3" class="card";>
-                      <h4>Blast To Market</h4>
-                      <img class="card-image" src="./assets/img/pic12.jpg">
-                      <p style="position: relative; z-index: inherit;font-size: 20px;">As entrepreneurs, we get it: shipping is a 
-                          feature. Get boosted towards deployment with nothing more than some clever C# and open source libs.</p>
-                  </div>
-              </div>
-              <div id=spacer-2 style="height:400px;">
-              </div>
-          </div>
-      
-          <div id=big-content-2 style="position: relative;z-index: 2;">
-              <div id=spacer style="min-height:350px;position: sticky; top:100px;padding: 0vh 3vw 6vh 2vw;">
-                  <blockquote style="position:relative;color: #d5dbdb;font-size: 29px; background-color: #3b103bda; border-radius: 30px; margin-bottom: 0px;">
-                      LazyStack is a passion project by a couple of nerds. We love generated code but we don't love the 
-                      pricing models of existing low-code platforms (or being locked into their eco-system). This made us 
-                      ask: "What if you could field an entire application using only the 'free-tier' of cloud providers". 
-                      That way, you could demonstrate revenue to investors before committing serious capital. Luckily, 
-                      Microsoft .Net and C# provides almost everything we need... if only we had a way of connecting it 
-                      to the undisputed king of cloud: AWS. Enter 'LazyStack', our one stop shop for C# front-end/AWS 
-                      back-end solutions. Install our Visual Studio extension and leapfrog months of development with a 
-                      single click.
-                  </blockquote>
-              </div>
-              <div class=lz-r-footer style="max-width: 1500px;">
-                  <div class=contact-us-hacky-cont>
-                      <h1 class=contact-us-label>Contact Us!</h1>
-                      <div class=lz-contact-form>
-      
-                          <form class=cont>
-                              
-                              <div style=display:flex;>
+      <div class=lz-r-footer style="max-width: 1500px;">
+          <div class=contact-us-hacky-cont>
+              <h1 class=contact-us-label>Contact Us!</h1>   
+                  <div class=lz-contact-form>
+                      <form class=cont>
+                          
+                          <div style=display:flex;>
                               <div>
-                                  <label class="error name">Name
+                              <label class="error name">Name
                                   <input type="text" class="error" />
-                                  </label>
-                                  <small class="error name-error">name error</small>
+                              </label>
+                              <small class="error name-error">name error</small>
                               </div>
                               <div class="error email">
-                                  <label>Email
+                              <label>Email
                                   <input type="text" />
-                                  </label>
-                                  <small class="error email-error">email error</small>
+                              </label>
+                              <small class="error email-error">email error</small>
                               </div>
-                              </div>
+                          </div>
       
-                              <div>
-                                  <label>Message</label>
-                                  <!--I cant figure out why textarea class wont respond to selectors TOO BAD!-->
-                                  <textarea class="error message" placeholder="Message..." style="min-width: 100%;max-height: 200px;"></textarea>
-                                  <small class="error message-error">message error</small>
-                              </div>
-                              
-                              <div class=button-cont>
-                                  <a class="button" href="/contactus.html">Submit</a>
-                              </div>
+                          <div>
+                              <label>Message</label>
+                              <textarea class="error message" placeholder="Message..."></textarea>
+                              <small class="error message-error">message error</small>
+                          </div>
+                          
+                          <div class=button-cont>
+                              <a class="button" href="/contactus.html">Submit</a>
+                          </div>
       
-                          </form>
-      
-                      </div>
+                      </form>
                   </div>
               </div>
-      
-          </div>      
+          </div>
       </div>
-      
-      
     </div>
   </div>
 

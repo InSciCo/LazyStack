@@ -1,0 +1,195 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#intro_openapi").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body class="docpage">
+ 
+    <div class=bigcenter-outter>
+
+        <div class=bigcenter-inner>
+            <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#181525;; height: 100vh; width: 100vw; z-index: initial;"></div>
+            <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: calc(100vh - 120px); width: 100vw; z-index: initial;"></div>
+            <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            <div id="hacky-corner-cover-2" style="position:fixed;top: 0px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div><img id="bg-header-img" class="lz-r-banner-img" src="/assets/img/pic12.jpg"></img>
+            
+            <div style="position: fixed;top:-36px;z-index: 4;">
+                
+                <!--
+                <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+                    <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                </div>
+                -->
+                
+                <div class="cell shrink header medium-cell-block-container">
+                    <div id="header-banner" style="position: relative;height:129px">
+                    </div>
+                    <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                        <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+                    </div>
+                    
+                </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
+                  data-hide-for="medium">
+                  <button class="menu-icon" type="button" data-toggle></button>
+                  <div class="title-bar-title" style="padding-left: 8px;">Introduction</div>
+                </div>
+                
+                <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
+                    <ul class="vertical medium-horizontal menu dropdown inner">
+                
+                      <li  id="index">
+                        <a href="/index.html"><span class="">Home</span></a>
+                      </li>
+                
+                      <li id="introdocs" >
+                        <a href="/intro/intro.html">
+                          <span class="lz-r-sectionitem">Introduction</span></a>
+                      </li>
+                
+                      <li id="stacks">
+                        <a href="/stacks/stacks_overview.html">
+                          <span class="">Stacks</span>
+                        </a>
+                      </li>
+                
+                      <li id="clientsdkdocs">
+                        <a href="/clientsdk/clientsdk_overview.html">
+                          <span class="">ClientSDK</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="installation">
+                        <a href="/installation/installation_overview.html">
+                          <span class="">Install</span>
+                        </a>
+                      </li>
+                
+                      <li id="tutorialdocs">
+                        <a href="/tutorial/tutorial_overview.html">
+                          <span class="">Tutorial</span>
+                        </a>
+                      </li>
+                
+                      <li id="libraries">
+                        <a href="/libraries/libraries_overview.html">
+                          <span class="">Libraries</span>
+                        </a>
+                      </li>
+                
+                
+                      <li id="generatordocs">
+                        <a href="/generator/generator_overview.html">
+                            <span class="">Generator</span>
+                        </a>
+                      </li>
+                
+                
+                    </ul>
+                </div>            </div>
+            <div class=lz-r-legal-notice style="max-width:1500px;">
+                <div style="display:flex; width: 150px;justify-content: space-between;">
+                    <a href="/privacy.html" class=text-item-L>Privacy</a>
+                    <a href="/contactus.html" class=text-item-L>Contact Us!</a>
+                </div>
+                <p class=text-item-R>© 2021, Insight Sciences Corp or its affiliates. All rights reserved.</p>
+            </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
+<div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+    <button class="menu-icon" type="button" data-toggle></button>
+    <div class="title-bar-title">OpenApi</div>
+</div>
+
+<div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
+    <ul class="vertical menu dropdown">
+        <li >
+            <a  href="/intro/intro.html">
+                <span class="">Welcome</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/intro/intro_why.html">
+                <span class="">Why LazyStack?</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/intro/intro_security.html" >
+            <span class="">Security First</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/intro/intro_whynet.html" >
+                <span class="">Why .NET?</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/intro/intro_whyaws.html">
+                <span class="">Why AWS?</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/intro/intro_dynamodb.html" >
+                <span class="">Why DynamoDB?</span>
+            </a>
+        </li>
+    </ul>
+</div>
+<div class=lz-r-content>
+    <h3>It all starts with your REST API Specification</h3>
+    <p>In a typical LazyStack application you start by writing an <strong>OpenAPI Specification</strong>, and then
+        running LazyStack to generate C# projects in your Microsoft Solution. Then you extend the Application Services
+        Code generated by LazyStack with your application specific logic. LazyStack also generates am application
+        ClientSDK you use to effect calls to the Serverless Application stack from your client.</p>
+    
+        <img src="../assets/img/LazyStackSimpleFlow.svg"/>
+        <p></p>
+    <p>LazyStack uses the OpenAPI (swagger) definition, along with an optional LazyStack.yaml configuration file, to
+        generate all the necessary configuration and lambda functions to stand up a .NET Core Serverless Application
+        Model (SAM) Stack on AWS. </p>
+    <h3>OpenApi Tags Create Lambdas</h3>
+    <p>The OpenApi specification allows the definition of &ldquo;tags&rdquo; and then allows each route (path +
+        HttpOperation) to be associated with zero or more tags. LazyStack creates a Lambda for each tag and creates
+        Lambda events (methods that handle a call to a route) for each route associated with that tag. This makes it 
+        really simple to map your API calls to specific lambda implementation.</p>
+    <h4>Lambdas use AspNetCore.ControllerBase</h4>
+    <p>Each function lambda&rsquo;s events are handled by methods in a class derived from AspNetCore.ControllerBase.
+        This is the class in which you implement the application logic for each route served by the function lambda.
+    </p>
+    <p>The ControllerBase class handles all the busywork required to resolve routes (path + HttpOperation) to
+        methods defined in classes that inherit from ControllerBase. The Amazon.Lambda.AspNetCoreServer class allows 
+        classes derived from ControllerBase to be easily used in a lambda and the lambda may use all the normal 
+        configuration and dependency injection goodness provided by .NET.</p>
+    <p>A lambda uses a single controller class so it is very simple to follow the code generation path from the
+        OpenApi tag specification to the class that handles routes associated with that tag:</p>
+        <img src="../assets/img/"
+    <p>OpenApi tag &rarr; Lambda Project &rarr; Controller Project &rarr; Controller class<br />orders &rarr;
+        Lambdas/Orders.csproj &rarr; Controllers/OrdersController.csproj &rarr; OrdersController.cs</p>    
+</div>
+            <div id=hacky-privacy-spacer></div>
+            <script src="../assets/js/app.js"></script>
+            <script src="../assets/prism/prism.js"></script>
+ 
+        </div>
+    </div>
+
+</body>
+
+</html>

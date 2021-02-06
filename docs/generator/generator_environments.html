@@ -1,0 +1,241 @@
+<!doctype html>
+<html class="no-js" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Foundation for Sites</title>
+    <link rel="stylesheet" href="../assets/css/app.css">
+    <link href="../assets/prism/prism.css" rel="stylesheet" />
+    <link href="../assets/prism/prismoverride.css" rel="stylesheet" />
+    <link href="../assets/theme/lessons.css" rel="stylesheet"/>
+
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+   
+    <script>
+        $(document).ready(function () {
+            $("#generator_environments").addClass("is-active");
+            console.log("hello");
+        });
+    </script>
+</head>
+
+<body>
+    
+    <div id="bg-fill-1" style="position:fixed;top: 0px; background-color:#443d6e; height: 100vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-fill-2" style="position:fixed;top: 129px; background-image: linear-gradient(#181525,#443d6e); height: 80vh; width: 100vw; z-index: initial;"></div>
+    <div id="bg-header-img" style="position:fixed;top: 0px; height:129px;width:100vw;background-image: url(/assets/img/pic5.jpg);padding: top -20px; z-index: 2;"></div>
+    <div id="hacky-corner-cover" style="position:fixed;top: 129px; background-color:#181525; height: 34px; width: 100vw; z-index: 2;"></div>
+
+    
+    <div class="lz-r-sitemenu" style="position: fixed;top:-36px;z-index: 2;">
+        
+        <!--
+        <div style="position:relative;top:5px;left:30px; top: 4px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px;">
+            <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+        </div>
+        -->
+        
+        <div class="cell shrink header medium-cell-block-container">
+            <div id="header-banner" style="position: relative;height:129px">
+            </div>
+            <div style="position:fixed;top:21px;left:16px;border: .125rem solid;border-radius: 13px;background-color: rgba(0, 0, 0, .71);padding: 6px 0px 2px 0px; max-width: 223px;">
+                <h1 style="font-size: 32px;color: rgba(180, 23, 186, 1);font-family: 'Arial Black', 'Arial Bold', Gadget, sans-serif;margin-left: 17px;margin-right: 17px;">LazyStack</h1>
+            </div>
+            
+        </div>        <div class="title-bar lz-r-sitemenu generator_environments hamburger" data-responsive-toggle="lz-hamburger-menu"
+          data-hide-for="medium">
+          <button class="menu-icon" type="button" data-toggle></button>
+          <div class="title-bar-title" style="padding-left: 8px;">Generator</div>
+        </div>
+        
+        <div class="top-bar fast bg-fill-dl lz-r-sitemenu generator_environments dropdown outer" id="lz-hamburger-menu"
+          data-animate="slide-in-down slide-out-up">
+          <div class="top-bar-left">
+            <ul class="vertical medium-horizontal menu bg-fill-dl generator_environments dropdown inner">
+        
+              <li  id="index">
+                <a href="/index.html"><span class="">Home</span></a>
+              </li>
+        
+              <li id="introdocs" >
+                <a href="/intro/intro.html"><span class="">Introduction</span></a>
+              </li>
+        
+              <li id="generatordocs">
+                <a href="/generator/generator_gettingstarted.html">
+                    <span class="lz-r-sectionitem">Generator</span>
+                </a>
+              </li>
+        
+              <li id="apigatewaydocs">
+                <a href="/apigateway/apigateway_overview.html">
+                  <span class="">ApiGateways</span>
+                </a>
+              </li>
+        
+              <li id="lambdadocs">
+                <a href="/lambda/lambda_overview.html">
+                  <span class="">Lambdas</span>
+                </a>
+              </li>
+        
+              <li id="clientsdkdocs">
+                <a href="/clientsdk/clientsdk_overview.html">
+                  <span class="">ClientSDK</span>
+                </a>
+              </li>
+        
+              <li id="tutorialdocs">
+                <a href="/tutorial/tutorial_overview.html">
+                  <span class="">Tutorial</span>
+                </a>
+              </li>
+        
+            </ul>
+          </div>
+        </div>
+        <div class="title-bar" data-responsive-toggle="topics-collapse" data-hide-for="medium">
+            <button class="menu-icon" type="button" data-toggle></button>
+            <div class="title-bar-title" style="padding-left: 8px">
+                Environments
+            </div>
+        </div>
+
+    </div>
+<!-- Note the indent of the body insert below HAS to be on the leftmost position to accommodate Code display -->
+<div id="topics-collapse" class=lz-r-topicmenu>
+    <ul class="vertical menu">
+        <li>
+            <a  href="/generator/generator_gettingstarted.html" >
+                <span class="">Getting Started</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/generator/generator_environments.html">
+                <span class="lz-r-topicitem">Environments</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/generator/generator_defaultapi.html" >
+                <span class="">DefaultApi Directive</span>
+            </a>
+        </li>        
+        <li>
+            <a  href="/generator/generator_apitagmap.html">
+                <span class="">ApiTagMap Directive</span>
+            </a>
+        </li>
+        <li>
+            <a  href="/generator/generator_awsresources.html">
+                <span class="">AwsResources Directive</span>
+            </a>
+        </li>    
+        <li>
+            <a  href="/generator/generator_awstemplate.html">
+                <span class="">AwsTemplate Directive</span>
+            </a>
+        </li>    
+        <li>
+            <a  href="/generator/generator_projectoptions.html">
+                <span class="">ProjectOptions Directive</span>
+            </a>
+        </li>    
+        <li>
+            <a  href="/generator/generator_mergepriority.html">
+                <span class="">Resource Merge Priority</span>
+            </a>
+        </li> 
+    </ul>
+</div>
+<div class=lz-r-content>
+    <h3>Environments Directive</h3>
+    <p>It is common practice to have different instances of an application stack to support Development, Test and Production environments.
+        The configuration of each of these application stack instances vary so LazyStack allows you to define environments with unique 
+        configurations. LazyStack requires at least one Environment Definition called "Dev". By convention, LazyStack defines additional 
+        environments Test and Prod. Use the Environments directive to define the "Dev" environment and additional environments like "Test" and 
+        "Prod".
+    </p>
+<pre><code class="language-yaml"># LazyStack.yaml
+Environments:
+  Dev:
+    ProfileName: default
+    RegionName: us-east-1 
+    StackName: PetStoreDev
+    IncludeLocalApis: true</code></pre>
+    
+    <p><strong>ProfileName</strong> is the AWS profile that contains your credentials for accessing an AWS account as a specific user. The ProfileName "default" is created
+        for you when you install the AWS CLI. You may have multiple profiles where each profile allows you access to 
+        different AWS resources based on associated IAM user permissions.</p>
+    <p><strong>RegionName</strong> is the AWS region your stack is deployed to.</p>   
+    <p><strong>StackName</strong> is the the AWS logical stack name. The LazyStack convention used to name stacks is to append the environment name to the application name. In 
+        this example the application name is "PetStore" and the Environment is "Dev" so the StackName is "PetStoreDev".</p>
+    <p><strong>IncludeLocalApis</strong> - this setting has a default value of false. If included with a value of true, the generated AwsSettings.json file will include
+       LocalApis entries allowing a generated ClientSDK to call a local WebApi service. This setting is normally only used for development environments.
+    </p>
+    
+    <p>Here is an example of the Environments directive defining three environments:</p>
+<pre><code class="language-yaml"># LazyStack.yaml
+Environments:
+  Dev:
+    ProfileName: default
+    RegionName: us-east-1 
+    StackName: PetStoreDev
+    IncludeLocalApis: true
+  Test:
+    ProfileName: default
+    RegionName: us-east-1 
+    StackName: PetStoreTest 
+  Prod:
+    ProfileName: prod 
+    RegionName: us-east-1 
+    StackName: PetStoreProd</code></pre>
+    
+    <p>Note that the Prod environment ProfileName is "prod" in this example. It is not unusual 
+        to have two AWS accounts where one is used for development/test and one is used for production. 
+        The profile "default" provides the developer with access to the development account.
+        The profile "prod" provides rights to the production account and will be used taking actions
+        affecting or using the production account.</p>
+    
+    <p>After a stack has been published, you use LazyStack to generate AwsSettings.json files.  These 
+        settings files contain the configuration information necessary for the ClientSDK to connect 
+        with and call your application stack. See the ClientSDK section for details of the contents 
+        of the AwsSettings.json file. Settings file names are of the form "{environmentName}.AwsSettings.json".
+        To provision a ClientSDK to call a specific stack, the associated settings file for that stack 
+        is copied to the client application and loaded by the client application when the application 
+        launches.
+    </p>
+    
+    <h3>LocalApis Directive</h3>
+    <p>Use the LocalApis directive to specify local development services. By default, two services
+        are added to a configuration when the Environments directive attribute IncludeLocalApis is 
+        set to true. If they were specified in the LazyStack.yaml file, they would look like this:
+    </p>
+<pre><code class="language-yaml"># LazyStack.yaml
+LocalApis:
+  Local:
+    Scheme: https
+    Host: localhost
+    Port: 5001
+  LocalAndroid:
+    Scheme: https
+    Host: 10.0.2.2
+    Port: 5001</code></pre>
+    
+    <p>The LocalAndroid entry is used when you are debugging using the Andriod emulator against 
+        your local WebApi instance. Each instance of the Andriod emulator is isolated from your 
+        development machine network interfaces, and runs behind a virtual router. The virtual 
+        router provides a pre-allocated address 10.0.2.2 that routes requests to the host loopback interface 
+        "localhost" (127.0.0.1).
+    </p>
+    
+</div>
+
+    <script src="../assets/js/app.js"></script>
+    <script src="../assets/prism/prism.js"></script>
+
+</body>
+
+</html>
