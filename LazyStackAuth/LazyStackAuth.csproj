@@ -3,10 +3,23 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <UserSecretsId>76925471-91ff-459d-8f16-a8b8c691549b</UserSecretsId>
+    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <Description>Generalized authentication model with support for AWS Cognito.</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>Insight Sciences Corporation</Company>
+    <Authors>Tim May, Thomas May</Authors>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="AuthMessages.json" />
+    <None Include="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

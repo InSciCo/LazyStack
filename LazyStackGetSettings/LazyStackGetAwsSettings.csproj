@@ -3,6 +3,14 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <Authors>Tim May, Thomas May</Authors>
+    <Company>Insight Sciences Corporation</Company>
+    <Description>Console utility for getting AWS Settings from a published st ack</Description>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,6 +20,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LazyStackAwsSettings\LazyStackAwsSettings.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

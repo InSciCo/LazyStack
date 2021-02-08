@@ -2,11 +2,27 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <Authors>Tim May, Thomas May</Authors>
+    <Company>Insight Sciences Corporation</Company>
+    <Description>CRUDL Library for DynamoDB</Description>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+    <RepositoryType>GitHub</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.5.4.24" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 </Project>
