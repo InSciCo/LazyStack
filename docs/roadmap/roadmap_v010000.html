@@ -16,7 +16,7 @@
    
     <script>
         $(document).ready(function () {
-            $("#generator_awsresources").addClass("is-active");
+            $("#roadmap_v010000").addClass("is-active");
             console.log("hello");
         });
     </script>
@@ -50,7 +50,7 @@
                 </div>                <div class="title-bar lz-r-sitemenu hamburger" data-responsive-toggle="sitemenu-collapse"
                   data-hide-for="medium">
                   <button class="menu-icon" type="button" data-toggle></button>
-                  <div class="title-bar-title" style="padding-left: 8px;">Generator</div>
+                  <div class="title-bar-title" style="padding-left: 8px;">Roadmap</div>
                 </div>
                 
                 <div class="top-bar fast lz-r-sitemenu dropdown outer" id="sitemenu-collapse" data-animate="slide-in-down slide-out-up">
@@ -99,13 +99,13 @@
                 
                       <li id="generatordocs">
                         <a href="/LazyStack/generator/generator_overview.html">
-                            <span class="lz-r-sectionitem">Generator</span>
+                            <span class="">Generator</span>
                         </a>
                       </li>
                 
                       <li id="roadmap">
                         <a href="/LazyStack/roadmap/roadmap_overview.html">
-                            <span class="">RoadMap</span>
+                            <span class="lz-r-sectionitem">RoadMap</span>
                         </a>
                       </li>
                 
@@ -120,133 +120,40 @@
             </div>            <!-- Note the body partial must be inserted at the leftmost column to avoid indent issue with code blocks -->
 <div class="title-bar lz-r-topicmenu hamburger" data-responsive-toggle="topics-collapse" data-hide-for="medium">
     <button class="menu-icon" type="button" data-toggle></button>
-    <div class="title-bar-title">AwsResources</div>
+    <div class="title-bar-title">RoadMap</div>
 </div>
 
 <div class="top-bar fast lz-r-topicmenu dropdown outer" id="topics-collapse" data-animate="slide-in-down slide-out-up">
     <ul class="vertical menu dropdown">
-        <li>
-            <a  href="/LazyStack/generator/generator_overview.html" >
+        <li >
+            <a  href="/LazyStack/roadmap/roadmap_overview.html">
                 <span class="">Overview</span>
             </a>
         </li>
-        <li>
-            <a  href="/LazyStack/generator/generator_stacks.html">
-                <span class="">Stacks Directive</span>
-            </a>
-        </li>
-        <li>
-            <a  href="/LazyStack/generator/generator_defaultapi.html" >
-                <span class="">DefaultApi Directive</span>
+        <li >
+            <a  href="/LazyStack/roadmap/roadmap_v010000.html">
+                <span class="lz-r-topicitem">Version 1.0.0</span>
             </a>
         </li>        
-        <li>
-            <a  href="/LazyStack/generator/generator_apitagmap.html">
-                <span class="">ApiTagMap Directive</span>
-            </a>
-        </li>
-        <li>
-            <a  href="/LazyStack/generator/generator_awsresources.html">
-                <span class="lz-r-topicitem">AwsResources Directive</span>
-            </a>
-        </li>    
-        <li>
-            <a  href="/LazyStack/generator/generator_awstemplate.html">
-                <span class="">AwsTemplate Directive</span>
-            </a>
-        </li>    
-        <li>
-            <a  href="/LazyStack/generator/generator_projectoptions.html">
-                <span class="">ProjectOptions Directive</span>
-            </a>
-        </li>    
-
-        <li>
-            <a  href="/LazyStack/generator/generator_packagereferences.html">&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="">PackageReferences</span>
-            </a>
-        </li>            
-
-        <li>
-            <a  href="/LazyStack/generator/generator_projectreferences.html">&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="">ProjectReferences</span>
-            </a>
-        </li>            
-
-        <li>
-            <a  href="/LazyStack/generator/generator_serviceregistrations.html">&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="">ServiceRegistrations</span>
-            </a>
-        </li>            
-
-        <li>
-            <a  href="/LazyStack/generator/generator_properties.html">&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="">Properties</span>
-            </a>
-        </li>            
-
-        <li>
-            <a  href="/LazyStack/generator/generator_runtime.html">&nbsp;&nbsp;&nbsp;&nbsp;
-                <span class="">Runtime</span>
-            </a>
-        </li>            
-
-        <li>
-            <a  href="/LazyStack/generator/generator_warningescapedcharacters.html">
-                <span class="">Warning Escaped Characters</span>
-            </a>
-        </li>            
-
-
-        <li>
-            <a  href="/LazyStack/generator/generator_mergepriority.html">
-                <span class="">Resource Merge Priority</span>
-            </a>
-        </li> 
     </ul>
-</div>
-<div class=lz-r-content>
-    <h3>AwsResources Directive</h3>
-    <p>Use the <strong>AwsResources</strong> directive to create new resources or override selected properties of LazyStack default
-        resources. LazyStack provides useful default resource definitions for your application stack but your requirements
-        may demand different resource definitions. The <strong>AwsResources</strong> directive allows you to define
-        resources directly in the LazyStack.yaml file. These resource definitions must conform to the AWS resource
-        definition requirements.</p>
-    
-<pre><code class="language-yaml"># LazyStack Version 1.0.0
-AwsResources:
-  PetStoreS3:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: 
-        FnSub: ${AWS::StackName}-S3-${AWS::AccountId}
-  Pet:
-    Type: AWS::Serverless::Function
-    Properties:
-      MemorySize: 512</code></pre>
-    
-    <p>In the example above, an S3 bucket is defined for the application. You can define any AWS resources supported 
-        by CloudFormation in the LazyStack.yaml. However, it is more often the case that you will want to define a 
-        number of AWS resources in a separate CloudFormation template and then merge that template into the 
-        serverless.template using the <a href="/LazyStack/generator/generator_awstemplate.html">AwsTemplate</a> directive.
-    </p>
-    <p>In the example above, we override the default MemorySize property on the Pet resource of type AWS::Serverless::Function. </p>
-    <p>The Pet resource name is generated by LazyStack from the tag name provided. In this case the
-      tag name results in a lambda function resource name &ldquo;Pet&rdquo;. Using the AwsResources directive,
-      you may override any of the properties in the default lambda function resource definition used by LazyStack except
-      these properties which are always supplied by LazyStack:</p>
+</div><div class=lz-r-content>
+    <h3>Version 1.0.0 - 2/10/2021</h3>
+    <h4>Free LazyStack Generator</h4>
+    <p>Initial Release</p>
     <ul>
-      <li>FunctionName - managed by LazyStack</li>
-      <li>CodeUri - managed by LazyStack</li>
-      <li>Handler - managed by LazyStack</li>
-      <li>Events - managed by LazyStack</li>
+        <li>Visual Studio Extension</li>
+        <li>NETCORE CLI tool</li>
     </ul>
-    <p>Some common AWS::Serverless::Function properties you would typically override include:</p>
-    <ul>
-      <li>MemorySize: 128 # default</li>
-      <li>Timeout: 30 # default</li>
-      <li>Tracing: Active # default</li>
-    </ul>
+    <h4>LazyStackAuth</h4>   
+    <p>Initial Release</p> 
+    <h4>LazyStackAuthTests</h4>
+    <p>Initial Release</p>
+    <h4>LazyStackAwsSettings</h4>
+    <p>Initial Release</p>
+    <h4>LazyStackDynamoDBRepo</h4>
+    <p>Initial Release</p>
+    <p>LazyStackGetSettings</p>
+    <p>Initial Release</p>
 </div>
             <div id=hacky-privacy-spacer></div>
             <script src="/LazyStack/assets/js/app.js"></script>
