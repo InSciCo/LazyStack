@@ -8,7 +8,7 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 
-namespace LazyStackAuthTests
+namespace LazyStackAuth
 {
     /// <summary>
     /// Opens your gmail account and retrieves authorization codes sent to that 
