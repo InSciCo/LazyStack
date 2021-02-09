@@ -21,7 +21,7 @@ namespace LazyStackAuth
         this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
         { }
 #else
-        this(appConfig, methodMap, authProvider, new HttpClient(), localApiName)
+        this(appConfig, authProvider, new HttpClient(), localApiName)
         { }
 #endif
 
