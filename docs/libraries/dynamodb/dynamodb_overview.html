@@ -178,11 +178,33 @@
     </ul>
 </div><div class=lz-r-content>
     <h3>LazyStackDynamoDBRepo Overview</h3>
-    <p>Complete Documentation Coming Soon</p>
     <p>LazyStack includes the LazyStackDynamoDBRepo project template. This project library provides 
         a generalized model for CRUDL operations on the AWS DynamoDB service. This library is used 
-        in the LazyStack Tutorial.
+        in the LazyStack Tutorial. Since LazyStackDynamoDBRepo is a bit of a mouthful, we will 
+        refer to the library as the DynamoDBRepo in this documentation section.
     </p>
+    <p>We often use the AWS DynamoDB NoSQL database in simple stacks because it provides 
+        encryption-at-rest, scalability, doesn’t require a VPC, and is competitively priced even at scale. However, 
+        using a NoSQL database requires a somewhat different skill-set than is required for SQL databases.</p>
+     <p>We always start our application design with the development of a data model - often expressed 
+         as an Entity Relationship (“ER”) model.</p>   
+    <h4>PetStore ER Model</h4>
+    <img src="/LazyStack/assets/img/PetStoreERD.svg">
+
+    <p></p>
+    <p>This ER model is derived from the PetStore OpenAPI model. This is not a "good" ER model because it 
+        offers incomplete coverage for even the most rudimentary order process one might actually implement.
+        For instance, what happens if an order is canceled? What happens if the pet becomes unavailable for 
+        some other reason that being sold? 
+    </p>
+    <p>However, the OpenAPI PetStore example provided by the Swagger folks wasn't meant to be a fully 
+        implementable schema so we can ignore the shortcomings of this model and use it as-is for our 
+        discussion. 
+    </p>
+    <p>Note: We have added CreateUtcTick and UpdateUtcTick fields to the Pet and Order entities to 
+        facilitate a discussion of the optimistic locking used in the DynamoDBRepo library. 
+    </p>
+    <h4> </h4>
 </div>
             <div id=hacky-privacy-spacer></div>
             <script src="/LazyStack/assets/js/app.js"></script>
