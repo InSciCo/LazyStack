@@ -1,4 +1,4 @@
-# <a href="https://inscico.github.io/LazyStack/">LazyStack</a>
+# <a href="https://lazystack.io">LazyStack</a>
 LazyStack is a passion project by a couple of nerds. We love generated code 
 but we don't love the pricing models of existing low-code platforms 
 (or being locked into their eco-system). This made us ask: "What if you 
@@ -29,7 +29,7 @@ A forever free version of the LazyStack Generator is available in the Visual Stu
 .NET Core CLI tool.
 
 ## Documentation
-LazyStack has extensive <a href="https://inscico.github.io/LazyStack/">documentation</a>. 
+LazyStack has extensive <a href="https://lazystack.io">documentation</a>. 
 
 ## Insight Sciences Corporation (InSciCo)
 LazyStack is sponsored by InSciCo.
