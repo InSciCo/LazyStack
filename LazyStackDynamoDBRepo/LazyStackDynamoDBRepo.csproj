@@ -11,6 +11,7 @@
     <RepositoryType>GitHub</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,4 +26,17 @@
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
+
+  <!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contan a non-empty SIGN_CERT_HASH string -->
+  <Import Project="..\..\LazyStackCertificate\CertPassword.csproj" />
+
+  <PropertyGroup>
+    <NugetSignCommand>$(MSBuildProjectDirectory)\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
+  </PropertyGroup>
+
+  <Target Name="SignPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND '$(SIGN_CERT_HASH)' != ''" >
+    <Message Importance="High" Text="hello" />
+    <Message Importance="High" Text="PackageVersion $(Version)"  />
+    <Exec Command="$(NugetSignCommand) $(MSBuildProjectDirectory)\bin\Release\$(MSBuildProjectName).$(PackageVersion).nupkg" />
+  </Target>  
 </Project>
