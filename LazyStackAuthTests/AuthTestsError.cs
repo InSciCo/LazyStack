@@ -137,7 +137,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             #endregion
 
-            // TEST 2: Alert_AlreadySignedIn
+            #region TEST 2: Alert_AlreadySignedIn
             //first signup and login
             #region intilze
             //StartSignUpAsync
@@ -169,23 +169,26 @@ namespace PetStoreClientTests
             #endregion
             //now were in, try to sign in agian, and it fails
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.Alert_AlreadySignedIn);
+            #endregion
 
-        }
-    }
-} 
-            /*#endregion
             #region TEST 3: Alert_InvalidCallToResendAsyncCode
             //login user still present in userpool, still logged 
             Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_InvalidCallToResendAsyncCode);
             #endregion
 
-            #region TEST 4: Alert_EmailAddressIsTheSame
+            /*#region TEST 4: Alert_EmailAddressIsTheSame
             //Attempting to Update the email used to create the account to that same email
             //already signed in from above test
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             authProcess.NewEmail = email;
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailAddressIsTheSame);
             #endregion
+            */
+        }
+    }
+} 
+            /*#endregion
+
 
             #region TEXT 5: Alert_AccountWithThatEmailAlreadyExists
             //Attempting to Create an account using an email already in the system
