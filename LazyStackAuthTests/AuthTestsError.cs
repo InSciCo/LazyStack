@@ -127,7 +127,7 @@ namespace PetStoreClientTests
             var newEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
 
-            #region TEST 1: Alert_NoActiveAuthProcess
+            #region TEST 0: Alert_NoActiveAuthProcess
             //Not signed in, run against starting state
             Assert.IsTrue(await authProcess.VerifyNewLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
@@ -136,10 +136,8 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             #endregion
-            
-            #region TEST 2: Alert_AlreadySignedIn
-            //first signup and login
-            #region intilze
+
+            #region TEST 1: First Time SignUp SignIn
             //StartSignUpAsync
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
             // VerifyLoginAsync
@@ -167,18 +165,25 @@ namespace PetStoreClientTests
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
             #endregion
-            //now were in, try to sign in agian, and it fails
+            //-user with 'login' 'email' 'password' now created
+            //-user with 'login' 'email' 'password' now signed in
+
+            #region TEST 2: Alert_AlreadySignedIn
+            //Prereq: user with 'login' 'email' 'password' signed in
+            //try to sign in agian, and it fails
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.Alert_AlreadySignedIn);
             #endregion
 
             #region TEST 3: Alert_InvalidCallToResendAsyncCode
-            //login user still present in userpool, still logged 
+            //Prereq: user with 'login' 'email' 'password' signed in
+            //Prereq: no current authprocess
+            //Attempt to resend code without authprocess
             Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_InvalidCallToResendAsyncCode);
             #endregion
 
             #region TEST 4: Alert_EmailAddressIsTheSame
-            //Attempting to Update the email used to create the account to that same email
-            //already signed in from above test
+            //Prereq: user with 'login' 'email' 'password' signed in
+            //Attempt to update email to the email used to create the account
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             authProcess.NewEmail = email;
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailAddressIsTheSame);
