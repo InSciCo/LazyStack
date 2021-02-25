@@ -137,7 +137,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             #endregion
 
-            #region TEST 1: First Time SignUp SignIn
+            #region TEST 1: Create First Account: SignUp, SignIn
             //StartSignUpAsync
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
             // VerifyLoginAsync
@@ -188,40 +188,39 @@ namespace PetStoreClientTests
             authProcess.NewEmail = email;
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailAddressIsTheSame);
             #endregion
-            
-            /*
-            #region TEXT 5: Alert_AccountWithThatEmailAlreadyExists
-            //Attempting to Create an account using an email already in the system
+
+            #region TEST 6: SignOut
             Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
-            //reinitlize user creditails/login
-            now = DateTime.Now;
-            login1 = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}";
-            password = "TestUser1!";
-            newPassword = "";
-            //attempt to create a second account with the email used above
-            //attmept signup 
-            // StartSignUpAsync
-            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyLoginAsync
-            authProcess.Login = login1 + "_yada"; //modify login as to not cause conflict with other cognito acc
-            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyPasswordAsync
-            authProcess.Password = password;
-            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyEmailAsync()
-            authProcess.Email = email;
-            verificationCodeSendTime = DateTime.UtcNow;
-            Thread.Sleep(5000); // Account for a little drift among local and remote clock
-            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
-            Assert.IsNotNull(verificationCode);
-            authProcess.Code = verificationCode;
-            Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_AccountWithThatEmailAlreadyExists);
             #endregion
 
-            
-            #region TEST 6: Alert_LoginAlreadyUsed
+            #region TEST 6: Bad Signup: Alert_AccountWithThatEmailAlreadyExists
+            now = DateTime.Now;
+            var login2 = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second} + _2";
+            var password2 = "TestUser1!";
+
+            //StartSignUpAsync
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyLoginAsync
+            authProcess.Login = login2;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyPasswordAsync
+            authProcess.Password = password2;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyEmailAsync()
+            authProcess.Email = email; //this causes the alert
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(5000);
+            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_InternalProcessError);
+            //Issue 2021-0001
+            /*When cognito is queried inside AuthProviderCognito.NextChallege() when providerClient.SignUpAsync(signUpRequest) method is called,
+            we recieve a 'Alert_InternalProcessError' instead of the expected 'AliasExistsException'. We may add a check to see if the email 
+            exists before attemping a signup request with cognito. 
+             */
+            #endregion
+
+
+            /*
+            #region TEST 7: Alert_LoginAlreadyUsed
             //Attempt signup with dulicate Alias, here login
             //signout
             await authProcess.SignOutAsync();
