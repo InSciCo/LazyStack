@@ -127,10 +127,9 @@ namespace PetStoreClientTests
             var newEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
 
-            //#region TEST 1: Alert_NoActiveAuthProcess
+            #region TEST 1: Alert_NoActiveAuthProcess
             //Not signed in, run against starting state
             Assert.IsTrue(await authProcess.VerifyNewLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
-            /*
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
@@ -184,13 +183,8 @@ namespace PetStoreClientTests
             authProcess.NewEmail = email;
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailAddressIsTheSame);
             #endregion
-            */
-        }
-    }
-} 
-            /*#endregion
-
-
+            
+            /*
             #region TEXT 5: Alert_AccountWithThatEmailAlreadyExists
             //Attempting to Create an account using an email already in the system
             Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
@@ -202,25 +196,26 @@ namespace PetStoreClientTests
             //attempt to create a second account with the email used above
             //attmept signup 
             // StartSignUpAsync
-                Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyLoginAsync
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyLoginAsync
             authProcess.Login = login1 + "_yada"; //modify login as to not cause conflict with other cognito acc
-                Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyPasswordAsync
-                authProcess.Password = password;
-                Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyEmailAsync()
-                authProcess.Email = email;
-                verificationCodeSendTime = DateTime.UtcNow;
-                Thread.Sleep(5000); // Account for a little drift among local and remote clock
-                Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyCodeAsync
-                verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
-                Assert.IsNotNull(verificationCode);
-                authProcess.Code = verificationCode;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyPasswordAsync
+            authProcess.Password = password;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyEmailAsync()
+            authProcess.Email = email;
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(5000); // Account for a little drift among local and remote clock
+            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyCodeAsync
+            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            Assert.IsNotNull(verificationCode);
+            authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_AccountWithThatEmailAlreadyExists);
             #endregion
 
+            
             #region TEST 6: Alert_LoginAlreadyUsed
             //Attempt signup with dulicate Alias, here login
             //signout
@@ -234,27 +229,29 @@ namespace PetStoreClientTests
             //authProcess.Login = _login;
             //attmept signup 
             // StartSignUpAsync
-                Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyLoginAsync
-                authProcess.Login = login1;
-                Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyPasswordAsync
-                authProcess.Password = password;
-                Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyEmailAsync()
-                authProcess.Email = email;
-                verificationCodeSendTime = DateTime.UtcNow;
-                Thread.Sleep(5000); // Account for a little drift among local and remote clock
-                Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-                // VerifyCodeAsync
-                verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
-                Assert.IsNotNull(verificationCode);
-                authProcess.Code = verificationCode;
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyLoginAsync
+            authProcess.Login = login1;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyPasswordAsync
+            authProcess.Password = password;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyEmailAsync()
+            authProcess.Email = email;
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(5000); // Account for a little drift among local and remote clock
+            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyCodeAsync
+            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            Assert.IsNotNull(verificationCode);
+            authProcess.Code = verificationCode;
             //Assert.IsTrue(await authProcess.?? == AuthEventEnum.Alert_LoginAlreadyUsed);
             #endregion
+            */
         }
     }
-}
+} 
+
 
 //ToDo
 //Alert_NoActiveAuthProcess
