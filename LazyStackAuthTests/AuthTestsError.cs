@@ -107,7 +107,7 @@ namespace PetStoreClientTests
         [TestMethod]
         public async Task TestAuthError()
         {
-
+            
             var authProcess = serviceProvider.GetService<IAuthProcess>();
             var appConfig = serviceProvider.GetService<IConfiguration>();
 
@@ -127,16 +127,17 @@ namespace PetStoreClientTests
             var newEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
 
-            #region TEST 1: Alert_NoActiveAuthProcess
+            //#region TEST 1: Alert_NoActiveAuthProcess
             //Not signed in, run against starting state
             Assert.IsTrue(await authProcess.VerifyNewLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
+            /*
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             #endregion
-
+            
             #region TEST 2: Alert_AlreadySignedIn
             //first signup and login
             #region intilze
@@ -176,7 +177,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_InvalidCallToResendAsyncCode);
             #endregion
 
-            /*#region TEST 4: Alert_EmailAddressIsTheSame
+            #region TEST 4: Alert_EmailAddressIsTheSame
             //Attempting to Update the email used to create the account to that same email
             //already signed in from above test
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
