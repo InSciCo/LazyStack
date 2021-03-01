@@ -165,34 +165,37 @@ namespace PetStoreClientTests
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
             #endregion
-            //-user with 'login' 'email' 'password' now created
+            //-user with 'login' 'email' 'password' now registered with cognito
             //-user with 'login' 'email' 'password' now signed in
 
-            #region TEST 2: Alert_AlreadySignedIn
             //Prereq: user with 'login' 'email' 'password' signed in
+            #region TEST 2: Alert_AlreadySignedIn
             //try to sign in agian, and it fails
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.Alert_AlreadySignedIn);
             #endregion
 
-            #region TEST 3: Alert_InvalidCallToResendAsyncCode
             //Prereq: user with 'login' 'email' 'password' signed in
             //Prereq: no current authprocess
+            #region TEST 3: Alert_InvalidCallToResendAsyncCode
             //Attempt to resend code without authprocess
             Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_InvalidCallToResendAsyncCode);
             #endregion
 
-            #region TEST 4: Alert_EmailAddressIsTheSame
             //Prereq: user with 'login' 'email' 'password' signed in
+            #region TEST 4: Alert_EmailAddressIsTheSame
             //Attempt to update email to the email used to create the account
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             authProcess.NewEmail = email;
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailAddressIsTheSame);
             #endregion
 
+            //Prereq: user with 'login' 'email' 'password' signed in
             #region TEST 6: SignOut
             Assert.IsTrue(await authProcess.SignOutAsync() == AuthEventEnum.SignedOut);
             #endregion
 
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
             #region TEST 6: Bad Signup: Alert_AccountWithThatEmailAlreadyExists
             now = DateTime.Now;
             var login2 = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second} + _2";
@@ -211,19 +214,18 @@ namespace PetStoreClientTests
             verificationCodeSendTime = DateTime.UtcNow;
             Thread.Sleep(5000);
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_InternalProcessError);
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
             //Issue 2021-0001
             /*When cognito is queried inside AuthProviderCognito.NextChallege() when providerClient.SignUpAsync(signUpRequest) method is called,
             we recieve a 'Alert_InternalProcessError' instead of the expected 'AliasExistsException'. We may add a check to see if the email 
-            exists before attemping a signup request with cognito. 
-             */
+            exists before attemping a signup request with cognito. */
             #endregion
 
-
-            /*
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
             #region TEST 7: Alert_LoginAlreadyUsed
             //Attempt signup with dulicate Alias, here login
-            //signout
-            await authProcess.SignOutAsync();
+            /* await authProcess.SignOutAsync();
             //create new email
             var _email = email;
             email = appConfig["Gmail:Email"];
@@ -251,7 +253,8 @@ namespace PetStoreClientTests
             authProcess.Code = verificationCode;
             //Assert.IsTrue(await authProcess.?? == AuthEventEnum.Alert_LoginAlreadyUsed);
             #endregion
-            */
+            //*/
+
         }
     }
 } 
