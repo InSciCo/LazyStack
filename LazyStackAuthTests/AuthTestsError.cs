@@ -33,45 +33,65 @@ using LazyStackAuth;
 //  }
 // 
 
-//Errors to create tests for
-//
-//Alert_AuthProcessAlreadyStarted,
-//Alert_DifferentAuthProcessActive,
-//Alert_IncorrectAuthProcess,
-//Alert_NoActiveAuthProcess,
-//Alert_AlreadySignedIn,
-//Alert_InternalSignInError,
-//Alert_InternalSignUpError,
-//Alert_InternalProcessError,
-//Alert_SignUpMissingLogin,
-//Alert_SignUpMissingPassword,
-//Alert_SignUpMissingEmail,
-//Alert_SignUpMissingCode,
-//Alert_AuthAlreadyStarted,
-//Alert_InvalidCallToResendAsyncCode,
-//Alert_AccountWithThatEmailAlreadyExists,
-//Alert_RefreshUserDetailsDone,
-//Alert_EmailAddressIsTheSame,
-//Alert_VerifyCalledButNoChallengeFound, 
-//Alert_CantRetrieveUserDetails, 
-//Alert_NeedToBeSignedIn, 
-//Alert_InvalidOperationWhenSignedIn, 
-//Alert_UserNotFound,  
-//Alert_NotConfirmed,  
-//Alert_NotAuthorized, 
-//Alert_VerifyFailed, 
-//Alert_LoginAlreadyUsed, 
-//Alert_LoginMustBeSuppliedFirst,
-//Alert_LoginFormatRequirementsFailed, 
-//Alert_PasswordFormatRequirementsFailed, 
-//Alert_EmailFormatRequirementsFailed,
-//Alert_PhoneFormatRequirementsFailed,
-//Alert_TooManyAttempts, 
-//Alert_NothingToDo,
-//Alert_OperationNotSupportedByAuthProvider,
+//Orginal Order:
+///*1,*/AuthEventEnum.Alert_AuthProcessAlreadyStarted
+///*2,*/AuthEventEnum.Alert_DifferentAuthProcessActive
+///*3,*/AuthEventEnum.Alert_IncorrectAuthProcess
+///*4,*/AuthEventEnum.Alert_NoActiveAuthProcess
+///*5,*/AuthEventEnum.AuthEventEnum.Alert_AlreadySignedIn
+///*6,*/AuthEventEnum.Alert_InternalSignInError
+///*7,*/AuthEventEnum.Alert_InternalSignUpError
+///*8,*/AuthEventEnum.Alert_InternalProcessError
+///*9,*/AuthEventEnum.Alert_SignUpMissingLogin
+///*10,*/AuthEventEnum.Alert_SignUpMissingPassword
+///*11,*/AuthEventEnum.Alert_SignUpMissingEmail
+///*12,*/AuthEventEnum.Alert_SignUpMissingCode
+///*13,*/AuthEventEnum.Alert_AuthAlreadyStarted
+///*14,*/AuthEventEnum.Alert_InvalidCallToResendAsyncCode
+///*15,*/AuthEventEnum.Alert_AccountWithThatEmailAlreadyExists
+///*16,*/AuthEventEnum.Alert_RefreshUserDetailsDone
+///*17,*/AuthEventEnum.Alert_EmailAddressIsTheSame
+///*18,*/AuthEventEnum.Alert_VerifyCalledButNoChallengeFound
+///*19,*/AuthEventEnum.Alert_CantRetrieveUserDetails
+///*20,*/AuthEventEnum.Alert_NeedToBeSignedIn
+///*21,*/AuthEventEnum.Alert_InvalidOperationWhenSignedIn
+///*22,*/AuthEventEnum.Alert_UserNotFound
+///*23,*/AuthEventEnum.Alert_NotConfirmed
+///*24,*/AuthEventEnum.Alert_NotAuthorized
+///*25,*/AuthEventEnum.Alert_VerifyFailed
+///*26,*/AuthEventEnum.Alert_LoginAlreadyUsed
+///*27,*/AuthEventEnum.Alert_LoginMustBeSuppliedFirst
+///*28,*/AuthEventEnum.Alert_LoginFormatRequirementsFailed
+///*29,*/AuthEventEnum.Alert_PasswordFormatRequirementsFailed
+///*30,*/AuthEventEnum.Alert_EmailFormatRequirementsFailed
+///*31,*/AuthEventEnum.Alert_PhoneFormatRequirementsFailed
+///*32,*/AuthEventEnum.Alert_TooManyAttempts
+///*33,*/AuthEventEnum.Alert_NothingToDo
+///*34,*/AuthEventEnum.Alert_OperationNotSupportedByAuthProvider
+///*35,*/AuthEventEnum.Alert_Unknown
 
-//// Hail Marys
-//Alert_Unknown
+
+//TEST-PROGRESS==================================>
+//at-least-1-test:--------------------------------
+//4,5
+//14,15
+//17
+//20
+//26
+//on-hold:----------------------------------------
+//6,7,8
+//16
+//18,19
+//35
+//to-dO:------------------------------------------
+//18,19,
+//21,22,23,24,25
+//27,28,29,30,31,32,33,34
+//no-references:----------------------------------
+//1,2,3
+//9,10,11,12,13
+//------------------------------------------------
+
 
 namespace PetStoreClientTests
 {
@@ -127,7 +147,7 @@ namespace PetStoreClientTests
             var newEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
 
-            #region TEST 0: Alert_NoActiveAuthProcess
+            #region TEST 0: Alert_NoActiveAuthProcess (4)
             //Not signed in, run against starting state
             Assert.IsTrue(await authProcess.VerifyNewLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
@@ -135,7 +155,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
-            #endregion
+            #endregion(4)
 
             #region TEST 1: Create First Account: SignUp, SignIn
             //StartSignUpAsync
@@ -169,20 +189,20 @@ namespace PetStoreClientTests
             //-user with 'login' 'email' 'password' now signed in
 
             //Prereq: user with 'login' 'email' 'password' signed in
-            #region TEST 2: Alert_AlreadySignedIn
+            #region TEST 2: Alert_AlreadySignedIn (5)
             //try to sign in agian, and it fails
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.Alert_AlreadySignedIn);
             #endregion
 
             //Prereq: user with 'login' 'email' 'password' signed in
             //Prereq: no current authprocess
-            #region TEST 3: Alert_InvalidCallToResendAsyncCode
+            #region TEST 3: Alert_InvalidCallToResendAsyncCode (14)
             //Attempt to resend code without authprocess
             Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_InvalidCallToResendAsyncCode);
             #endregion
 
             //Prereq: user with 'login' 'email' 'password' signed in
-            #region TEST 4: Alert_EmailAddressIsTheSame
+            #region TEST 4: Alert_EmailAddressIsTheSame (17)
             //Attempt to update email to the email used to create the account
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
             authProcess.NewEmail = email;
@@ -196,7 +216,7 @@ namespace PetStoreClientTests
 
             //Prereq: user with 'login' 'email' 'password' registered with cognito
             //Prereq: no user currently signed in
-            #region TEST 6: Bad Signup: Alert_AccountWithThatEmailAlreadyExists
+            #region TEST 6: Bad Signup: Alert_AccountWithThatEmailAlreadyExists (15)
             now = DateTime.Now;
             var login2 = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second} + _2";
             var password2 = "TestUser1!";
@@ -223,38 +243,45 @@ namespace PetStoreClientTests
 
             //Prereq: user with 'login' 'email' 'password' registered with cognito
             //Prereq: no user currently signed in
-            #region TEST 7: Alert_LoginAlreadyUsed
+            #region TEST 7: Alert_LoginAlreadyUsed (26)
             //Attempt signup with dulicate Alias, here login
-            /* await authProcess.SignOutAsync();
-            //create new email
-            var _email = email;
-            email = appConfig["Gmail:Email"];
-            emailParts = email.Split("@");
-            email = emailParts[0] + "+" + login1 + "cow" + "@" + emailParts[1];
-            //reset login to what it was
-            //authProcess.Login = _login;
-            //attmept signup 
-            // StartSignUpAsync
+            //StartSignUpAsync
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
             // VerifyLoginAsync
-            authProcess.Login = login1;
+            authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyEmailAsync()
-            authProcess.Email = email;
+            // VerifyEmailAsync
+            authProcess.Email = newEmail;
             verificationCodeSendTime = DateTime.UtcNow;
             Thread.Sleep(5000); // Account for a little drift among local and remote clock
-            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
-            Assert.IsNotNull(verificationCode);
-            authProcess.Code = verificationCode;
-            //Assert.IsTrue(await authProcess.?? == AuthEventEnum.Alert_LoginAlreadyUsed);
-            #endregion
+            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_LoginAlreadyUsed);
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
             //*/
+            #endregion
 
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
+            #region TEST 8:Alert_NeedToBeSignedIn
+            Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            Assert.IsTrue(await authProcess.StartUpdatePasswordAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            #region intilze
+            // StartSignInAsync
+            Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
+            // VerifyLoginAsync
+            authProcess.Login = login;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyPasswordAsync
+            authProcess.Password = password;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
+            #endregion
+
+            //-user with 'login' 'email' 'password' now signed in
+
+
+            #endregion
         }
     }
 } 
@@ -267,4 +294,4 @@ namespace PetStoreClientTests
     //Assert.IsTrue(await authProcess.VerifyNewPhoneAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);//cognito implmentation?
 
 //Alert_InternalSignInError
-//Alert_InternalProcessError */
+//Alert_InternalProcessError 
