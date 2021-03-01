@@ -71,13 +71,14 @@ using LazyStackAuth;
 ///*35,*/AuthEventEnum.Alert_Unknown
 
 
-//TEST-PROGRESS==================================>
+//TEST-COVERAGE==================================>
 //at-least-1-test:--------------------------------
 //4,5
 //14,15
 //17
 //20
 //26
+//28,29
 //on-hold:----------------------------------------
 //6,7,8
 //16
@@ -86,7 +87,8 @@ using LazyStackAuth;
 //to-dO:------------------------------------------
 //18,19,
 //21,22,23,24,25
-//27,28,29,30,31,32,33,34
+//27
+//30,31,32,33,34
 //no-references:----------------------------------
 //1,2,3
 //9,10,11,12,13
@@ -146,7 +148,7 @@ namespace PetStoreClientTests
             email = emailParts[0] + "+" + login + "@" + emailParts[1];
             var newEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1]; // used in update email test
             var verificationCodeSendTime = DateTime.UtcNow; // verificationCode sent after this time
-
+            
             #region TEST 0: Alert_NoActiveAuthProcess (4)
             //Not signed in, run against starting state
             Assert.IsTrue(await authProcess.VerifyNewLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);
@@ -160,25 +162,25 @@ namespace PetStoreClientTests
             #region TEST 1: Create First Account: SignUp, SignIn
             //StartSignUpAsync
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyLoginAsync
+            //VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyPasswordAsync
+            //VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyEmailAsync
+            //VerifyEmailAsync
             authProcess.Email = email;
             verificationCodeSendTime = DateTime.UtcNow;
             Thread.Sleep(5000); // Account for a little drift among local and remote clock
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyCodeAsync
+            //VerifyCodeAsync
             var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp);
-            // StartSignInAsync
+            //StartSignInAsync
             Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyLoginAsync
+            //VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             //VerifyPasswordAsync
@@ -236,9 +238,9 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_InternalProcessError);
             Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
             //Issue 2021-0001
-            /*When cognito is queried inside AuthProviderCognito.NextChallege() when providerClient.SignUpAsync(signUpRequest) method is called,
-            we recieve a 'Alert_InternalProcessError' instead of the expected 'AliasExistsException'. We may add a check to see if the email 
-            exists before attemping a signup request with cognito. */
+            //When cognito is queried inside AuthProviderCognito.NextChallege() when providerClient.SignUpAsync(signUpRequest) method is called,
+            //we recieve a 'Alert_InternalProcessError' instead of the expected 'AliasExistsException'. We may add a check to see if the email 
+            //exists before attemping a signup request with cognito.
             #endregion
 
             //Prereq: user with 'login' 'email' 'password' registered with cognito
@@ -259,39 +261,61 @@ namespace PetStoreClientTests
             Thread.Sleep(5000); // Account for a little drift among local and remote clock
             Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_LoginAlreadyUsed);
             Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
-            //*/
+
             #endregion
 
             //Prereq: user with 'login' 'email' 'password' registered with cognito
             //Prereq: no user currently signed in
-            #region TEST 8:Alert_NeedToBeSignedIn
+            #region TEST 8: Alert_NeedToBeSignedIn (20)
             Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
             Assert.IsTrue(await authProcess.StartUpdatePasswordAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
-            #region intilze
-            // StartSignInAsync
-            Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
-            // VerifyLoginAsync
-            authProcess.Login = login;
-            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
-            //VerifyPasswordAsync
-            authProcess.Password = password;
-            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
+            Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
+            //Alerts which cannot be reached externally:
+            //Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            //Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            //Assert.IsTrue(await authProcess.ResendCodeAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            //Assert.IsTrue(await noaccess.RefreshUserDetailsAsync() == AuthEventEnum.Alert_NeedToBeSignedIn);
+            #endregion
+            
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
+            #region TEST 9: Alert_LoginFormatRequirementsFailed (28)
+            //StartSignUpAsync
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyLoginAsync
+            authProcess.Login = "?$@";
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.Alert_LoginFormatRequirementsFailed);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
             #endregion
 
-            //-user with 'login' 'email' 'password' now signed in
-
-
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
+            #region TEST 10: Alert_PasswordFormatRequirementsFailed (29)
+            //StartSignUpAsync
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyLoginAsync
+            now = DateTime.Now;
+            login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}";
+            authProcess.Login = login;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            authProcess.Password = "?$@";
+            //VerifyPasswordAsync
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.Alert_PasswordFormatRequirementsFailed);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
             #endregion
         }
     }
 } 
-
-
-//ToDo
-//Alert_NoActiveAuthProcess
-    //Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);//cognito implmentation?
-    //Assert.IsTrue(await authProcess.VerifyPhoneAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);//cognito implmentation?
-    //Assert.IsTrue(await authProcess.VerifyNewPhoneAsync() == AuthEventEnum.Alert_NoActiveAuthProcess);//cognito implmentation?
-
-//Alert_InternalSignInError
-//Alert_InternalProcessError 
