@@ -306,8 +306,7 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
             //VerifyLoginAsync
             now = DateTime.Now;
-            login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}";
-            authProcess.Login = login;
+            authProcess.Login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}";
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
             authProcess.Password = "?$@";
             //VerifyPasswordAsync
@@ -316,6 +315,48 @@ namespace PetStoreClientTests
             Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
             #endregion
             #endregion
+
+            
+            //Prereq: user with 'login' 'email' 'password' registered with cognito
+            //Prereq: no user currently signed in
+            #region TEST 11: Alert_EmailFormatRequirementsFailed (30)
+            //bad format on signup
+            //StartSignUpAsync
+            Assert.IsTrue(await authProcess.StartSignUpAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyLoginAsync
+            now = DateTime.Now;
+            authProcess.Login = $"TestUser{now.Year}-{now.Month}-{now.Day}-{now.Hour}-{now.Minute}-{now.Second}--Test11";
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyPasswordAsync
+            authProcess.Password = password;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyEmailAsync
+            authProcess.NewEmail = emailParts[0] + "+" + login + "new" + "@" + emailParts[1];
+            authProcess.Email = "foo";
+            verificationCodeSendTime = DateTime.UtcNow;
+            Thread.Sleep(5000); // Account for a little drift among local and remote clock
+            Assert.IsTrue(await authProcess.VerifyEmailAsync() == AuthEventEnum.Alert_EmailFormatRequirementsFailed);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
+
+            //bad format on update
+            //StartSignInAsync
+            Assert.IsTrue(await authProcess.StartSignInAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyLoginAsync
+            authProcess.Login = login;
+            Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
+            //VerifyPasswordAsync
+            authProcess.Password = password;
+            Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
+            Assert.IsTrue(await authProcess.StartUpdateEmailAsync() == AuthEventEnum.AuthChallenge);
+            authProcess.NewEmail = "foo";
+            Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.Alert_EmailFormatRequirementsFailed);
+            #region clear
+            Assert.IsTrue(await authProcess.ClearAsync() == AuthEventEnum.Cleared);
+            #endregion
+            #endregion
+            
         }
     }
 } 
