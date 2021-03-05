@@ -402,12 +402,18 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> VerifyNewLoginAsync(string login)
         {
+            if (CurrentAuthProcess == AuthProcessEnum.None)
+                return AuthEventEnum.Alert_NoActiveAuthProcess;
+
             await Task.Delay(0);
             return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
         }
 
         public virtual async Task<AuthEventEnum> VerifyPasswordAsync(string password)
         {
+            if (CurrentAuthProcess == AuthProcessEnum.None)
+                return AuthEventEnum.Alert_NoActiveAuthProcess;
+
             if (CurrentChallenge != AuthChallengeEnum.Password)
                 return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
@@ -479,6 +485,9 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
         {
+            if (CurrentAuthProcess == AuthProcessEnum.None)
+                return AuthEventEnum.Alert_NoActiveAuthProcess;
+
             if (CurrentChallenge != AuthChallengeEnum.NewPassword)
                 return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
@@ -535,6 +544,9 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> VerifyEmailAsync(string email)
         {
+            if (CurrentAuthProcess == AuthProcessEnum.None)
+                return AuthEventEnum.Alert_NoActiveAuthProcess;
+
             if (CurrentChallenge != AuthChallengeEnum.Email)
                 return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
@@ -567,6 +579,9 @@ namespace LazyStackAuth
 
         public virtual async Task<AuthEventEnum> VerifyNewEmailAsync(string newEmail)
         {
+            if (CurrentAuthProcess == AuthProcessEnum.None)
+                return AuthEventEnum.Alert_NoActiveAuthProcess;
+
             if (CurrentChallenge != AuthChallengeEnum.NewEmail)
                 return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
@@ -610,6 +625,7 @@ namespace LazyStackAuth
             }
             catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
             catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (AliasExistsException) { return AuthEventEnum.Alert_AccountWithThatEmailAlreadyExists; }
             catch (Exception e)
             {
                 Debug.WriteLine($"UpdateEmail() threw an exception {e}");
@@ -917,6 +933,7 @@ namespace LazyStackAuth
             catch (InvalidPasswordException) { return AuthEventEnum.Alert_PasswordFormatRequirementsFailed; }
             catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
             catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (AliasExistsException) { return AuthEventEnum.Alert_AccountWithThatEmailAlreadyExists; }
             catch (Exception e)
             {
                 Debug.WriteLine($"SignUp() threw an exception {e}");
