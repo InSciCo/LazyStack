@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Amazon;
 using Amazon.CloudFormation;
 using Amazon.CloudFormation.Model;
+using Amazon.CloudFormation.Internal;
+
 using Amazon.Runtime;
 using Amazon.Runtime.CredentialManagement;
 using Newtonsoft.Json.Linq;
@@ -50,14 +53,24 @@ namespace LazyStackAwsSettings
             awsSettings.StackName = stackName;
 
             // Get Original Template
-            var cfClient = new AmazonCloudFormationClient(creds);
-            var getTemplateRequestOriginal = new GetTemplateRequest()
+            AmazonCloudFormationClient cfClient = null;
+            GetTemplateRequest getTemplateRequestOriginal = null;
+            try
             {
-                StackName = stackName
-                , TemplateStage = Amazon.CloudFormation.TemplateStage.Original
+                // Note the need to extract region from the profile! 
+                cfClient = new AmazonCloudFormationClient(creds, profile.Region );
+                getTemplateRequestOriginal = new GetTemplateRequest()
+                {
+                    StackName = stackName
+                    , TemplateStage = Amazon.CloudFormation.TemplateStage.Original
                     
-            };
+                };
+            } catch (Exception ex)
+            {
 
+                throw new Exception($"Could not create AmazonCloudFormationClient");
+            }
+                
             var templateReponse = cfClient.GetTemplateAsync(getTemplateRequestOriginal).GetAwaiter().GetResult();
             //var templateBodyIndex = templateReponse.StagesAvailable.IndexOf("Original");
             var templateBody = templateReponse.TemplateBody; // Original is in yaml form
