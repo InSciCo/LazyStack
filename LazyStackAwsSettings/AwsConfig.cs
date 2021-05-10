@@ -131,6 +131,7 @@ namespace LazyStackAwsSettings
                                 httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
 
                             // Note that  the processed template moves the stagename into the AWS::ApiGateway::Stage resource
+                            //todo Is this a bug? should we do this outside the try
                             httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         }
                         catch
@@ -151,6 +152,7 @@ namespace LazyStackAwsSettings
                                 restApi.SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4;
                             else
                                 restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            //todo Is this a bug? should we do this outside the try
                             restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         }
                         catch
