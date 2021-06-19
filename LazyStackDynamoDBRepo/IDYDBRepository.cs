@@ -23,7 +23,7 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <param name="data"></param>
         /// <returns>ActionResult</returns>
-        Task<IActionResult> CreateAsync(T data);
+        Task<ActionResult<T>> CreateAsync(T data);
 
         /// <summary>
         /// Call ReadEAsync and extract data from the envelope
@@ -31,7 +31,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="pKPrefix"></param>
         /// <param name="pKval"></param>
         /// <returns>ActionResult</returns>
-        Task<IActionResult> ReadAsync(string pKPrefix, string pKval);
+        Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval);
 
         /// <summary>
         /// Call ReadAsync and extract data from the envelope
@@ -41,14 +41,14 @@ namespace LazyStackDynamoDBRepo
         /// <param name="sKPrefix"></param>
         /// <param name="sKval"></param>
         /// <returns>ActionResult<T></returns>
-        Task<IActionResult> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
+        Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
 
         /// <summary>
         /// Ccreate PutItemRequest and call PutItmeAsync. Use UpdateUtcTick to do optimistic lock.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        Task<IActionResult> UpdateAsync(T data);
+        Task<ActionResult<T>> UpdateAsync(T data);
 
         /// <summary>
         /// Call DeleteItemAsyunc
@@ -56,7 +56,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="pKPrefix"></param>
         /// <param name="pKval"></param>
         /// <returns></returns>
-        Task<IActionResult> DeleteAsync(string pKPrefix, string pKval);
+        Task<ActionResult> DeleteAsync(string pKPrefix, string pKval);
 
         /// <summary>
         /// Call DeleteItemAsuync
@@ -66,7 +66,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="sKPrefix"></param>
         /// <param name="sKval"></param>
         /// <returns></returns>
-        Task<IActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
+        Task<ActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
 
         /// <summary>
         /// Call QueryAsync and return list of envelopes
@@ -80,6 +80,6 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
-        Task<IActionResult> ListAsync(QueryRequest queryRequest);
+        Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest);
     }
 }

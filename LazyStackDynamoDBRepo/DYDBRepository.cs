@@ -36,7 +36,7 @@ namespace LazyStackDynamoDBRepo
         protected IAmazonDynamoDB client;
         #endregion
          
-        public async Task<IActionResult> CreateAsync(T data)
+        public async Task<ActionResult<T>> CreateAsync(T data)
         {
             try
             {
@@ -64,14 +64,14 @@ namespace LazyStackDynamoDBRepo
         }
 
         // PKval does not include the PKPrefix
-        public async Task<IActionResult> ReadAsync(string pKPrefix, string pKval)
+        public async Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval)
         {
             return await ReadAsync(pKPrefix, pKval, sKPrefix:null, sKval: null);
         }
 
         // PKval does not include the PKPrefix
         // SKval does not include the SKPrefix
-        public async Task<IActionResult> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
+        public async Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
         {
             string pK = pKPrefix + pKval;
             string sK = (sKPrefix != null) ? sKPrefix + sKval : null;
@@ -147,7 +147,7 @@ namespace LazyStackDynamoDBRepo
         }
 
 
-        public async Task<IActionResult> UpdateAsync(T data)
+        public async Task<ActionResult<T>> UpdateAsync(T data)
         {
             if (data.Equals(null))
                 return new StatusCodeResult(400);
@@ -156,7 +156,7 @@ namespace LazyStackDynamoDBRepo
 
             try
             {
-                var dbEnvelope = new TEnv(); // this will hold existing disk verion of the item
+                var dbEnvelope = new TEnv(); // this will hold existing disk version of the item
                 // If the entity has an internal UpdateTick then the envelope will have a non-zero
                 // UpdateTick value
 
@@ -205,7 +205,7 @@ namespace LazyStackDynamoDBRepo
 
 
         // PKval does not include PKPrefix
-        public async Task<IActionResult> DeleteAsync(string pKPrefix, string pKval)
+        public async Task<ActionResult> DeleteAsync(string pKPrefix, string pKval)
         {
             string PK = pKPrefix + pKval;
 
@@ -247,7 +247,7 @@ namespace LazyStackDynamoDBRepo
         // todo - can we recognize and handle a Key Missing condition?
         // todo - should we check if the record being deleted has the same lastupdatetick?
         // todo - this would imply we need to pass in the entity! Too much overhead?
-        public async Task<IActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
+        public async Task<ActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
         {
             string PK = pKPrefix + pKval;
             string SK = (sKPrefix == null) ? null : sKPrefix + sKval;
@@ -300,7 +300,7 @@ namespace LazyStackDynamoDBRepo
             }
         }
 
-        public async Task<IActionResult> ListAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest)
         {
             try
             {
@@ -310,7 +310,10 @@ namespace LazyStackDynamoDBRepo
                 {
                     list.Add(new TEnv() { DbRecord = item }.EntityInstance);
                 }
-                return new OkObjectResult(list);
+                if (list.Count > 0)
+                    return new OkObjectResult(list);
+                else
+                    return new NoContentResult();
             }
             catch (AmazonDynamoDBException e)
             {
