@@ -13,11 +13,9 @@ namespace LazyStackDynamoDBRepo
     /// CRUDL operations map onto the low level access operations available in the namespace.
     /// </summary>
     /// <typeparam name="TEnv"></typeparam>
-    /// <typeparam name="THelper"></typeparam>
     /// <typeparam name="T"></typeparam>
-    public interface IDYDBRepository<TEnv, THelper, T>
-        where TEnv : class, IDYDBEnvelope, new()
-        where THelper : IEntityHelper<T, TEnv>, new()
+    public interface IDYDBRepository<TEnv,T>
+        where TEnv : class, IDataEnvelope<T>, new()
         where T : class, new()
     {
         /// <summary>

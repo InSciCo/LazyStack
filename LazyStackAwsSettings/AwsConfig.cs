@@ -103,7 +103,7 @@ namespace LazyStackAwsSettings
             // Extract region from StackId ARN -- "arn:aws:cloudformation:us-east-1:..."
             var stackIdParts = describeStackResourcesResponse.StackResources[0].StackId.Split(':');
             awsSettings.Region = stackIdParts[3];
-
+            string apiName = null;
             foreach (var resource in describeStackResourcesResponse.StackResources)
                 switch (resource.ResourceType)
                 {
@@ -121,44 +121,40 @@ namespace LazyStackAwsSettings
                         awsSettings.ApiGateways.Add(resource.LogicalResourceId, httpApi);
                         httpApi.Id = resource.PhysicalResourceId;
                         httpApi.Type = "HttpApi";
+                        apiName = resource.LogicalResourceId;
                         try
                         {
-                            var apiName = resource.LogicalResourceId;
                             var HttpApiSecureAuthType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["components"]["securitySchemes"]["OpenIdAuthorizer"]["type"];
                             if (HttpApiSecureAuthType.Equals("oauth2"))
                                 httpApi.SecurityLevel = AwsSettings.SecurityLevel.JWT;
                             else
                                 httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-
-                            // Note that  the processed template moves the stagename into the AWS::ApiGateway::Stage resource
-                            //todo Is this a bug? should we do this outside the try
-                            httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         }
                         catch
                         {
                             httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
                         }
+                        httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         break;
                     case "AWS::ApiGateway::RestApi":
                         var restApi = new AwsSettings.Api();
                         awsSettings.ApiGateways.Add(resource.LogicalResourceId, restApi);
                         restApi.Id = resource.PhysicalResourceId;
                         restApi.Type = "Api";
+                        apiName = resource.LogicalResourceId;
                         try
                         {
-                            var apiName = resource.LogicalResourceId;
                             var apiAuthSecurityType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["securityDefinitions"]["AWS_IAM"]["x-amazon-apigateway-authtype"];
-                            if (apiAuthSecurityType.Equals("awsSignv4"))
+                            if (apiAuthSecurityType.Equals("awsSigv4"))
                                 restApi.SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4;
                             else
                                 restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-                            //todo Is this a bug? should we do this outside the try
-                            restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         }
                         catch
                         {
                             restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
                         }
+                        restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
                         break;
 
                 }

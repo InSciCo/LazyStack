@@ -881,7 +881,7 @@ namespace LazyStackAuth
                             //UpIdentity = token.Claims.First(c => c.Type == "sub").Value; // JWT sub cliam contains User Pool Identity
 
                             //// Note: creates Identity Pool identity if it doesn't exist
-                            //Credentials = CognitoUser.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
+                            Credentials = CognitoUser.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
                             //IpIdentity = await Credentials.GetIdentityIdAsync(); // Identity Pool Identity
                             IsSignedIn = true;
                             CurrentAuthProcess = AuthProcessEnum.None;

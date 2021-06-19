@@ -1,4 +1,12 @@
-﻿
+﻿using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
+using System;
+using System.Diagnostics;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+
 namespace LazyStackDynamoDBRepo
 {
     /// <summary>
@@ -8,17 +16,18 @@ namespace LazyStackDynamoDBRepo
     /// a ISAM style indexing strategy.
     /// See the LazyStack.io documentation for more information on
     /// how to map your ER into a DynamoDB table using this 
-    /// Evenlope.
+    /// Envelope.
     /// </summary>
-    public interface IDYDBEnvelope
+    public interface IDataEnvelope<T>
     {
-        /// <summary>
-        /// Serialized Data (JSON)
-        /// </summary>
-        string Data { get; set; }
+        // Data Entity stored/retrieved in DynamoDB record
+        Dictionary<string, AttributeValue> DbRecord { get; set; }
+
+        // Data Entity - in latest version form!
+        T EntityInstance { get; set; }
 
         /// <summary>
-        /// name of class serialized into the Data string
+        /// Type read from dbRecord 
         /// </summary>
         string TypeName { get; set; }
 
@@ -87,6 +96,7 @@ namespace LazyStackDynamoDBRepo
         /// <summary>
         /// Projection attribute - kitchen sink
         /// </summary>
-        string General { get; set; } 
+        string General { get; set; }
+
     }
 }

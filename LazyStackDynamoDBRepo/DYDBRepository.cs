@@ -17,12 +17,10 @@ namespace LazyStackDynamoDBRepo
     /// https://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/DynamoDBv2/NDynamoDBv2Model.html
     /// </summary>
     /// <typeparam name="TEnv"></typeparam>
-    /// <typeparam name="THelper"></typeparam>
     /// <typeparam name="T"></typeparam>
     public abstract
-        class DYDBRepository<TEnv, THelper, T> : IDYDBRepository<TEnv, THelper, T>
-              where TEnv : class, IDYDBEnvelope, new()
-              where THelper : IEntityHelper<T, TEnv>, new()
+        class DYDBRepository<TEnv, T> : IDYDBRepository<TEnv, T>
+              where TEnv : class, IDataEnvelope<T>, new()
               where T : class, new()
     {
 
@@ -37,121 +35,17 @@ namespace LazyStackDynamoDBRepo
         protected string tablename;
         protected IAmazonDynamoDB client;
         #endregion
-
-        public Dictionary<string, AttributeValue> ToDocument(TEnv item)
-        {
-            var result = new Dictionary<string, AttributeValue>
-            {
-                { "Data", new AttributeValue() { S = item.Data } },
-                { "TypeName", new AttributeValue() { S = item.TypeName } },
-                { "PK", new AttributeValue() { S = item.PK } },
-                { "SK", new AttributeValue() { S = item.SK } },
-                { "CreateUtcTick", new AttributeValue { N = item.CreateUtcTick.ToString() } },
-                { "UpdateUtcTick", new AttributeValue { N = item.UpdateUtcTick.ToString() } }
-            };
-
-
-            if (!string.IsNullOrEmpty(item.SK1))
-                result.Add("SK1", new AttributeValue() { S = item.SK1 });
-
-            if (!string.IsNullOrEmpty(item.SK2))
-                result.Add("SK2", new AttributeValue() { S = item.SK2 });
-
-            if (!string.IsNullOrEmpty(item.SK3))
-                result.Add("SK3", new AttributeValue() { S = item.SK3 });
-
-            if (!string.IsNullOrEmpty(item.SK4))
-                result.Add("SK4", new AttributeValue() { S = item.SK4 });
-
-            if (!string.IsNullOrEmpty(item.SK5))
-                result.Add("SK5", new AttributeValue() { S = item.SK5 });
-
-            if (!string.IsNullOrEmpty(item.GSI1PK))
-                result.Add("GSI1PK", new AttributeValue() { S = item.GSI1PK });
-
-            if (!string.IsNullOrEmpty(item.GSI1SK))
-                result.Add("GSI1SK", new AttributeValue() { S = item.GSI1SK });
-
-            if (!string.IsNullOrEmpty(item.Status))
-                result.Add("Status", new AttributeValue() { S = item.Status });
-
-            if (!string.IsNullOrEmpty(item.General))
-                result.Add("General", new AttributeValue() { S = item.General });
-
-            return result;
-        }
-
-        public TEnv ToEnv(Dictionary<string,AttributeValue> item)
-        {
-            var env = new TEnv();
-            if(item.TryGetValue("PK", out AttributeValue pk))
-                env.PK = pk.S;
-
-            if(item.TryGetValue("Data", out AttributeValue data))
-                env.Data = data.S;
-
-            if(item.TryGetValue("TypeName", out AttributeValue typeName))
-                env.TypeName = typeName.S;
-
-            if(item.TryGetValue("SK", out AttributeValue sk))
-                env.SK = sk.S;
-
-            if(item.TryGetValue("CreateUtcTick", out AttributeValue createUtcTick))
-                env.CreateUtcTick = long.Parse(createUtcTick.N);
-
-            if (item.TryGetValue("UpdateUtcTick", out AttributeValue updateUtcTick))
-                env.UpdateUtcTick = long.Parse(updateUtcTick.N);
-
-            if (item.TryGetValue("SK1", out AttributeValue sk1))
-                env.SK1 = sk1.S;
-
-            if (item.TryGetValue("SK2", out AttributeValue sk2))
-                env.SK2 = sk2.S;
-
-            if (item.TryGetValue("SK3", out AttributeValue sk3))
-                env.SK3 = sk3.S;
-
-            if (item.TryGetValue("SK4", out AttributeValue sk4))
-                env.SK4 = sk4.S;
-
-            if (item.TryGetValue("SK5", out AttributeValue sk5))
-                env.SK5 = sk5.S;
-
-            if (item.TryGetValue("GSI1PK", out AttributeValue gsi1pk))
-                env.GSI1PK = gsi1pk.S;
-
-            if (item.TryGetValue("GSI1SK", out AttributeValue gsi1sk))
-                env.GSI1SK = gsi1sk.S;
-
-            if (item.TryGetValue("Status", out AttributeValue status))
-                env.Status = status.S;
-
-            if (item.TryGetValue("General", out AttributeValue general))
-                env.General = general.S;
-
-            return env;
-        }
-
          
         public async Task<IActionResult> CreateAsync(T data)
         {
-            var helper = new THelper() { Instance = data };
-            var now = DateTime.UtcNow;
-            helper.SetCreateUtcTick(now.Ticks);
-            helper.SetUpdateUtcTick(now.Ticks);
-            TEnv envelope = new TEnv();
-            helper.UpdateEnvelope(envelope, null, serialize: true); // Update evenlope attributes from entity data
-
             try
             {
-                var item = ToDocument(envelope);
-
+                TEnv envelope = new TEnv() { EntityInstance = data };
                 var request = new PutItemRequest()
                 {
                     TableName = tablename,
-                    Item = item
+                    Item = envelope.DbRecord
                 };
-
                 await client.PutItemAsync(request);
                 return new ObjectResult(data) { DeclaredType = typeof(T) };
             }
@@ -167,7 +61,6 @@ namespace LazyStackDynamoDBRepo
             {
                 return new StatusCodeResult(500);
             }
-
         }
 
         // PKval does not include the PKPrefix
@@ -185,17 +78,15 @@ namespace LazyStackDynamoDBRepo
 
             try
             {
-                TEnv envelope = (sK == null)
+                TEnv envelope = new TEnv();
+                envelope = (sK == null)
                     ? envelope = await ReadEAsync(pK)
                     : await ReadEAsync(pK, sK);
 
                 if (envelope == null)
                     return new StatusCodeResult((int)DBTransError.KeyNotFound);
 
-                var Data = new T();
-                var helper = new THelper() { Instance = Data };
-                Data = helper.Deserialize(envelope);
-                return new ObjectResult(Data);
+                return new ObjectResult(envelope.EntityInstance);
 
             }
             catch (AmazonDynamoDBException)
@@ -226,9 +117,9 @@ namespace LazyStackDynamoDBRepo
                     }
                 };
                 var response = await client.GetItemAsync(request);
-                return ToEnv(response.Item);
+                return new TEnv() { DbRecord = response.Item };
             }
-            catch
+            catch (Exception e)
             {
                 return default;
             }
@@ -242,12 +133,12 @@ namespace LazyStackDynamoDBRepo
                 {
                     TableName = tablename,
                     Key = new Dictionary<string, AttributeValue>()
-                    { {"PK", new AttributeValue {S = pK}}
+                    { 
+                        {"PK", new AttributeValue {S = pK}}
                     }
                 };
                 var response = await client.GetItemAsync(request);
-                var envelope = ToEnv(response.Item);
-                return envelope;
+                return new TEnv() { DbRecord = response.Item };
             }
             catch
             {
@@ -261,48 +152,42 @@ namespace LazyStackDynamoDBRepo
             if (data.Equals(null))
                 return new StatusCodeResult(400);
 
-            var helper = new THelper() { Instance = data };
-            var newEnvelope = new TEnv();
-            helper.UpdateEnvelope(newEnvelope); // Move data into newEnvelope from Instance
+            TEnv envelope = new TEnv() { EntityInstance = data };
 
             try
             {
-                var dbEnvelope = default(TEnv); // this will hold existing disk verion of the item
+                var dbEnvelope = new TEnv(); // this will hold existing disk verion of the item
                 // If the entity has an internal UpdateTick then the envelope will have a non-zero
                 // UpdateTick value
-                if (newEnvelope.UpdateUtcTick != 0) // Perform optimistic lock processing
+
+                if (envelope.UpdateUtcTick != 0) // Perform optimistic lock processing
                 {
                     // Read existing item from disk
-                    dbEnvelope = await ReadEAsync(newEnvelope.PK, newEnvelope.SK);
+                    dbEnvelope = await ReadEAsync(envelope.PK, envelope.SK);
 
                     if (dbEnvelope == null) // Darn, could not find the record!
                         return new StatusCodeResult((int)DBTransError.KeyNotFound);
 
-                    // Compare UpdateTicks and return ENTITY DATA LOADED FROM DB if they don't match
-                    // This allows the client to compare new and old and take remedial action
-                    if (dbEnvelope.UpdateUtcTick != newEnvelope.UpdateUtcTick) // Darn, they don't match!
+                    if (dbEnvelope.UpdateUtcTick != envelope.UpdateUtcTick) // Darn, they don't match!
                     {
-                        helper.Instance = new T();
-                        var dbData = helper.Deserialize(dbEnvelope);
                         return new StatusCodeResult((int)DBTransError.NewerLastUpdateFound);
                     }
                 }
 
                 // Ok to update envelope and item if we got this far
                 var now = DateTime.UtcNow;
-                helper.SetUpdateUtcTick(now.Ticks);
-                helper.UpdateEnvelope(newEnvelope, dbEnvelope, true);
-                // Write data to database
+                envelope.UpdateUtcTick = now.Ticks;
 
+                // Write data to database
                 var request = new PutItemRequest()
                 {
                     TableName = tablename,
-                    Item = ToDocument(newEnvelope)
+                    Item = envelope.DbRecord
                 };
 
                 await client.PutItemAsync(request);
 
-                return new OkObjectResult(helper.Instance);
+                return new OkObjectResult(envelope.DbRecord);
             }
             catch (AmazonDynamoDBException)
             {
@@ -404,10 +289,9 @@ namespace LazyStackDynamoDBRepo
             try
             {
                 var response = await client.QueryAsync(queryRequest);
-                var helper = new THelper();
                 var list = new List<TEnv>();
                 foreach(Dictionary<string, AttributeValue> item in response.Items)
-                    list.Add(ToEnv(item));
+                    list.Add(new TEnv() { DbRecord = item });
                 return list;
             }
             catch
@@ -420,14 +304,11 @@ namespace LazyStackDynamoDBRepo
         {
             try
             {
-                var helper = new THelper();
                 var response = await client.QueryAsync(queryRequest);
                 var list = new List<T>();
                 foreach (Dictionary<string, AttributeValue> item in response.Items)
                 {
-                    var envelope = ToEnv(item);
-                    T instance = helper.Deserialize(envelope);
-                    list.Add(instance);
+                    list.Add(new TEnv() { DbRecord = item }.EntityInstance);
                 }
                 return new OkObjectResult(list);
             }
