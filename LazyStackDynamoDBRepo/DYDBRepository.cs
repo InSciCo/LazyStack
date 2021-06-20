@@ -80,8 +80,8 @@ namespace LazyStackDynamoDBRepo
             {
                 TEnv envelope = new TEnv();
                 envelope = (sK == null)
-                    ? envelope = await ReadEAsync(pK)
-                    : await ReadEAsync(pK, sK);
+                    ? (await ReadEAsync(pK)).Value
+                    : (await ReadEAsync(pK, sK)).Value;
 
                 if (envelope == null)
                     return new StatusCodeResult((int)DBTransError.KeyNotFound);
@@ -104,7 +104,7 @@ namespace LazyStackDynamoDBRepo
 
         }
 
-        protected async Task<TEnv> ReadEAsync(string pK, string sK)
+        protected async Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK)
         {
             try
             {
@@ -125,7 +125,7 @@ namespace LazyStackDynamoDBRepo
             }
         }
 
-        protected async Task<TEnv> ReadEAsync(string pK)
+        protected async Task<ActionResult<TEnv>> ReadEAsync(string pK)
         {
             try
             {
@@ -163,7 +163,7 @@ namespace LazyStackDynamoDBRepo
                 if (envelope.UpdateUtcTick != 0) // Perform optimistic lock processing
                 {
                     // Read existing item from disk
-                    dbEnvelope = await ReadEAsync(envelope.PK, envelope.SK);
+                    dbEnvelope = (await ReadEAsync(envelope.PK, envelope.SK)).Value;
 
                     if (dbEnvelope == null) // Darn, could not find the record!
                         return new StatusCodeResult((int)DBTransError.KeyNotFound);
