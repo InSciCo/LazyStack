@@ -298,7 +298,7 @@ namespace LazyStackDynamoDBRepo
             }
         }
 
-        public async Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest)
         {
             try
             {

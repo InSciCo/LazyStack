@@ -80,6 +80,6 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
-        Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest);
+        Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest);
     }
 }
