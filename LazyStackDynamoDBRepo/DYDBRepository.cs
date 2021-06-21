@@ -47,7 +47,7 @@ namespace LazyStackDynamoDBRepo
                     Item = envelope.DbRecord
                 };
                 await client.PutItemAsync(request);
-                return new ObjectResult(data) { DeclaredType = typeof(T) };
+                return new ObjectResult(data) { DeclaredType = typeof(T) }; 
             }
             catch (AmazonDynamoDBException)
             {
@@ -146,7 +146,6 @@ namespace LazyStackDynamoDBRepo
             }
         }
 
-
         public async Task<ActionResult<T>> UpdateAsync(T data)
         {
             if (data.Equals(null))
@@ -202,7 +201,6 @@ namespace LazyStackDynamoDBRepo
                 return new StatusCodeResult(500);
             }
         }
-
 
         // PKval does not include PKPrefix
         public async Task<ActionResult> DeleteAsync(string pKPrefix, string pKval)
