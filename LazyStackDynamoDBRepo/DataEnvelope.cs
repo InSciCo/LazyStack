@@ -79,8 +79,61 @@ namespace LazyStackDynamoDBRepo
 
         public string General { get; set; } = null; // Projection attribute
 
+        /// <summary>
+        /// You must implement this method
+        /// The EntityInstance Set method calls this method.
+        /// </summary>
+        protected virtual void SetDbRecordFromEntityInstance() 
+        {
+            var _dbRecord = new Dictionary<string, AttributeValue>
+            {
+                { "TypeName", new AttributeValue() { S = TypeName } },
+                { "PK", new AttributeValue() { S = PK } },
+                { "SK", new AttributeValue() { S = SK } },
+                { "CreateUtcTick", new AttributeValue { N = CreateUtcTick.ToString() } },
+                { "UpdateUtcTick", new AttributeValue { N = UpdateUtcTick.ToString() } }
+            };
 
-        protected void SetEnvelopeFromDbRecord()
+            if (!string.IsNullOrEmpty(SK1))
+                _dbRecord.Add("SK1", new AttributeValue() { S = SK1 });
+
+            if (!string.IsNullOrEmpty(SK2))
+                _dbRecord.Add("SK2", new AttributeValue() { S = SK2 });
+
+            if (!string.IsNullOrEmpty(SK3))
+                _dbRecord.Add("SK3", new AttributeValue() { S = SK3 });
+
+            if (!string.IsNullOrEmpty(SK4))
+                _dbRecord.Add("SK4", new AttributeValue() { S = SK4 });
+
+            if (!string.IsNullOrEmpty(SK5))
+                _dbRecord.Add("SK5", new AttributeValue() { S = SK5 });
+
+            if (!string.IsNullOrEmpty(GSI1PK))
+                _dbRecord.Add("GSI1PK", new AttributeValue() { S = GSI1PK });
+
+            if (!string.IsNullOrEmpty(GSI1SK))
+                _dbRecord.Add("GSI1SK", new AttributeValue() { S = GSI1SK });
+
+            if (!string.IsNullOrEmpty(Status))
+                _dbRecord.Add("Status", new AttributeValue() { S = Status });
+
+            if (!string.IsNullOrEmpty(General))
+                _dbRecord.Add("General", new AttributeValue() { S = General });
+
+            // Serialize the entity data
+            // We always serialize to the latest entity version
+            if (EntityInstance != null)
+            {
+                _dbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(EntityInstance) });
+            }
+        }
+
+        /// <summary>
+        /// You must implement this method
+        /// The DbRecord Set method calls this method.
+        /// </summary>
+        protected virtual void SetEntityInstanceFromDbRecord() 
         {
             if (_dbRecord.TryGetValue("PK", out AttributeValue pk))
                 PK = pk.S;
@@ -131,70 +184,6 @@ namespace LazyStackDynamoDBRepo
             {
                 DeserializeData(data.S, typeName.S);
             }
-        }
-
-        protected void SetDbRecordFromEnvelope() 
-        {
-            var _dbRecord = new Dictionary<string, AttributeValue>
-            {
-                { "TypeName", new AttributeValue() { S = TypeName } },
-                { "PK", new AttributeValue() { S = PK } },
-                { "SK", new AttributeValue() { S = SK } },
-                { "CreateUtcTick", new AttributeValue { N = CreateUtcTick.ToString() } },
-                { "UpdateUtcTick", new AttributeValue { N = UpdateUtcTick.ToString() } }
-            };
-
-            if (!string.IsNullOrEmpty(SK1))
-                _dbRecord.Add("SK1", new AttributeValue() { S = SK1 });
-
-            if (!string.IsNullOrEmpty(SK2))
-                _dbRecord.Add("SK2", new AttributeValue() { S = SK2 });
-
-            if (!string.IsNullOrEmpty(SK3))
-                _dbRecord.Add("SK3", new AttributeValue() { S = SK3 });
-
-            if (!string.IsNullOrEmpty(SK4))
-                _dbRecord.Add("SK4", new AttributeValue() { S = SK4 });
-
-            if (!string.IsNullOrEmpty(SK5))
-                _dbRecord.Add("SK5", new AttributeValue() { S = SK5 });
-
-            if (!string.IsNullOrEmpty(GSI1PK))
-                _dbRecord.Add("GSI1PK", new AttributeValue() { S = GSI1PK });
-
-            if (!string.IsNullOrEmpty(GSI1SK))
-                _dbRecord.Add("GSI1SK", new AttributeValue() { S = GSI1SK });
-
-            if (!string.IsNullOrEmpty(Status))
-                _dbRecord.Add("Status", new AttributeValue() { S = Status });
-
-            if (!string.IsNullOrEmpty(General))
-                _dbRecord.Add("General", new AttributeValue() { S = General });
-
-            // Serialize the entity data
-            // We always serialize to the latest entity version
-            if(EntityInstance != null)
-            {
-                _dbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(EntityInstance) });
-            }
-        }
-
-        /// <summary>
-        /// You must implement this method
-        /// The EntityInstance Set method calls this method.
-        /// </summary>
-        protected virtual void SetDbRecordFromEntityInstance() 
-        {
-            SetEnvelopeFromDbRecord();
-        }
-
-        /// <summary>
-        /// You must implement this method
-        /// The DbRecord Set method calls this method.
-        /// </summary>
-        protected virtual void SetEntityInstanceFromDbRecord() 
-        {
-            SetEnvelopeFromDbRecord();
         }
 
         /// <summary>
