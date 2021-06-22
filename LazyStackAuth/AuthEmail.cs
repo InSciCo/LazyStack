@@ -16,7 +16,7 @@ namespace LazyStackAuth
     /// </summary>
     public static class AuthEmail
     {
-        public static string GetAuthCode(IConfiguration appConfig, DateTime verificationCodeSendTime, string emailTo)
+        public static string GetAuthCode(IConfiguration appConfig, string emailTo)
         {
             // Start SignUp process - will send  a verification code to specified email account
             var email = appConfig["Gmail:Email"];
@@ -42,37 +42,18 @@ namespace LazyStackAuth
 
                     var inbox = mailClient.Inbox;
 
-                    //var query =
-                    //    SearchQuery.SubjectContains("Your verification code")
-                    //    .And
-                    //    (SearchQuery.DeliveredAfter(verificationCodeSendTime))
-                    //    .And
-                    //    (SearchQuery.ToContains(emailTo));
-
                     var query = SearchQuery.ToContains(emailTo);
 
                     inbox.Open(FolderAccess.ReadOnly);
 
                     var results = inbox.Search(query);
 
-                    foreach (var uid in results)
+                    if(results.Count == 1)
                     {
-                        var message = inbox.GetMessage(uid);
-                        // message.Date is a DataTimeOffset of message received
-                        var datetime = message.Date.UtcDateTime; // convert to UTC with no offset
-                        var rcvdTicks = datetime.Ticks;
-                        Debug.WriteLine($"{datetime} {verificationCodeSendTime} {message.HtmlBody}");
-
-                        var sentTicks = verificationCodeSendTime.Ticks;
-                        Debug.WriteLine($" sentTicks {sentTicks}");
-                        Debug.WriteLine($" rcvdTicks {rcvdTicks}");
-                        Debug.WriteLine($" diffTicks {rcvdTicks - sentTicks}");
-                        if (rcvdTicks > sentTicks)
-                        {
+                        var message = inbox.GetMessage(results[0]);
                             var bodyparts = message.HtmlBody.Split(" ");
                             verificationCode = bodyparts[^1];
                             foundCode = true;
-                        }
                     }
                     mailClient.Disconnect(true);
                 }
