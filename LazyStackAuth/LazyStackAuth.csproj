@@ -40,7 +40,7 @@
   </ItemGroup>
   
   <!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->
-  <Import Project="..\..\LazyStackCertificate\CertPassword.csproj"  Condition="'$(Configuration)' == 'Release' AND '$(SIGN_CERT_HASH)' != ''"/>
+  <Import Project="..\..\LazyStackCertificate\CertPassword.csproj" Condition="'$(Configuration)' == 'Release' AND '$(SIGN_CERT_HASH)' != ''" />
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(SIGN_CERT_HASH)' != ''">
     <NugetSignCommand>$(MSBuildProjectDirectory)\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
@@ -52,4 +52,3 @@
     <Exec Command="$(NugetSignCommand) $(MSBuildProjectDirectory)\bin\Release\$(MSBuildProjectName).$(PackageVersion).nupkg" />
   </Target>
 </Project>
- 
