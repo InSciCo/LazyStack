@@ -25,6 +25,14 @@ namespace LazyStackDynamoDBRepoTests
         [Newtonsoft.Json.JsonProperty("updateUtcTick", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public long UpdateUtcTick { get; set; }
 
+        public override string ToString()
+        {
+            return $"Name: {Name}\r" +
+                   $"Id: {Id}\r" +
+                   $"Category: {Category}\r" +
+                   $"CreateUtcTick: {CreateUtcTick}\r" +
+                   $"UpDateUtcTick: {UpdateUtcTick}\r";
+        }
     }
 
 

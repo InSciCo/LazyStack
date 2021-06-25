@@ -52,19 +52,8 @@ namespace LazyStackDynamoDBRepoTests
             Environment.SetEnvironmentVariable("TABLE_NAME", "TestRepo-DB");
         }
 
-        public void PrettyPrint(Sample sample)
-        {
-            Console.WriteLine("\n");
-            Console.WriteLine("DEBUG");
-            Console.WriteLine($"Name: {sample.Name}");
-            Console.WriteLine($"Id: {sample.Id}");
-            Console.WriteLine($"Category: {sample.Category}");
-            Console.WriteLine($"CreateUtcTick: {sample.CreateUtcTick}");
-            Console.WriteLine($"UpDateUtcTick: {sample.UpdateUtcTick}");
-        }
-
         [TestMethod]
-        public void Create()
+        public async Task Create()
         {
             var sampleRepo = serviceProvider.GetService<ISampleRepo>();
             var Cow = new Sample()
@@ -73,17 +62,10 @@ namespace LazyStackDynamoDBRepoTests
                 Category = "Bovine",
                 Name = "Cow"
             };
-            //var wakka = (sampleRepo.SeedSampleAsync(Cow) as OkObjectResult)?.Value as Sample;
-            var cursedOrb = sampleRepo.SeedSampleAsync(Cow);
-            //var test = cursedOrb.Result.Value; //value is null?
-            //var test = cursedOrb.Result.GetType().Name; //value is "ActionResult`1"
-            //var test = cursedOrb.GetType().Name; //value is ??
-            var test = cursedOrb.Result.Result;
-            Console.WriteLine($"???: {test}");
 
-            //var queryResult = await ListAsync(queryRequest);
-            //var pets = (queryResult.Result as OkObjectResult)?.Value as ICollection<Pet>;
-
+            var seedReturn = await sampleRepo.SeedSampleAsync(Cow);
+            var seedReturnResultValue = (seedReturn.Result as ObjectResult)?.Value as Sample;
+            Console.WriteLine($"{seedReturnResultValue.ToString()}");
 
         }
         [TestMethod]
