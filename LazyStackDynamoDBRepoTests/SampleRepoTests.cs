@@ -63,15 +63,19 @@ namespace LazyStackDynamoDBRepoTests
                 Name = "Cow"
             };
 
-            var seedReturn = await sampleRepo.SeedSampleAsync(Cow);
-            var seedReturnResultValue = (seedReturn.Result as ObjectResult)?.Value as Sample;
-            Console.WriteLine($"{seedReturnResultValue.ToString()}");
+            var response = await sampleRepo.SeedSampleAsync(Cow);
+            var value = (response.Result as ObjectResult)?.Value as Sample;
+            Console.WriteLine($"{value.ToString()}");
 
         }
         [TestMethod]
-        public void Read()
+        public async Task Read()
         {
             var sampleRepo = serviceProvider.GetService<ISampleRepo>();
+            long Id = 1;
+            var response = await sampleRepo.GetSampleByIdAsync(Id);
+            var value = (response.Result as ObjectResult)?.Value as Sample;
+            Console.WriteLine($"{value.ToString()}");
         }
         [TestMethod]
         public void Update()

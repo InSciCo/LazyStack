@@ -68,7 +68,7 @@ namespace LazyStackDynamoDBRepoTests
 
         public async Task<ActionResult<Sample>> GetSampleByIdAsync(long orderId)
         {
-            return await ReadAsync("Sample:", orderId.ToString());
+            return await ReadAsync("Samples:",null, "Sample:",  orderId.ToString());
         }
 
         public async Task<ActionResult<Sample>> PutSampleByIdAsync(Sample sample)
