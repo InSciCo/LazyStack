@@ -21,9 +21,6 @@ namespace LazyStackDynamoDBRepo
             UpdateUtcTick = now;
         }
 
-        protected IAmazonDynamoDB client;
-        protected string tableName;
-
         private Dictionary<string, AttributeValue> _dbRecord;
         public Dictionary<string, AttributeValue> DbRecord 
         {
@@ -85,7 +82,7 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         protected virtual void SetDbRecordFromEntityInstance() 
         {
-            var _dbRecord = new Dictionary<string, AttributeValue>
+            _dbRecord = new Dictionary<string, AttributeValue>
             {
                 { "TypeName", new AttributeValue() { S = TypeName } },
                 { "PK", new AttributeValue() { S = PK } },
