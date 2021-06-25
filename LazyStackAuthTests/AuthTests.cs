@@ -538,7 +538,7 @@ namespace LazyStackAuthTests
             #endregion Step: 14
 
             // VerifyCodeAsync
-            var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            var verificationCode = AuthEmail.GetAuthCode(appConfig, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp);
@@ -1304,7 +1304,7 @@ namespace LazyStackAuthTests
             #endregion Step: 32
 
             // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            verificationCode = AuthEmail.GetAuthCode(appConfig, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
 
@@ -2179,7 +2179,7 @@ namespace LazyStackAuthTests
             #endregion Step: 51
 
             // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, newEmail);
+            verificationCode = AuthEmail.GetAuthCode(appConfig, newEmail);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.EmailUpdateDone);
