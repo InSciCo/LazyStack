@@ -38,6 +38,7 @@ namespace LazyStackDynamoDBRepo
          
         public async Task<ActionResult<T>> CreateAsync(T data)
         {
+           
             try
             {
                 TEnv envelope = new TEnv() { EntityInstance = data };
@@ -47,7 +48,7 @@ namespace LazyStackDynamoDBRepo
                     Item = envelope.DbRecord
                 };
                 await client.PutItemAsync(request);
-                return new ObjectResult(data) { DeclaredType = typeof(T) }; 
+                return new OkObjectResult(data) { DeclaredType = typeof(T) }; 
             }
             catch (AmazonDynamoDBException)
             {
@@ -80,13 +81,13 @@ namespace LazyStackDynamoDBRepo
             {
                 TEnv envelope = new TEnv();
                 envelope = (sK == null)
-                    ? (await ReadEAsync(pK)).Value
-                    : (await ReadEAsync(pK, sK)).Value;
+                    ? (await ReadEAsync(pK))?.Value
+                    : (await ReadEAsync(pK, sK))?.Value;
 
                 if (envelope == null)
                     return new StatusCodeResult((int)DBTransError.KeyNotFound);
 
-                return new ObjectResult(envelope.EntityInstance);
+                return new OkObjectResult(envelope.EntityInstance);
 
             }
             catch (AmazonDynamoDBException)
