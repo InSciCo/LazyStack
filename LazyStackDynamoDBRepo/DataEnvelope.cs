@@ -105,6 +105,7 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <returns></returns>
         private System.Reflection.PropertyInfo propInfoCreateUtcTick = typeof(T).GetProperty(propNameCreateUtcTick);
+
         protected virtual long GetCreateUtcTick()
         {
             if (defaultUtcHandling && EntityInstance != null && propInfoCreateUtcTick != null)
@@ -120,6 +121,7 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <returns></returns>
         private System.Reflection.PropertyInfo propInfoUpdateUtcTick = typeof(T).GetProperty(propNameUpdateUtcTick);
+
         protected virtual long GetUpdateUtcTick()
         {
             if (defaultUtcHandling && EntityInstance != null && propInfoUpdateUtcTick != null)

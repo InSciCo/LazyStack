@@ -31,8 +31,8 @@ namespace LazyStackDynamoDBRepoTests
         Task<ActionResult<Sample>> GetSampleByIdAsync(long sampleId); //Read
         Task<ActionResult<Sample>> PutSampleByIdAsync(Sample sample); //Update
         Task<StatusCodeResult> DeleteSampleByIdAsync(long sampleId); //Delete
-        Task<ActionResult<List<Sample>>> ListSamplesAsync(); //List
-        Task<ActionResult<List<SampleEnvelope>>> ListSampleEnvelopesAsync(); 
+        Task<ActionResult<ICollection<Sample>>> ListSamplesAsync(); //List
+        Task<ActionResult<ICollection<SampleEnvelope>>> ListSampleEnvelopesAsync(); 
     }
 
     public class SampleRepo : DYDBRepository<SampleEnvelope, Sample>, ISampleRepo
@@ -110,7 +110,7 @@ namespace LazyStackDynamoDBRepoTests
             return await DeleteAsync("Samples:", "Sample:" + orderId.ToString());
         }
 
-        public async Task<ActionResult<List<Sample>>> ListSamplesAsync()
+        public async Task<ActionResult<ICollection<Sample>>> ListSamplesAsync()
         {
             var queryRequest = new QueryRequest()
             {
@@ -127,7 +127,7 @@ namespace LazyStackDynamoDBRepoTests
             return await ListAsync(queryRequest);
         }
 
-        public async Task<ActionResult<List<SampleEnvelope>>> ListSampleEnvelopesAsync()
+        public async Task<ActionResult<ICollection<SampleEnvelope>>> ListSampleEnvelopesAsync()
         {
             var queryRequest = new QueryRequest()
             {

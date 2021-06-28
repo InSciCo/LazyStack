@@ -9,9 +9,8 @@ Note that DynamoDB offers a variety of access libraries. This class uses the "Lo
 interfaces available in the DynamoDBv2.Model namespace.
 https://docs.aws.amazon.com/sdkfornet/v3/apidocs/items/DynamoDBv2/NDynamoDBv2Model.html
 
-For gray-hairs like me, just think of DynamoDB as a ISAM on steroids where the data 
-table and index tables have very few size restrictions and a simple query library 
-is provided to do indexed and scan based access.
+DynamoDB is essentially a ISAM on steroids where the data table and index tables have 
+very few size restrictions and a simple query library is provided to do indexed and scan based access.
 
 We won't try and summerize the DynamoDB documentation here. Instead, we describe how we 
 use DynamoDB in a prescriptive way to implement simple document storage and retrieval with 
@@ -35,7 +34,6 @@ Some key observations about the DynamoDBv2Model:
 - When we update a dBrecord, new values in an SKn field cause updates to the indices associated with those fields
 - Our DataEnvelope class is responsible for populating the dBrecord attributes from values in the data entity
 
-
 Automatic Version Transforms
 - Convert older versions of saved document content to newer version of that content on read
 	- this eliminates downtime due to database schema changes 
@@ -47,12 +45,18 @@ This approach abstracts much of the schema information out of DynamoDB into the 
 The advantage of this approach is that we can follow the suggested guidelines from Amazon DynamoDB 
 Architects for using a single table in an elegant and consistent way.
 
-Essentially we create an "Envelope" of the data stored in each record. This envelope contains fields whose 
+Essentially we create an "Envelope" of the data stored in each record. The DataEnvelope virtual 
+class contains:
+Dictionary<string, AttributeValue> DbRecord -- this is what DynamoDB reads/writes
+T EntityInstance -- this holds an instance of the data entity type
+
+
+This envelope contains fields whose 
 values are set based on the entity data being stored in a "Data" attribute. This prescriptive approach is 
 partially implemented by the DataEnvelope virtual class. You complete the implementation by overriding these 
 DataEnvelope methods:
 	- SetDbRecordFromEnvelopeInstance() // Updates Envelope from Entity Instance values
-	- DataEnvelope.SetEnvelopeInstanceFromDbRecord() // updates Entity Instance values from Envelope
+	- SetEnvelopeInstanceFromDbRecord() // updates Entity Instance values from Envelope
 	- DeserializeData(string data, string typeName) // Allow conversion of stored data entity version to most recent version
 
 Each dBRecord is treated as a Dictionary<string, Attribute>. 
@@ -70,7 +74,7 @@ string SK3 - holds sortkey3 value (may be null) - if null then there is no entry
 string SK4 - holds sortkey4 value (may be null) - if null then there is no entry for the record in the LSI
 string SK5 - holds sortkey5 value (may be null) - if null then there is no entry for the record in the LSI
 
-Global Secondary Index
+Global Secondary Index support
 string GSI1PK - holds Global secondary index PK value (may be null) - if null then there is no entry for the record in the GSI
 string GSI1SK - holds Glocal secondary index SK value (may be null) - - if null then there is no entry for the record in the GSI
 
@@ -100,4 +104,3 @@ store various "data entities" in that table. Here is a simple ruleset:
 
 PK - contains an identifier with the plural form of the data entity. Example Pets
 SK - contains an identifier with the singular form of the data entity and an Id Example: Pet:1
-SKn - 

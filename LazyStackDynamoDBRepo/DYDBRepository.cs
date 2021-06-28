@@ -55,7 +55,7 @@ namespace LazyStackDynamoDBRepo
                 {
                     TableName = tablename,
                     Item = envelope.DbRecord,
-                    ConditionExpression = "attribute_not_exists(PK)"
+                    ConditionExpression = "attribute_not_exists(PK)" // Technique to avoid replacing an existing record
                 };
 
                 await client.PutItemAsync(request);
@@ -71,7 +71,7 @@ namespace LazyStackDynamoDBRepo
         {
             try
             {
-                var response = (await ReadEAsync(pK, sK));
+                var response = await ReadEAsync(pK, sK);
                 if (response.Value == null)
                     return response.Result;
                 return response.Value.EntityInstance;
@@ -123,7 +123,7 @@ namespace LazyStackDynamoDBRepo
                 {
                     TableName = tablename,
                     Item = envelope.DbRecord,
-                    ConditionExpression = $"UpdateUtcTick = :OldUpdateUtcTick",
+                    ConditionExpression = "UpdateUtcTick = :OldUpdateUtcTick",
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                     {
                         {":OldUpdateUtcTick", new AttributeValue() {N = OldUpdateUtcTick.ToString()} }
@@ -163,7 +163,7 @@ namespace LazyStackDynamoDBRepo
             catch { return new StatusCodeResult(406); }
         }
 
-        public async Task<ActionResult<List<TEnv>>> ListEAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<ICollection<TEnv>>> ListEAsync(QueryRequest queryRequest)
         {
             try
             {
@@ -173,10 +173,12 @@ namespace LazyStackDynamoDBRepo
                     list.Add(new TEnv() { DbRecord = item });
                 return list;
             }
-            catch { return new NoContentResult(); }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(500); }
         }
 
-        public async Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest)
         {
             try
             {

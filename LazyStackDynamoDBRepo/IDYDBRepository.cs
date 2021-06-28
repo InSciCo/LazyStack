@@ -63,13 +63,13 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<TEnv></TEnv></returns>
-        Task<ActionResult<List<TEnv>>> ListEAsync(QueryRequest queryRequest);
+        Task<ActionResult<ICollection<TEnv>>> ListEAsync(QueryRequest queryRequest);
 
         /// <summary>
         /// Call QueryAsync and return list of data objects of type T
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
-        Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest);
+        Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest);
     }
 }
