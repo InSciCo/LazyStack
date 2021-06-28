@@ -7,6 +7,7 @@ namespace LazyStackDynamoDBRepo
     /// Have fallback logic that works if any of these codes get
     /// changed to 500. 
     /// </summary>
+    /*
     public enum DBTransError
     {
         NewerLastUpdateFound = 550,
@@ -17,4 +18,5 @@ namespace LazyStackDynamoDBRepo
         RemoteServiceDown = 555,
         DBError = 556
     }
+    */
 }

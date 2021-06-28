@@ -1,11 +1,5 @@
-﻿using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime;
-using System;
-using System.Diagnostics;
+﻿using Amazon.DynamoDBv2.Model;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 namespace LazyStackDynamoDBRepo
@@ -13,14 +7,6 @@ namespace LazyStackDynamoDBRepo
     public abstract class DataEnvelope<T> : IDataEnvelope<T>
         where T : class, new()
     {
-
-        public DataEnvelope()
-        {
-            var now = DateTime.UtcNow.Ticks;
-            CreateUtcTick = now;
-            UpdateUtcTick = now;
-        }
-
         private Dictionary<string, AttributeValue> _dbRecord;
         public Dictionary<string, AttributeValue> DbRecord 
         {
@@ -28,9 +14,26 @@ namespace LazyStackDynamoDBRepo
             set
             {
                 _dbRecord = value;
-                SetEntityInstanceFromDbRecord();
+                SetEnvelopeInstanceFromDbRecord();
             }
-        } 
+        }
+
+        /// <summary>
+        /// Set this value to false if you are not using Utc for optimistic locking
+        /// This will avoide the small reflection overhead of checking for default 
+        /// UpdateUtcTick and CreateUtcTick fields in your data entity type,.
+        /// </summary>
+        protected bool defaultUtcHandling = true;
+        /// <summary>
+        /// You can use another name for CreateUtcTick in your data entity - assign that name
+        /// in the derived type's constructor.
+        /// </summary>
+        protected static string propNameCreateUtcTick = "CreateUtcTick";
+        /// <summary>
+        /// You can use another name for UpdateUtcTick in your data entity - assign that name
+        /// in the derived type's constructor,.
+        /// </summary>
+        protected static string propNameUpdateUtcTick = "UpdateUtcTick";
 
         private T _entityInstance;
         public T EntityInstance 
@@ -39,7 +42,7 @@ namespace LazyStackDynamoDBRepo
             set
             {
                 _entityInstance = value;
-                SetDbRecordFromEntityInstance();
+                SetDbRecordFromEnvelopeInstance();
             }
         } // Data entity in latest version form
 
@@ -70,26 +73,106 @@ namespace LazyStackDynamoDBRepo
 
         public string Status { get; set; } = null; // Projection attribute
 
-        public long CreateUtcTick { get; set; } = 0; // Projection attribute
+        public long CreateUtcTick 
+        {
+            get { return GetCreateUtcTick(); }
+            set 
+            { 
+                SetCreateUtcTick(value);
+                if (DbRecord != null && DbRecord.ContainsKey("CreateUtcTick"))
+                    DbRecord["CreateUtcTick"].N = value.ToString();
+            } 
+        } // Projection attribute
 
-        public long UpdateUtcTick { get; set; } = 0; // Projection attribute
+        public long UpdateUtcTick 
+        {
+            get { return GetUpdateUtcTick(); }
+            set 
+            { 
+                SetUpdateUtcTick(value);
+                if (DbRecord != null && DbRecord.ContainsKey("UpdateUtcTick"))
+                    DbRecord["UpdateUtcTick"].N = value.ToString();
+            } 
+        } // Projection attribute
 
         public string General { get; set; } = null; // Projection attribute
+
+        /// <summary>
+        /// Gets the CreateUtcTick value from the data entity
+        /// If you don't want to suffer the impact of reflection you can override the 
+        /// GetCreateUtcTick method (don't call the base method if you do)
+        /// and get the CreateUtcTick (or similar) field directly.
+        /// </summary>
+        /// <returns></returns>
+        private System.Reflection.PropertyInfo propInfoCreateUtcTick = typeof(T).GetProperty(propNameCreateUtcTick);
+        protected virtual long GetCreateUtcTick()
+        {
+            if (defaultUtcHandling && EntityInstance != null && propInfoCreateUtcTick != null)
+                return (long)propInfoCreateUtcTick.GetValue(EntityInstance);
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets the UpdateUtcTick value from the data entity
+        /// If you don't want to suffer the impact of reflection you can override the 
+        /// GetUpdateUtcTick method (don't call the base method if you do)
+        /// and get the UpdateUtcTick (or similar) field directly.
+        /// </summary>
+        /// <returns></returns>
+        private System.Reflection.PropertyInfo propInfoUpdateUtcTick = typeof(T).GetProperty(propNameUpdateUtcTick);
+        protected virtual long GetUpdateUtcTick()
+        {
+            if (defaultUtcHandling && EntityInstance != null && propInfoUpdateUtcTick != null)
+                return (long)propInfoUpdateUtcTick.GetValue(EntityInstance);
+            return 0;
+        }
+
+        /// <summary>
+        /// Sets the CreateUtcTick value into the data entity
+        /// If you don't want to suffer the impact of reflection you can override the 
+        /// SetCreateUtcTick method (don't call the base method if you do)
+        /// and set the CreateUtcTick (or similar) field directly.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual long SetCreateUtcTick(long value)
+        {
+            if(defaultUtcHandling && EntityInstance != null && propInfoCreateUtcTick != null)
+                propInfoCreateUtcTick.SetValue(EntityInstance, value);
+            return value;
+        }
+
+        /// <summary>
+        /// Sets the UpdateUtcTick value into the data entity
+        /// If you don't want to suffer the impact of reflection you can override the 
+        /// SetUpdateUtcTick method (don't call the base method if you do)
+        /// and set the UpdateUtcTick (or similar) field directly.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected virtual long SetUpdateUtcTick(long value)
+        {
+            if(defaultUtcHandling && EntityInstance != null && propInfoUpdateUtcTick != null)
+                propInfoUpdateUtcTick.SetValue(EntityInstance, value);
+            return value;
+        }
 
         /// <summary>
         /// You must implement this method
         /// The EntityInstance Set method calls this method.
         /// </summary>
-        protected virtual void SetDbRecordFromEntityInstance() 
+        protected virtual void SetDbRecordFromEnvelopeInstance() 
         {
             _dbRecord = new Dictionary<string, AttributeValue>
             {
                 { "TypeName", new AttributeValue() { S = TypeName } },
                 { "PK", new AttributeValue() { S = PK } },
                 { "SK", new AttributeValue() { S = SK } },
-                { "CreateUtcTick", new AttributeValue { N = CreateUtcTick.ToString() } },
-                { "UpdateUtcTick", new AttributeValue { N = UpdateUtcTick.ToString() } }
             };
+
+            _dbRecord.Add("CreateUtcTick", new AttributeValue { N = CreateUtcTick.ToString() });
+
+            _dbRecord.Add("UpdateUtcTick", new AttributeValue { N = UpdateUtcTick.ToString() });
 
             if (!string.IsNullOrEmpty(SK1))
                 _dbRecord.Add("SK1", new AttributeValue() { S = SK1 });
@@ -118,19 +201,13 @@ namespace LazyStackDynamoDBRepo
             if (!string.IsNullOrEmpty(General))
                 _dbRecord.Add("General", new AttributeValue() { S = General });
 
-            // Serialize the entity data
-            // We always serialize to the latest entity version
-            if (EntityInstance != null)
-            {
-                _dbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(EntityInstance) });
-            }
         }
 
         /// <summary>
         /// You must implement this method
         /// The DbRecord Set method calls this method.
         /// </summary>
-        protected virtual void SetEntityInstanceFromDbRecord() 
+        protected virtual void SetEnvelopeInstanceFromDbRecord() 
         {
             if (_dbRecord.TryGetValue("PK", out AttributeValue pk))
                 PK = pk.S;
@@ -140,12 +217,6 @@ namespace LazyStackDynamoDBRepo
 
             if (_dbRecord.TryGetValue("SK", out AttributeValue sk))
                 SK = sk.S;
-
-            if (_dbRecord.TryGetValue("CreateUtcTick", out AttributeValue createUtcTick))
-                CreateUtcTick = long.Parse(createUtcTick.N);
-
-            if (_dbRecord.TryGetValue("UpdateUtcTick", out AttributeValue updateUtcTick))
-                UpdateUtcTick = long.Parse(updateUtcTick.N);
 
             if (_dbRecord.TryGetValue("SK1", out AttributeValue sk1))
                 SK1 = sk1.S;
@@ -175,12 +246,16 @@ namespace LazyStackDynamoDBRepo
                 General = general.S;
 
             // serialize the json data to the EntityInstance
-            // TODO: we have to figure out our strategy on deserializing old versions
-
             if (_dbRecord.TryGetValue("Data", out AttributeValue data))
             {
                 DeserializeData(data.S, typeName.S);
             }
+
+            if (_dbRecord.TryGetValue("CreateUtcTick", out AttributeValue createUtcTick))
+                CreateUtcTick = long.Parse(createUtcTick.N);
+
+            if (_dbRecord.TryGetValue("UpdateUtcTick", out AttributeValue updateUtcTick))
+                UpdateUtcTick = long.Parse(updateUtcTick.N);
         }
 
         /// <summary>

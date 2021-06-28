@@ -26,22 +26,21 @@ namespace LazyStackDynamoDBRepo
         Task<ActionResult<T>> CreateAsync(T data);
 
         /// <summary>
-        /// Call ReadEAsync and extract data from the envelope
+        /// Read data entity (calls ReadEAsync)
         /// </summary>
-        /// <param name="pKPrefix"></param>
-        /// <param name="pKval"></param>
-        /// <returns>ActionResult</returns>
-        Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval);
+        /// <param name="pK"></param>
+        /// <param name="sK"></param>
+        /// <returns>ActionResult<T></returns>
+        Task<ActionResult<T>> ReadAsync(string pK, string sK = null);
+
 
         /// <summary>
-        /// Call ReadAsync and extract data from the envelope
+        /// Read dBrecord (envelope)
         /// </summary>
-        /// <param name="pKPrefix"></param>
-        /// <param name="pKval"></param>
-        /// <param name="sKPrefix"></param>
-        /// <param name="sKval"></param>
-        /// <returns>ActionResult<T></returns>
-        Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
+        /// <param name="pK"></param>
+        /// <param name="sK"></param>
+        /// <returns></returns>
+        Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null);
 
         /// <summary>
         /// Ccreate PutItemRequest and call PutItmeAsync. Use UpdateUtcTick to do optimistic lock.
@@ -53,33 +52,24 @@ namespace LazyStackDynamoDBRepo
         /// <summary>
         /// Call DeleteItemAsyunc
         /// </summary>
-        /// <param name="pKPrefix"></param>
-        /// <param name="pKval"></param>
+        /// <param name="pK"></param>
+        /// <param name="sK"></param>
         /// <returns></returns>
-        Task<ActionResult> DeleteAsync(string pKPrefix, string pKval);
+        Task<StatusCodeResult> DeleteAsync(string pK, string sK = null);
 
-        /// <summary>
-        /// Call DeleteItemAsuync
-        /// </summary>
-        /// <param name="pKPrefix"></param>
-        /// <param name="pKval"></param>
-        /// <param name="sKPrefix"></param>
-        /// <param name="sKval"></param>
-        /// <returns></returns>
-        Task<ActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval);
 
         /// <summary>
         /// Call QueryAsync and return list of envelopes
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<TEnv></TEnv></returns>
-        Task<ICollection<TEnv>> ListEAsync(QueryRequest queryRequest);
+        Task<ActionResult<List<TEnv>>> ListEAsync(QueryRequest queryRequest);
 
         /// <summary>
         /// Call QueryAsync and return list of data objects of type T
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
-        Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest);
+        Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest);
     }
 }

@@ -2,10 +2,10 @@
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 
 namespace LazyStackDynamoDBRepo
@@ -38,95 +38,50 @@ namespace LazyStackDynamoDBRepo
          
         public async Task<ActionResult<T>> CreateAsync(T data)
         {
-           
             try
             {
-                TEnv envelope = new TEnv() { EntityInstance = data };
+                var now = DateTime.UtcNow.Ticks;
+                TEnv envelope = new TEnv() 
+                { 
+                    EntityInstance = data,
+                    CreateUtcTick = now,
+                    UpdateUtcTick = now
+                };
+
+                // Wait until just before write to serialize EntityInstance (captures updates to UtcTick fields)
+                envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance)});
+
                 var request = new PutItemRequest()
                 {
                     TableName = tablename,
-                    Item = envelope.DbRecord
+                    Item = envelope.DbRecord,
+                    ConditionExpression = "attribute_not_exists(PK)"
                 };
+
                 await client.PutItemAsync(request);
-                return new OkObjectResult(data) { DeclaredType = typeof(T) }; 
+                return data; 
             }
-            catch (AmazonDynamoDBException)
-            {
-                return new StatusCodeResult(400);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult(500);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
+            catch (ConditionalCheckFailedException) { return new ConflictResult(); }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(400); }
+            catch (AmazonServiceException) { return new StatusCodeResult(500); }
+            catch { return new StatusCodeResult(500); }
         }
 
-        // PKval does not include the PKPrefix
-        public async Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval)
-        {
-            return await ReadAsync(pKPrefix, pKval, sKPrefix:null, sKval: null);
-        }
-
-        // PKval does not include the PKPrefix
-        // SKval does not include the SKPrefix
-        public async Task<ActionResult<T>> ReadAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
-        {
-            string pK = pKPrefix + pKval;
-            string sK = (sKPrefix != null) ? sKPrefix + sKval : null;
-
-            try
-            {
-                TEnv envelope = new TEnv();
-                envelope = (sK == null)
-                    ? (await ReadEAsync(pK))?.Value
-                    : (await ReadEAsync(pK, sK))?.Value;
-
-                if (envelope == null)
-                    return new StatusCodeResult((int)DBTransError.KeyNotFound);
-
-                return new OkObjectResult(envelope.EntityInstance);
-
-            }
-            catch (AmazonDynamoDBException)
-            {
-                return new StatusCodeResult((int)DBTransError.DBError);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult((int)DBTransError.RemoteServiceDown);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
-
-        }
-
-        protected async Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK)
+        public async Task<ActionResult<T>> ReadAsync(string pK,  string sK = null)
         {
             try
             {
-                var request = new GetItemRequest()
-                {
-                    TableName = tablename,
-                    Key = new Dictionary<string, AttributeValue>()
-                    { {"PK", new AttributeValue {S = pK}},
-                      {"SK", new AttributeValue {S = sK } }
-                    }
-                };
-                var response = await client.GetItemAsync(request);
-                return new TEnv() { DbRecord = response.Item };
+                var response = (await ReadEAsync(pK, sK));
+                if (response.Value == null)
+                    return response.Result;
+                return response.Value.EntityInstance;
             }
-            catch (Exception e)
-            {
-                return default;
-            }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(406); }
         }
 
-        protected async Task<ActionResult<TEnv>> ReadEAsync(string pK)
+        public async Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null)
         {
             try
             {
@@ -135,16 +90,16 @@ namespace LazyStackDynamoDBRepo
                     TableName = tablename,
                     Key = new Dictionary<string, AttributeValue>()
                     { 
-                        {"PK", new AttributeValue {S = pK}}
+                        {"PK", new AttributeValue {S = pK}},
+                        {"SK", new AttributeValue {S = sK } }
                     }
                 };
                 var response = await client.GetItemAsync(request);
                 return new TEnv() { DbRecord = response.Item };
             }
-            catch
-            {
-                return default;
-            }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(406); }
         }
 
         public async Task<ActionResult<T>> UpdateAsync(T data)
@@ -156,178 +111,84 @@ namespace LazyStackDynamoDBRepo
 
             try
             {
-                var dbEnvelope = new TEnv(); // this will hold existing disk version of the item
-                // If the entity has an internal UpdateTick then the envelope will have a non-zero
-                // UpdateTick value
+                var OldUpdateUtcTick = envelope.UpdateUtcTick;
+                var now = DateTime.UtcNow.Ticks;
+                envelope.UpdateUtcTick = now; // The UpdateUtcTick Set calls SetUpdateUtcTick where you can update your entity data record 
 
-                if (envelope.UpdateUtcTick != 0) // Perform optimistic lock processing
-                {
-                    // Read existing item from disk
-                    dbEnvelope = (await ReadEAsync(envelope.PK, envelope.SK)).Value;
+                // Waiting until just before write to serialize EntityInstance (captures updates to UtcTick fields)
+                envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance) });
 
-                    if (dbEnvelope == null) // Darn, could not find the record!
-                        return new StatusCodeResult((int)DBTransError.KeyNotFound);
-
-                    if (dbEnvelope.UpdateUtcTick != envelope.UpdateUtcTick) // Darn, they don't match!
-                    {
-                        return new StatusCodeResult((int)DBTransError.NewerLastUpdateFound);
-                    }
-                }
-
-                // Ok to update envelope and item if we got this far
-                var now = DateTime.UtcNow;
-                envelope.UpdateUtcTick = now.Ticks;
-
-                // Write data to database
+                // Write data to database - use conditional put to avoid overwriting newer data
                 var request = new PutItemRequest()
                 {
                     TableName = tablename,
-                    Item = envelope.DbRecord
+                    Item = envelope.DbRecord,
+                    ConditionExpression = $"UpdateUtcTick = :OldUpdateUtcTick",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    {
+                        {":OldUpdateUtcTick", new AttributeValue() {N = OldUpdateUtcTick.ToString()} }
+                    }
                 };
-
                 await client.PutItemAsync(request);
-
-                return new OkObjectResult(envelope.DbRecord);
+                return new OkObjectResult(envelope.EntityInstance);
             }
-            catch (AmazonDynamoDBException)
-            {
-                return new StatusCodeResult((int)DBTransError.DBError);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult((int)DBTransError.RemoteServiceDown);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
+            catch (ConditionalCheckFailedException) { return new ConflictResult(); }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(500); }
         }
 
-        // PKval does not include PKPrefix
-        public async Task<ActionResult> DeleteAsync(string pKPrefix, string pKval)
+        public async Task<StatusCodeResult> DeleteAsync(string pK, string sK = null)
         {
-            string PK = pKPrefix + pKval;
-
             try
             {
-                if (string.IsNullOrEmpty(pKval))
-                    return new StatusCodeResult((int)DBTransError.BadKey);
+                if (string.IsNullOrEmpty(pK))
+                    return new StatusCodeResult(406); // bad key
 
                 var request = new DeleteItemRequest()
                 {
                     TableName = tablename,
                     Key = new Dictionary<string, AttributeValue>()
                     {
-                        {"PK", new AttributeValue {S= PK} }
+                        {"PK", new AttributeValue {S= pK} },
+                        {"SK", new AttributeValue {S = sK} }
                     }
                 };
-                var response = await client.DeleteItemAsync(request);
-
+                
+                await client.DeleteItemAsync(request);
                 return new OkResult();
-
             }
-            catch (AmazonDynamoDBException)
-            {
-                return new StatusCodeResult((int)DBTransError.DBError);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult((int)DBTransError.RemoteServiceDown);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
-
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(406); }
         }
 
-        // PKval does not include PKPrefix
-        // SKval does not icnlude SKPrefix
-        // todo - can we recognize and handle a Key Missing condition?
-        // todo - should we check if the record being deleted has the same lastupdatetick?
-        // todo - this would imply we need to pass in the entity! Too much overhead?
-        public async Task<ActionResult> DeleteAsync(string pKPrefix, string pKval, string sKPrefix, string sKval)
-        {
-            string PK = pKPrefix + pKval;
-            string SK = (sKPrefix == null) ? null : sKPrefix + sKval;
-            try
-            {
-                if (string.IsNullOrEmpty(PK) || string.IsNullOrEmpty(sKval))
-                    return new StatusCodeResult((int) DBTransError.BadKey);
-
-                var request = new DeleteItemRequest()
-                {
-                    TableName = tablename,
-                    Key = new Dictionary<string, AttributeValue>()
-                    {
-                        {"PK", new AttributeValue {S= PK} },
-                        {"SK", new AttributeValue {S = SK} }
-                    }
-                };
-                var response = await client.DeleteItemAsync(request);
-
-                return new OkResult();
-
-            }
-            catch (AmazonDynamoDBException)
-            {
-                return new StatusCodeResult((int)DBTransError.DBError);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult((int)DBTransError.RemoteServiceDown);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
-        }
-
-        public async Task<ICollection<TEnv>> ListEAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<List<TEnv>>> ListEAsync(QueryRequest queryRequest)
         {
             try
             {
                 var response = await client.QueryAsync(queryRequest);
                 var list = new List<TEnv>();
-                foreach(Dictionary<string, AttributeValue> item in response.Items)
+                foreach(Dictionary<string, AttributeValue> item in response?.Items)
                     list.Add(new TEnv() { DbRecord = item });
                 return list;
             }
-            catch
-            {
-                return default(List<TEnv>);
-            }
+            catch { return new NoContentResult(); }
         }
 
-        public async Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest)
+        public async Task<ActionResult<List<T>>> ListAsync(QueryRequest queryRequest)
         {
             try
             {
                 var response = await client.QueryAsync(queryRequest);
                 var list = new List<T>();
-                foreach (Dictionary<string, AttributeValue> item in response.Items)
-                {
+                foreach (Dictionary<string, AttributeValue> item in response?.Items)
                     list.Add(new TEnv() { DbRecord = item }.EntityInstance);
-                }
-                if (list.Count > 0)
-                    return new OkObjectResult(list);
-                else
-                    return new NoContentResult();
+                return list;
             }
-            catch (AmazonDynamoDBException e)
-            {
-                Debug.WriteLine($"QueryAsync Error: {e.Message}");
-                return new StatusCodeResult((int)DBTransError.DBError);
-            }
-            catch (AmazonServiceException)
-            {
-                return new StatusCodeResult((int)DBTransError.RemoteServiceDown);
-            }
-            catch
-            {
-                return new StatusCodeResult(500);
-            }
+            catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+            catch (AmazonServiceException) { return new StatusCodeResult(503); }
+            catch { return new StatusCodeResult(500); }
         }
-
     }
 }

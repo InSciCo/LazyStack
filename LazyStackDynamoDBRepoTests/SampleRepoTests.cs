@@ -1,39 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
-using System.Reflection;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
-//using LazyStackAuth;
-
-
-
-
 
 namespace LazyStackDynamoDBRepoTests
 {
-    //Envelope Lib > Envelope derived class
-    //-Acts as wapper for the object payload passed
-    //-Includes some metadata
-    //-Envalope type and payload type defined via generics in classes using Envalopes
-
-    //Repo Lib > Repo derived class
-    //-Uses methods in parent to perform calls to DynamoDB
-    //-Class instance controlled by dependency injection, here registered as singleton
-
-    //DynamoDB 
-    //instance must be deployed prior to run, can use serverless.template in this folder
-    //deploys from/to aws acc specified in AWS extension dialogue, likely .aws default prof
-
-
-
-    [TestClass]
+     [TestClass]
     public class SampleRepoTests
     {
         IServiceCollection services = new ServiceCollection();
@@ -42,55 +17,75 @@ namespace LazyStackDynamoDBRepoTests
         public SampleRepoTests()
         {
             IConfiguration appConfig = new ConfigurationBuilder().Build();
-
             services.AddDefaultAWSOptions(appConfig.GetAWSOptions());
             services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
             services.AddSingleton<ISampleRepo, SampleRepo>();
-
             serviceProvider = services.BuildServiceProvider();
-
             Environment.SetEnvironmentVariable("TABLE_NAME", "TestRepo-DB");
         }
 
         [TestMethod]
-        public async Task Create()
+        public async Task TestSample()
         {
-            var sampleRepo = serviceProvider.GetService<ISampleRepo>();
-            var Cow = new Sample()
-            {
-                Id = 1,
-                Category = "Bovine",
-                Name = "Cow"
-            };
+            // SampleRepo is a simple table
+            // PK = "Samples:" // Partition Key
+            // SK = "Sample:" + Id.ToString(); // Sort Key
+            // Primary key = PK + SK
+            // Properties:
+            //  int Id 
+            //  string Category
+            //  string Name
+            //  long CreateUtcTick
+            //  long UpdateUtcTick
 
-            var response = await sampleRepo.SeedSampleAsync(Cow);
-            var value = (response.Result as ObjectResult)?.Value as Sample;
-            Console.WriteLine($"{value.ToString()}");
+            var sampleRepo = serviceProvider.GetRequiredService<ISampleRepo>();
 
-        }
-        [TestMethod]
-        public async Task Read()
-        {
-            var sampleRepo = serviceProvider.GetService<ISampleRepo>();
-            long Id = 1;
-            var response = await sampleRepo.GetSampleByIdAsync(Id);
-            var value = (response.Result as ObjectResult)?.Value as Sample;
-            Console.WriteLine($"{value.ToString()}");
-        }
-        [TestMethod]
-        public void Update()
-        {
-            var sampleRepo = serviceProvider.GetService<ISampleRepo>();
-        }
-        [TestMethod]
-        public void Delete()
-        {
-            var sampleRepo = serviceProvider.GetService<ISampleRepo>();
-        }
-        [TestMethod]
-        public void List()
-        {
-            var sampleRepo = serviceProvider.GetService<ISampleRepo>();
+            // Clear existing records
+            var response = await sampleRepo.ClearSamplesAsync();
+            Assert.IsTrue(response is OkResult, response.ToString());
+
+            // Add some records
+            response = await sampleRepo.SeedSampleAsync();
+            Assert.IsTrue(response is OkResult, response.ToString());
+
+            // Try to create an existing record - should fail with ConflictResult
+            var createResponse = await sampleRepo.CreateAsync(new Sample() { Id = 1, Category = "bovine", Name = "Bonnie" });
+            Assert.IsTrue(createResponse.Result is ConflictResult, "Opps, allowed create of existing item");
+
+            // Update a record 
+            var sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
+            Assert.IsNotNull(sampleResponse.Value, sampleResponse.ToString());
+            var sample = sampleResponse.Value;
+            sample.Name = "Randy";
+            var updateUtcTick = sample.UpdateUtcTick;
+            sampleResponse = await sampleRepo.UpdateAsync(sample);
+            Assert.IsTrue(sampleResponse.Result is OkObjectResult, sampleResponse.ToString());
+            sample = (sampleResponse.Result as OkObjectResult)?.Value as Sample;
+            Assert.IsTrue(updateUtcTick < sample.UpdateUtcTick, "UpdateUtcTick violation");
+            Assert.IsTrue(sample.Name.Equals("Randy"), "Update failed. Name does not mathc.");
+
+            // Test Optimistic Lock 
+            // Read the record twice
+            sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
+            var sample1 = sampleResponse.Value;
+            Debug.WriteLine($"Sample1.UpdateUtcTick={sample1.UpdateUtcTick}");
+
+            var sampleResponse2 = await sampleRepo.ReadAsync("Samples:", "Sample:1");
+            var sample2 = sampleResponse2.Value;
+            Debug.WriteLine($"Sample2.UpdateUtcTick={sample2.UpdateUtcTick}");
+
+            // Update first record instance
+            var sampleResponse3 = await sampleRepo.UpdateAsync(sample1);
+            var sample3 = (sampleResponse3.Result as OkObjectResult)?.Value as Sample;
+            Debug.WriteLine($"Sample3.UpdateUtcTick={sample3.UpdateUtcTick}");
+
+            // Try and update second record - should fail with ConflictResult
+            var sampleResponse4 = await sampleRepo.UpdateAsync(sample2);
+            Assert.IsTrue(sampleResponse4.Result is ConflictResult, "Didn't get ConflictResult");
+
+            // Test Delete
+            var deleteReponse = await sampleRepo.DeleteSampleByIdAsync(2);
+            Assert.IsTrue(deleteReponse is OkResult, "Delete failed");
         }
     }
 }
