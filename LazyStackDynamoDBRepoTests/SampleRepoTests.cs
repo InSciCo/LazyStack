@@ -62,7 +62,7 @@ namespace LazyStackDynamoDBRepoTests
             Assert.IsTrue(sampleResponse.Result is OkObjectResult, sampleResponse.ToString());
             sample = (sampleResponse.Result as OkObjectResult)?.Value as Sample;
             Assert.IsTrue(updateUtcTick < sample.UpdateUtcTick, "UpdateUtcTick violation");
-            Assert.IsTrue(sample.Name.Equals("Randy"), "Update failed. Name does not mathc.");
+            Assert.IsTrue(sample.Name.Equals("Randy"), "Update failed. Name does not match.");
 
             // Test Optimistic Lock 
             // Read the record twice
