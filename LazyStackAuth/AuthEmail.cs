@@ -48,9 +48,10 @@ namespace LazyStackAuth
 
                     var results = inbox.Search(query);
 
-                    if(results.Count == 1)
+                    if(results.Count > 0)
                     {
-                        var message = inbox.GetMessage(results[0]);
+                        // Grab the latest entry
+                        var message = inbox.GetMessage(results[results.Count - 1]);
                             var bodyparts = message.HtmlBody.Split(" ");
                             verificationCode = bodyparts[^1];
                             foundCode = true;
