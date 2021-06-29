@@ -538,7 +538,7 @@ namespace LazyStackAuthTests
             #endregion Step: 14
 
             // VerifyCodeAsync
-            var verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            var verificationCode = AuthEmail.GetAuthCode(appConfig, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.SignedUp);
@@ -1210,7 +1210,7 @@ namespace LazyStackAuthTests
             password = "TestUser1!reset";
             authProcess.NewPassword = password;
             verificationCodeSendTime = DateTime.UtcNow;
-            Thread.Sleep(5000); // Account for a little drift among local and remote clock
+            Thread.Sleep(5000);
             Assert.IsTrue(await authProcess.VerifyNewPasswordAsync() == AuthEventEnum.AuthChallenge );
             stepResult = ObjectStateDump(32,  authProcess, stepResult);
             // State Changes Step: 32
@@ -1304,7 +1304,8 @@ namespace LazyStackAuthTests
             #endregion Step: 32
 
             // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, email);
+            Thread.Sleep(5000);
+            verificationCode = AuthEmail.GetAuthCode(appConfig, email);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
 
@@ -2088,7 +2089,7 @@ namespace LazyStackAuthTests
             // VerifyEmailAsync
             authProcess.NewEmail = newEmail;
             verificationCodeSendTime = DateTime.UtcNow;
-            Thread.Sleep(5000); // Account for a little drift among local and remote clock
+            Thread.Sleep(5000); 
             Assert.IsTrue(await authProcess.VerifyNewEmailAsync() == AuthEventEnum.VerificationCodeSent);
             stepResult = ObjectStateDump(51,  authProcess, stepResult);
             // State Changes Step: 51
@@ -2179,7 +2180,7 @@ namespace LazyStackAuthTests
             #endregion Step: 51
 
             // VerifyCodeAsync
-            verificationCode = AuthEmail.GetAuthCode(appConfig, verificationCodeSendTime, newEmail);
+            verificationCode = AuthEmail.GetAuthCode(appConfig, newEmail);
             Assert.IsNotNull(verificationCode);
             authProcess.Code = verificationCode;
             Assert.IsTrue(await authProcess.VerifyCodeAsync() == AuthEventEnum.EmailUpdateDone);

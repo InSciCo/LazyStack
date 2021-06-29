@@ -110,6 +110,7 @@ namespace LazyStackAuth
                 // the JWT or AwsSignatureVersion4 cases below. We assign the Headers
                 // anyway in case you want to implement handling these headers 
                 // in your local host for testing or any other purpose.
+
                 switch (securityLevel)
                 {
                     case AwsSettings.SecurityLevel.None:
