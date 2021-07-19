@@ -11,11 +11,14 @@ using System.Threading.Tasks;
 
 namespace LazyStackAuth
 {
+    // This version of LzHttpClient has AWS Cognito dependencies. You may 
+    // create similar classes that satisfy the ILzHttpClient interface to 
+    // use a different authentication service.
     public class LzHttpClient : ILzHttpClient
     {
         public LzHttpClient(
             IConfiguration appConfig,
-            AuthProviderCognito authProvider,
+            IAuthProvider authProvider,  // IAuthProviderCognito inherits IAuthProvider
             string localApiName = null) :
 #if DEBUG
         this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
@@ -25,16 +28,15 @@ namespace LazyStackAuth
         { }
 #endif
 
-        public LzHttpClient(
+        private LzHttpClient(
             IConfiguration appConfig,
-            AuthProviderCognito authProvider,
+            IAuthProvider authProvider,
             HttpClient httpClient,
             string localApiName = null)
         {
+            this.appConfig = appConfig;
             this.httpClient = httpClient;
-            this.localApiName = localApiName;
-            if (!string.IsNullOrEmpty(localApiName))
-                this.localApi = appConfig.GetSection($"LocalApis:{localApiName}").Get<LocalApi>();
+            LocalApiName = localApiName;
             this.awsSettings = appConfig.GetSection("Aws").Get<AwsSettings>();
             this.authProvider = authProvider;
             this.methodMap = appConfig.GetSection("MethodMap").GetChildren().ToDictionary(x => x.Key, x => x.Value);
@@ -42,11 +44,32 @@ namespace LazyStackAuth
 
         readonly HttpClient httpClient;
         readonly AwsSettings awsSettings;
-        readonly LocalApi localApi;
-        readonly string localApiName = string.Empty;
-        AuthProviderCognito authProvider;
+        private LocalApi localApi;
+        private IConfiguration appConfig;
+        IAuthProvider authProvider;
         Dictionary<string, string> methodMap;
 
+        private string localApiName = string.Empty;
+        public string LocalApiName
+        {
+            get {return localApiName; }
+            set 
+            { 
+                localApiName = value;
+                if (!string.IsNullOrEmpty(localApiName))
+                {
+                    this.localApi = appConfig.GetSection($"LocalApis:{localApiName}").Get<LocalApi>();
+                    useLocalApi = true;
+                }
+            }
+        }
+
+        private bool useLocalApi = false;
+        public bool UseLocalApi 
+        { 
+            get { return useLocalApi; } 
+            set { useLocalApi = value; } 
+        }
 
         // Note: CallerMember is inserted as a literal by the compiler in the IL so there is no 
         // performance penalty for using it.
@@ -65,7 +88,7 @@ namespace LazyStackAuth
 
             var securityLevel = api.SecurityLevel;
 
-            if (!string.IsNullOrEmpty(localApiName))
+            if (!string.IsNullOrEmpty(localApiName) && useLocalApi)
             {
                 var uriBuilder = new UriBuilder(localApi.Scheme, localApi.Host, localApi.Port);
 
@@ -122,11 +145,19 @@ namespace LazyStackAuth
 
                     case AwsSettings.SecurityLevel.JWT:
                         // Use JWT Token signing process
-                        requestMessage.Headers.Add("Authorization", authProvider.CognitoUser.SessionTokens.IdToken);
-                        response = await httpClient.SendAsync(
-                            requestMessage,
-                            httpCompletionOption,
-                            cancellationToken);
+                        requestMessage.Headers.Add("Authorization", ((AuthProviderCognito)authProvider).CognitoUser.SessionTokens.IdToken);
+                        try
+                        {
+                            response = await httpClient.SendAsync(
+                                requestMessage,
+                                httpCompletionOption,
+                                cancellationToken);
+
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine($"Error: {e.Message}");
+                        }
                         break;
 
                     case AwsSettings.SecurityLevel.AwsSignatureVersion4:
@@ -134,7 +165,7 @@ namespace LazyStackAuth
                         // Get Temporary ImmutableCredentials :  AccessKey, SecretKey, Token
                         // This will refresh immutable credentials if necessary
                         // Calling AwsSignatureVersion4 extension method -- this signs the request message
-                        var iCreds = await authProvider.Credentials.GetCredentialsAsync();
+                        var iCreds = await ((AuthProviderCognito)authProvider).Credentials.GetCredentialsAsync();
 
                         response = await httpClient.SendAsync(
                             requestMessage,

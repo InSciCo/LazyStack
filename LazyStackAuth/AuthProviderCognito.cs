@@ -54,7 +54,7 @@ namespace LazyStackAuth
     /// Implements IAuthProvider using AWS Cognito as authentication provider
     /// 
     /// </summary>
-    public class AuthProviderCognito : IAuthProvider
+    public class AuthProviderCognito : IAuthProviderCognito
     { 
         public AuthProviderCognito(IConfiguration appConfig, string stackName = "Aws")
         {

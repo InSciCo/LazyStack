@@ -13,10 +13,12 @@ namespace LazyStackAuth
         // Note: CallerMember is inserted as a literal by the compiler in the IL so 
         // there is no performance penalty for using it.
         public Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage requestMessage, 
-            HttpCompletionOption httpCompletionOption, 
-            CancellationToken cancellationToken, 
+            HttpRequestMessage requestMessage,
+            HttpCompletionOption httpCompletionOption,
+            CancellationToken cancellationToken,
             [CallerMemberName] string callerMemberName = null);
-        
+        public string LocalApiName {get; set;} 
+        public bool UseLocalApi { get; set; }
+    
     }
 }
