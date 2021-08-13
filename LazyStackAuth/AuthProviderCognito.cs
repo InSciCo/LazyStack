@@ -58,6 +58,7 @@ namespace LazyStackAuth
     { 
         public AuthProviderCognito(IConfiguration appConfig, string stackName = "Aws")
         {
+           
             regionEndpoint = RegionEndpoint.GetBySystemName(appConfig[$"{stackName}:Region"]);
             clientId = appConfig[$"{stackName}:ClientId"];
             userPoolId = appConfig[$"{stackName}:UserPoolId"];
@@ -194,6 +195,16 @@ namespace LazyStackAuth
                 return true; 
             } 
         } // will the current challenge do a server roundtrip?
+
+        public string[] FormatMessages { get; }
+        public string FormatMessage
+        {
+            get
+            {
+                return (FormatMessages?.Length > 0) ? FormatMessages[0] : "";
+            }
+        }
+
 
         #endregion Properties
 
@@ -435,7 +446,7 @@ namespace LazyStackAuth
                                 Password = password
                             }
                             ).ConfigureAwait(false);
-                        this.password = password;
+                        this.password = password; 
                         IsPasswordVerified = true;
                         AuthChallengeList.Remove(AuthChallengeEnum.Password);
                         return await NextChallenge();

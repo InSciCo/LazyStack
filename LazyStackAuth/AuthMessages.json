@@ -76,6 +76,7 @@
       "Alert_TooManyAttempts": "You have exceeded the login attempt limit. Try again later.",
       "Alert_NothingToDo": "",
       "Alert_OperationNotSupportedByAuthProvider": "Operation not supported by current auth provider.",
+      "Alert_LimitExceededException": "Too many attempts. Try again later.",
       "Alert_Unknown": "Unknown Alert Raised."
     }
   }

@@ -118,6 +118,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -129,6 +130,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -215,6 +217,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -226,6 +229,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == true, "CurrentChallengeIsLogin==true");
@@ -275,6 +279,14 @@ namespace LazyStackAuthTests
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsPassword==true
+            // State Changes Step: 12
+            // CurrentChallenge==AuthChallengeEnum.Password
+            // IsLoginFormatOk==true
+            // IsLoginVerified==true
+            // LoginNotVerified==false
+            // CurrentChallengeIsLogin==false
+            // CollectLogin==false
+            // CurrentChallengeIsPassword==true
             #region Step: 12
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Password, "CurrentChallenge==AuthChallengeEnum.Password");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.SigningUp, "CurrentAuthProcess==AuthProcessEnum.SigningUp");
@@ -305,6 +317,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -316,6 +329,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -353,6 +367,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 12
 
+
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.AuthChallenge);
@@ -362,6 +377,7 @@ namespace LazyStackAuthTests
             // IsPasswordFormatOk==true
             // IsPasswordVerified==true
             // PasswordNotVerified==false
+            // IsCleared==false
             // CurrentChallengeIsPassword==false
             // CollectPassword==false
             // CurrentChallengeIsEmail==true
@@ -395,6 +411,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -406,6 +423,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -443,6 +461,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 13
 
+
             // VerifyEmailAsync
             authProcess.Email = email;
             verificationCodeSendTime = DateTime.UtcNow;
@@ -454,6 +473,7 @@ namespace LazyStackAuthTests
             // IsEmailFormatOk==true
             // IsEmailVerified==true
             // EmailNotVerified==false
+            // IsChallengeLongWait==true
             // CurrentChallengeIsEmail==false
             // CollectEmail==false
             // CurrentChallengeIsCode==true
@@ -489,6 +509,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -500,6 +521,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -553,9 +575,11 @@ namespace LazyStackAuthTests
             // IsPasswordFormatOk==false
             // IsPasswordVerified==false
             // PasswordNotVerified==true
+            // IsCleared==true
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsSigningUp==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsCode==false
@@ -595,6 +619,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -606,6 +631,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -693,6 +719,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -704,6 +731,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == true, "CurrentChallengeIsLogin==true");
@@ -749,6 +777,7 @@ namespace LazyStackAuthTests
             // CurrentChallenge==AuthChallengeEnum.Password
             // IsLoginVerified==true
             // LoginNotVerified==false
+            // IsChallengeLongWait==true
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsPassword==true
@@ -782,6 +811,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -793,6 +823,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -830,7 +861,6 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 20
 
-
             // VerifyPasswordAsync
             authProcess.Password = password;
             Assert.IsTrue(await authProcess.VerifyPasswordAsync() == AuthEventEnum.SignedIn);
@@ -845,6 +875,7 @@ namespace LazyStackAuthTests
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsSigningIn==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsPassword==false
@@ -883,6 +914,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -894,6 +926,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -973,6 +1006,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -984,6 +1018,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1069,6 +1104,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1080,6 +1116,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == true, "CurrentChallengeIsLogin==true");
@@ -1117,6 +1154,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 30
 
+
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
@@ -1125,6 +1163,7 @@ namespace LazyStackAuthTests
             // CurrentChallenge==AuthChallengeEnum.NewPassword
             // IsLoginVerified==true
             // LoginNotVerified==false
+            // IsChallengeLongWait==true
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsNewPassword==true
@@ -1158,6 +1197,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1169,6 +1209,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1205,7 +1246,6 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 31
-
             // VerifyNewPasswordAsync
             password = "TestUser1!reset";
             authProcess.NewPassword = password;
@@ -1219,6 +1259,8 @@ namespace LazyStackAuthTests
             // LoginNotVerified==false
             // IsPasswordFormatOk==true
             // IsNewPasswordFormatOk==true
+            // IsCleared==false
+            // IsChallengeLongWait==true
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CollectNewPassword==false
@@ -1255,6 +1297,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1266,6 +1309,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1302,7 +1346,6 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 32
-
             // VerifyCodeAsync
             Thread.Sleep(5000);
             verificationCode = AuthEmail.GetAuthCode(appConfig, email);
@@ -1318,9 +1361,11 @@ namespace LazyStackAuthTests
             // LoginNotVerified==true
             // IsPasswordFormatOk==false
             // IsNewPasswordFormatOk==false
+            // IsCleared==true
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsResettingPassword==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsCode==false
@@ -1360,6 +1405,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1371,6 +1417,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1418,8 +1465,10 @@ namespace LazyStackAuthTests
             // LoginNotVerified==true
             // IsPasswordFormatOk==false
             // IsNewPasswordFormatOk==false
+            // IsCleared==true
             // IsSigningIn==true
             // IsResettingPassword==false
+            // IsChallengeLongWait==false
             // CurrentChallengeIsLogin==true
             // CollectLogin==true
             // CollectPassword==true
@@ -1456,6 +1505,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1467,6 +1517,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == true, "CurrentChallengeIsLogin==true");
@@ -1503,7 +1554,6 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsLongBusy == false, "IsLongBusy==false");
             Assert.IsTrue(authProcess.IsNotLongBusy == true, "IsNotLongBusy==true");
             #endregion Step: 40
-
             // VerifyLoginAsync
             authProcess.Login = login;
             Assert.IsTrue(await authProcess.VerifyLoginAsync() == AuthEventEnum.AuthChallenge);
@@ -1514,6 +1564,8 @@ namespace LazyStackAuthTests
             // IsLoginVerified==true
             // LoginNotVerified==false
             // IsPasswordFormatOk==true
+            // IsCleared==false
+            // IsChallengeLongWait==true
             // CurrentChallengeIsLogin==false
             // CollectLogin==false
             // CurrentChallengeIsPassword==true
@@ -1547,6 +1599,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1558,6 +1611,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1604,11 +1658,13 @@ namespace LazyStackAuthTests
             // IsLoginVerified==false
             // LoginNotVerified==true
             // IsPasswordFormatOk==false
+            // IsCleared==true
             // IsSignedIn==true
             // IsNotSignedIn==false
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsSigningIn==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsPassword==false
@@ -1647,6 +1703,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1658,6 +1715,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1743,6 +1801,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1754,6 +1813,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == true, "IsUpdatingPassword==true");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1801,9 +1861,11 @@ namespace LazyStackAuthTests
             // IsPasswordFormatOk==true
             // IsPasswordVerified==true
             // PasswordNotVerified==false
+            // IsCleared==false
             // HasActiveAuthProcess==true
             // NoActiveAuthProcess==false
             // IsUpdatingPassword==true
+            // IsChallengeLongWait==true
             // HasChallenge==true
             // NoChallenge==false
             // CurrentChallengeIsNewPassword==true
@@ -1842,6 +1904,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -1853,6 +1916,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == true, "IsUpdatingPassword==true");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1905,6 +1969,7 @@ namespace LazyStackAuthTests
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsUpdatingPassword==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsNewPassword==false
@@ -1943,6 +2008,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -1954,6 +2020,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -1997,9 +2064,13 @@ namespace LazyStackAuthTests
             // State Changes Step: 50
             // CurrentChallenge==AuthChallengeEnum.NewEmail
             // CurrentAuthProcess==AuthProcessEnum.UpdatingEmail
+            // IsPasswordFormatOk==false
+            // IsNewPasswordFormatOk==false
+            // IsCleared==true
             // HasActiveAuthProcess==true
             // NoActiveAuthProcess==false
             // IsUpdatingEmail==true
+            // IsChallengeLongWait==true
             // HasChallenge==true
             // NoChallenge==false
             // CurrentChallengeIsNewEmail==true
@@ -2009,6 +2080,8 @@ namespace LazyStackAuthTests
             // CanUpdatePassword==false
             // CanCancel==true
             #region Step: 50
+            Assert.IsTrue(authProcess.IsChatty == true, "IsChatty==true");
+            Assert.IsTrue(authProcess.ClearAllFields == false, "ClearAllFields==false");
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.NewEmail, "CurrentChallenge==AuthChallengeEnum.NewEmail");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
@@ -2023,10 +2096,10 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
-            Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
             Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
-            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsPhoneFormatOk == false, "IsPhoneFormatOk==false");
@@ -2038,6 +2111,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -2049,6 +2123,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == true, "IsUpdatingEmail==true");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -2102,6 +2177,8 @@ namespace LazyStackAuthTests
             // CollectCode==true
             // CanResendCode==true
             #region Step: 51
+            Assert.IsTrue(authProcess.IsChatty == true, "IsChatty==true");
+            Assert.IsTrue(authProcess.ClearAllFields == false, "ClearAllFields==false");
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.Code, "CurrentChallenge==AuthChallengeEnum.Code");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.UpdatingEmail, "CurrentAuthProcess==AuthProcessEnum.UpdatingEmail");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
@@ -2116,10 +2193,10 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
-            Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
             Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
-            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsPhoneFormatOk == false, "IsPhoneFormatOk==false");
@@ -2131,6 +2208,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == true, "HasActiveAuthProcess==true");
@@ -2142,6 +2220,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == true, "IsUpdatingEmail==true");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == true, "IsChallengeLongWait==true");
             Assert.IsTrue(authProcess.HasChallenge == true, "HasChallenge==true");
             Assert.IsTrue(authProcess.NoChallenge == false, "NoChallenge==false");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -2191,9 +2270,11 @@ namespace LazyStackAuthTests
             // IsEmailVerified==false
             // EmailNotVerified==true
             // IsCodeFormatOk==true
+            // IsCleared==false
             // HasActiveAuthProcess==false
             // NoActiveAuthProcess==true
             // IsUpdatingEmail==false
+            // IsChallengeLongWait==false
             // HasChallenge==false
             // NoChallenge==true
             // CurrentChallengeIsCode==false
@@ -2204,6 +2285,8 @@ namespace LazyStackAuthTests
             // CanCancel==false
             // CanResendCode==false
             #region Step: 52
+            Assert.IsTrue(authProcess.IsChatty == true, "IsChatty==true");
+            Assert.IsTrue(authProcess.ClearAllFields == false, "ClearAllFields==false");
             Assert.IsTrue(authProcess.CurrentChallenge == AuthChallengeEnum.None, "CurrentChallenge==AuthChallengeEnum.None");
             Assert.IsTrue(authProcess.CurrentAuthProcess == AuthProcessEnum.None, "CurrentAuthProcess==AuthProcessEnum.None");
             Assert.IsTrue(authProcess.IsLoginFormatOk == true, "IsLoginFormatOk==true");
@@ -2218,10 +2301,10 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsNewEmailFormatOk == false, "IsNewEmailFormatOk==false");
             Assert.IsTrue(authProcess.IsNewEmailVerified == false, "IsNewEmailVerified==false");
             Assert.IsTrue(authProcess.NewEmailNotVerified == true, "NewEmailNotVerified==true");
-            Assert.IsTrue(authProcess.IsPasswordFormatOk == true, "IsPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsPasswordFormatOk == false, "IsPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsPasswordVerified == false, "IsPasswordVerified==false");
             Assert.IsTrue(authProcess.PasswordNotVerified == true, "PasswordNotVerified==true");
-            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == true, "IsNewPasswordFormatOk==true");
+            Assert.IsTrue(authProcess.IsNewPasswordFormatOk == false, "IsNewPasswordFormatOk==false");
             Assert.IsTrue(authProcess.IsNewPasswordVerified == false, "IsNewPasswordVerified==false");
             Assert.IsTrue(authProcess.NewPasswordNotVerified == true, "NewPasswordNotVerified==true");
             Assert.IsTrue(authProcess.IsPhoneFormatOk == false, "IsPhoneFormatOk==false");
@@ -2233,6 +2316,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == true, "IsCodeFormatOk==true");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == false, "IsCleared==false");
             Assert.IsTrue(authProcess.IsSignedIn == true, "IsSignedIn==true");
             Assert.IsTrue(authProcess.IsNotSignedIn == false, "IsNotSignedIn==false");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -2244,6 +2328,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");
@@ -2288,6 +2373,7 @@ namespace LazyStackAuthTests
             // IsPasswordFormatOk==false
             // IsNewPasswordFormatOk==false
             // IsCodeFormatOk==false
+            // IsCleared==true
             // IsSignedIn==false
             // IsNotSignedIn==true
             // CanSignOut==false
@@ -2326,6 +2412,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsCodeFormatOk == false, "IsCodeFormatOk==false");
             Assert.IsTrue(authProcess.IsCodeVerified == false, "IsCodeVerified==false");
             Assert.IsTrue(authProcess.CodeNotVerified == true, "CodeNotVerified==true");
+            Assert.IsTrue(authProcess.IsCleared == true, "IsCleared==true");
             Assert.IsTrue(authProcess.IsSignedIn == false, "IsSignedIn==false");
             Assert.IsTrue(authProcess.IsNotSignedIn == true, "IsNotSignedIn==true");
             Assert.IsTrue(authProcess.HasActiveAuthProcess == false, "HasActiveAuthProcess==false");
@@ -2337,6 +2424,7 @@ namespace LazyStackAuthTests
             Assert.IsTrue(authProcess.IsUpdatingEmail == false, "IsUpdatingEmail==false");
             Assert.IsTrue(authProcess.IsUpdatingPhone == false, "IsUpdatingPhone==false");
             Assert.IsTrue(authProcess.IsUpdatingPassword == false, "IsUpdatingPassword==false");
+            Assert.IsTrue(authProcess.IsChallengeLongWait == false, "IsChallengeLongWait==false");
             Assert.IsTrue(authProcess.HasChallenge == false, "HasChallenge==false");
             Assert.IsTrue(authProcess.NoChallenge == true, "NoChallenge==true");
             Assert.IsTrue(authProcess.CurrentChallengeIsLogin == false, "CurrentChallengeIsLogin==false");

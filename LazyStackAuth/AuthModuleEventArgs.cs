@@ -83,6 +83,7 @@ namespace LazyStackAuth
         Alert_TooManyAttempts,
         Alert_NothingToDo,
         Alert_OperationNotSupportedByAuthProvider,
+        Alert_LimitExceededException,
 
         // Hail Marys
         Alert_Unknown
