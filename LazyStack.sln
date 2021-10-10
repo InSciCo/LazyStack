@@ -19,7 +19,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackDynamoDBRepoTests", "LazyStackDynamoDBRepoTests\LazyStackDynamoDBRepoTests.csproj", "{561CB612-CA56-4F45-98BA-ACA24EEF5FB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackDynamoDBRepoTests", "LazyStackDynamoDBRepoTests\LazyStackDynamoDBRepoTests.csproj", "{561CB612-CA56-4F45-98BA-ACA24EEF5FB1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthJs", "LazyStackAuthJs\LazyStackAuthJs.csproj", "{94E34FB2-7E88-46A9-BCC6-4B89F3C5D522}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestsLambdaHttpApi", "LazyStackAuthTestsLambdaHttpApi\LazyStackAuthTestsLambdaHttpApi.csproj", "{A2AE6282-0B63-4D0A-B84B-EF12F078332C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestsController", "LazyStackAuthTestsController\LazyStackAuthTestsController.csproj", "{12AFBC85-0027-48B0-833A-3AEED81AA8FE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestsLambdaApi", "LazyStackAuthTestsLambdaApi\LazyStackAuthTestsLambdaApi.csproj", "{74ECCC96-13FB-41AB-8415-A6E06282339D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackAuthTestReact", "LazyStackAuthTestReact\LazyStackAuthTestReact.csproj", "{8354B0D8-B068-45EA-8BCB-1F331C7272EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +61,26 @@ Global
 		{561CB612-CA56-4F45-98BA-ACA24EEF5FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{561CB612-CA56-4F45-98BA-ACA24EEF5FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{561CB612-CA56-4F45-98BA-ACA24EEF5FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{94E34FB2-7E88-46A9-BCC6-4B89F3C5D522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{94E34FB2-7E88-46A9-BCC6-4B89F3C5D522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{94E34FB2-7E88-46A9-BCC6-4B89F3C5D522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{94E34FB2-7E88-46A9-BCC6-4B89F3C5D522}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2AE6282-0B63-4D0A-B84B-EF12F078332C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2AE6282-0B63-4D0A-B84B-EF12F078332C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2AE6282-0B63-4D0A-B84B-EF12F078332C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2AE6282-0B63-4D0A-B84B-EF12F078332C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12AFBC85-0027-48B0-833A-3AEED81AA8FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12AFBC85-0027-48B0-833A-3AEED81AA8FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12AFBC85-0027-48B0-833A-3AEED81AA8FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12AFBC85-0027-48B0-833A-3AEED81AA8FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74ECCC96-13FB-41AB-8415-A6E06282339D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74ECCC96-13FB-41AB-8415-A6E06282339D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74ECCC96-13FB-41AB-8415-A6E06282339D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74ECCC96-13FB-41AB-8415-A6E06282339D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8354B0D8-B068-45EA-8BCB-1F331C7272EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8354B0D8-B068-45EA-8BCB-1F331C7272EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8354B0D8-B068-45EA-8BCB-1F331C7272EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8354B0D8-B068-45EA-8BCB-1F331C7272EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -16,21 +16,21 @@ namespace LazyStackAuth
 
         protected IConfiguration appConfig;
 
-        public IEnumerable<string> CheckPasswordFormat(string password)
+        public IEnumerable<string> CheckPasswordFormat(string password, string languageCode)
         {
             //Todo - use messages from appConfig
 
             if (!Regex.IsMatch(password, @"[A-Z]"))
-                yield return "Password must contain at least one capital letter";
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Password01"];
 
             if (!Regex.IsMatch(password, @"[a-z]"))
-                yield return "Password must contain at least one lowercase letter";
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Password02"];
 
             if (!Regex.IsMatch(password, @"[0-9]"))
-                yield return "Password must contain at least one digit";
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Password03"];
 
             if (password.Length < 8)
-                yield return "Password length must be at least 8 characters long.";
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Password04"];
         }
     }
 }

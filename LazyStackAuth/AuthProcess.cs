@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Globalization;
 using System.Runtime.CompilerServices; 
 using System.Threading.Tasks;
+using System.Linq;
 
 // Code Naming Conventions
 // Property backing fields start with _ ex: _authProvider
@@ -36,11 +37,14 @@ namespace LazyStackAuth
     public class AuthProcess : IAuthProcess
     {
 
-        public AuthProcess(IConfiguration appConfig, IAuthProvider authProvider)
+        public AuthProcess(IConfiguration appConfig, IAuthProvider authProvider, string languageCode = "en-US")
         {
             _authProvider = authProvider;
             this.appConfig = appConfig;
-        }
+            _authProvider.LanguageCode = languageCode;
+            LanguageCode = languageCode;
+
+        } 
 
         #region Fields
         readonly IConfiguration appConfig;
@@ -54,8 +58,6 @@ namespace LazyStackAuth
         public bool AssignFieldOnCheck { get; set; } = true;
 
         public List<AuthChallengeEnum> AuthChallengeList => _authProvider.AuthChallengeList;
-
-        public string LanguageCode { get; set; } = "en-US";
 
         readonly IAuthProvider _authProvider;
         public IAuthProvider AuthProvider { get { return _authProvider; } }
@@ -148,6 +150,53 @@ namespace LazyStackAuth
             }
         }
 
+        // UI Messages
+        private string _loginLabel;
+        public string LoginLabel { get { return _loginLabel; } }
+        private string _loginFormatMessage;
+        public string LoginFormatMessage { get { return _loginFormatMessage; } }
+
+        private string _newLoginLabel;
+        public string NewLoginLabel { get { return _newLoginLabel; } }
+        private string _newLoginFormatMessage;
+        public string NewLoginFormatMessage { get { return _newLoginFormatMessage; } }
+
+        private string _passwordLabel;
+        public string PasswordLabel { get { return _passwordLabel; } }
+        private string _passwordFormatMessage;
+        public string PasswordFormatMessage { get { return _passwordFormatMessage; } }
+        
+        private string _newPasswordLabel;
+        public string NewPasswordLabel { get { return _newPasswordLabel; } }
+        private string _newPasswordFormatMessage;
+        public string NewPasswordFormatMessage { get { return _newPasswordFormatMessage; } }
+        
+        private string _emailLabel;
+        public string EmailLabel { get { return _emailLabel; } }
+        private string _emailFormatMessage;
+        public string EmailFormatMessage { get { return _emailFormatMessage; } }
+
+        private string _newEmailLabel;
+        public string NewEmailLabel { get { return _newEmailLabel; } }
+        private string _newEmailFormatMessage;
+        public string NewEmailFormatMessage { get { return _newEmailFormatMessage; } }
+
+        private string _phoneLabel;
+        public string PhoneLabel { get { return _phoneLabel; } }
+        private string _phoneFormatMessage;
+        public string PhoneFormatMessage { get { return _phoneFormatMessage; } }
+
+        private string _newPhoneLabel;
+        public string NewPhoneLabel { get { return _newPhoneLabel; } }
+        private string _newPhoneFormatMessage;
+        public string NewPhoneFormatMessage { get { return _newPhoneFormatMessage; } }
+        
+        private string _codeLabel;
+        public string CodeLabel { get { return _codeLabel; } }
+        private string _codeFormatMessage;
+        public string CodeFormatMessage { get { return _codeFormatMessage; } }
+
+
         // Entry Properties states
         public bool IsLoginFormatOk => _authProvider.IsLoginFormatOk;
         public bool IsLoginVerified => _authProvider.IsLoginVerified;
@@ -194,6 +243,24 @@ namespace LazyStackAuth
         // Format Messages
         public string[] FormatMessages { get { return _authProvider?.FormatMessages; } }
         public string FormatMessage { get { return _authProvider.FormatMessage; } }
+
+        public string LanguageCode
+        {
+            get { return _authProvider.LanguageCode; }
+            set
+            {
+                _authProvider.LanguageCode = value;
+                _loginLabel = appConfig[$"AuthLabels:{value}:LoginLabel"];
+                _newLoginLabel = appConfig[$"AuthLabels:{value}:NewLoginLabel"];
+                _passwordLabel = appConfig[$"AuthLabels:{value}:PasswordLabel"];
+                _newPasswordLabel = appConfig[$"AuthLabels:{value}:NewPasswordLabel"];
+                _emailLabel = appConfig[$"AuthLabels:{value}:EmailLabel"];
+                _newEmailLabel = appConfig[$"AuthLabels:{value}:NewEmailLabel"];
+                _phoneLabel = appConfig[$"AuthLabels:{value}:PhoneLabel"];
+                _newPhoneLabel = appConfig[$"AuthLabels:{value}:NewPhoneLabel"];
+                _codeLabel = appConfig[$"AuthLabels:{value}:CodeLabel"];
+            }
+        }
 
         // CurrentAuthProcess
         private string _authProcessMessage = string.Empty;
@@ -514,92 +581,132 @@ namespace LazyStackAuth
 
         public async Task<AuthEventEnum> RefreshUserDetailsAsync() => await Execute(_authProvider.RefreshUserDetailsAsync);
 
-        public bool CheckLoginFormat() 
+        public bool CheckLoginFormat(string login = null)
         {
-            var result = _authProvider.CheckLoginFormat(Login);
-            if(IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
-            return result;
-        }
-
-        public bool CheckLoginFormat(string login)
-        {
-            if (AssignFieldOnCheck)
+            if (AssignFieldOnCheck && login != null)
                 Login = login;
+            else
+                login = Login;
             var result = _authProvider.CheckLoginFormat(login);
+            _loginFormatMessage = FormatMessages.FirstOrDefault();
             if (IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
             return result;
         }
 
-        public bool CheckEmailFormat()
+        public bool CheckNewLoginFormat(string login = null)
         {
-
-            var result = _authProvider.CheckEmailFormat(Email);
-            if (IsChatty) RaisePropertyChanged(nameof(IsEmailFormatOk));
+            if (AssignFieldOnCheck && login != null)
+                NewLogin = login;
+            else
+                login = NewLogin;
+            var result = _authProvider.CheckLoginFormat(login);
+            _newLoginFormatMessage = FormatMessages.FirstOrDefault();
+            if (IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
             return result;
         }
 
-        public bool CheckEmailFormat(string email)
+        public bool CheckPasswordFormat(string password = null)
         {
-            if (AssignFieldOnCheck)
-                Email = email;
-            return CheckEmailFormat();
-        }
-
-
-        public bool CheckPasswordFormat()
-        {
-            var result = _authProvider.CheckPasswordFormat(Password);
+            if (AssignFieldOnCheck && password != null)
+                Password = password;
+            else
+                password = Password;
+            var result = _authProvider.CheckPasswordFormat(password);
+            //_passwordFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _passwordFormatMessage = FormatMessages.FirstOrDefault();
             if (IsChatty) RaisePropertyChanged(nameof(IsPasswordFormatOk));
             return result;
         }
 
-        public bool CheckPasswordFormat(string password)
+        public bool CheckNewPasswordFormat(string password = null)
         {
-            if (AssignFieldOnCheck)
-                Password = password;
-            return CheckPasswordFormat();
-        }
-
-        public bool CheckNewPasswordFormat()
-        {
-            var result = _authProvider.CheckNewPasswordFormat(NewPassword);
+            if (AssignFieldOnCheck && password != null)
+                NewPassword = password;
+            else
+                password = NewPassword;
+            var result = _authProvider.CheckNewPasswordFormat(password);
+            //_newPasswordFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _newPasswordFormatMessage = FormatMessages.FirstOrDefault();
             if (IsChatty) RaisePropertyChanged(nameof(IsNewPasswordFormatOk));
             return result;
         }
 
-        public bool CheckNewPasswordFormat(string newPassword)
+        public bool CheckEmailFormat(string email = null)
         {
-            if (AssignFieldOnCheck)
-                NewPassword = newPassword;
-            return CheckPasswordFormat();
-        }
-
-        public bool CheckCodeFormat()
-        {
-            var result = _authProvider.CheckCodeFormat(Code);
-            if (IsChatty) RaisePropertyChanged(nameof(IsCodeFormatOk));
+            if (AssignFieldOnCheck && email != null)
+                Email = email;
+            else
+                email = Email;
+            var result = _authProvider.CheckEmailFormat(email);
+            // _emailFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _emailFormatMessage = FormatMessages.FirstOrDefault();
+            if (IsChatty) RaisePropertyChanged(nameof(IsEmailFormatOk));
             return result;
         }
 
-        public bool CheckCodeFormat(string code)
+        public bool CheckNewEmailFormat(string email = null)
         {
-            if(AssignFieldOnCheck)
-                Code = code;
-            return CheckCodeFormat();
+            if (AssignFieldOnCheck && email != null)
+                NewEmail = email;
+            else
+                email = NewEmail;
+            var result = _authProvider.CheckEmailFormat(email);
+            // _newEmailFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _newEmailFormatMessage = FormatMessages.FirstOrDefault();
+            if (IsChatty) RaisePropertyChanged(nameof(IsEmailFormatOk));
+            return result;
         }
 
-        public bool CheckPhoneFormat()
+        public bool CheckPhoneFormat(string phone = null)
         {
-            var result = _authProvider.CheckPhoneFormat(Phone);
+            if (AssignFieldOnCheck && phone != null)
+                Phone = phone;
+            else
+                phone = Phone;
+            var result = _authProvider.CheckPhoneFormat(phone);
+            // _phoneFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _phoneFormatMessage = FormatMessages.FirstOrDefault();
             if (IsChatty) RaisePropertyChanged(nameof(IsPhoneFormatOk));
             return result;
+
         }
 
-        public bool CheckPhoneFormat(string phone)
+        public bool CheckNewPhoneFormat(string phone = null)
         {
-            if (AssignFieldOnCheck)
-                Phone = phone;
-            return CheckPhoneFormat();
+            if (AssignFieldOnCheck && phone != null)
+                NewPhone = phone;
+            else
+                phone = NewPhone;
+            var result = _authProvider.CheckPhoneFormat(phone);
+            // _newPhoneFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _newPhoneFormatMessage = FormatMessages.FirstOrDefault();
+            if (IsChatty) RaisePropertyChanged(nameof(IsPhoneFormatOk));
+            return result;
+
+        }
+
+        public bool CheckCodeFormat(string code = null)
+        {
+            if (AssignFieldOnCheck && code != null)
+                Code = code;
+            else
+                code = Code;
+            var result = _authProvider.CheckCodeFormat(code);
+            // _codeFormatMessage = Array.Find<string>(FormatMessages, p => true);
+            _codeFormatMessage = FormatMessages.FirstOrDefault();
+            if (IsChatty) RaisePropertyChanged(nameof(IsCodeFormatOk));
+            return result;
+
+        }
+
+        public async Task<Creds> GetCredsAsync()
+        {
+            return await _authProvider.GetCredsAsync();
+        }
+
+        public async Task<string> GetJWTAsync()
+        {
+            return await _authProvider.GetJWTAsync();
         }
 
         // Wrap an execution in a IsBusy (IsBusy also sets IsLongBusy depending on AuthProvider  IsChallengeLongWait)

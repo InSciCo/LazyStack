@@ -4,6 +4,6 @@ namespace LazyStackAuth
 {
     public interface ICodeFormat
     {
-        IEnumerable<string> CheckCodeFormat(string code);
+        IEnumerable<string> CheckCodeFormat(string code, string languageCode);
     }
-}
+} 

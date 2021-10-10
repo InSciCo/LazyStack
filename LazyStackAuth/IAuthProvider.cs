@@ -52,6 +52,7 @@ namespace LazyStackAuth
         // Format Messages
         public string[] FormatMessages { get; }
         public string FormatMessage { get; }
+        public string LanguageCode { get; set; }
 
         // Currently Allows AuthProcess
         public bool CanSignOut { get; }
@@ -93,12 +94,14 @@ namespace LazyStackAuth
         public Task<AuthEventEnum> ResendCodeAsync();
         public Task<AuthEventEnum> RefreshUserDetailsAsync();
 
-        public bool CheckLoginFormat(string userLogin);
-        public bool CheckEmailFormat(string userEmail);
+        public bool CheckLoginFormat(string login);
+        public bool CheckEmailFormat(string email);
         public bool CheckPasswordFormat(string password);
         public bool CheckNewPasswordFormat(string password);
         public bool CheckPhoneFormat(string phone);
         public bool CheckCodeFormat(string code);
 
+        public Task<Creds> GetCredsAsync();
+        public Task<string> GetJWTAsync();
     }
 }

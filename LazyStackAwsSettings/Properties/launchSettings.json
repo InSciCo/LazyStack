@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LazyStackAwsSettings": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\tmay\\repos\\LazyStackTutorial\\PetStore"
+    }
+  }
+}

@@ -16,14 +16,9 @@ namespace LazyStackAuth
 
         protected IConfiguration appConfig;
 
-        public IEnumerable<string> CheckEmailFormat(string email)
+        public IEnumerable<string> CheckEmailFormat(string email, string languageCode)
         {
-            //todo - use appConfig messages
-
-            //if (string.IsNullOrEmpty(email))
-            //    yield return "";
-
-            string msg = string.Empty;
+            string msg = null;
 
             try
             {
@@ -31,10 +26,11 @@ namespace LazyStackAuth
             }
             catch
             {
-                msg = "Enter a valid email address.";
+                msg =  appConfig[$"AuthFormatMessages:{languageCode}:Email01"];
             }
 
-            yield return msg;
+            if(msg != null)
+                yield return msg;
         }
     }
 }

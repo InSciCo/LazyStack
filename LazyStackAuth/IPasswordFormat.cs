@@ -4,6 +4,6 @@ namespace LazyStackAuth
 {
     public interface IPasswordFormat
     {
-        IEnumerable<string> CheckPasswordFormat(string password);
+        IEnumerable<string> CheckPasswordFormat(string password, string languageCode);
     }
 }

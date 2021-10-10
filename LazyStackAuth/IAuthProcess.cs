@@ -20,8 +20,8 @@ namespace LazyStackAuth
     /// produces events for almost any change in a property. This "chatty" event 
     /// model is suitable for use in clients like Xamarin. 
     /// 
-    /// Setting IsChatty to false prevents reduces  the events produced by changes in 
-    /// properties and is more suitable for clients like Blazor. This is because teh 
+    /// Setting IsChatty to false reduces  the events produced by changes in 
+    /// properties and is more suitable for clients like Blazor. This is because the 
     /// code-behind in the Blazor component is generally calling StateChanged() after 
     /// handling user input so events from the authProcessLite class would not be 
     /// useful. OTOH, there are some situations where an event could be useful or 
@@ -35,7 +35,6 @@ namespace LazyStackAuth
         public bool AssignFieldOnCheck { get; set; }
 
         public IAuthProvider AuthProvider { get; } // 
-        public string LanguageCode { get; set; }
 
         public string Login { get; set; } //
         public string NewLogin { get; set; } //
@@ -46,6 +45,35 @@ namespace LazyStackAuth
         public string Phone { get; set; } //
         public string NewPhone { get; set; } //
         public string Code { get; set; }
+
+        // UI Messages
+        public string LoginLabel { get; }
+        public string LoginFormatMessage { get; }
+
+        public string NewLoginLabel { get; }
+        public string NewLoginFormatMessage { get; }
+
+        public string PasswordLabel { get; }
+        public string PasswordFormatMessage { get; }
+
+        public string NewPasswordLabel { get; }
+        public string NewPasswordFormatMessage { get; }
+
+        public string EmailLabel { get; }
+        public string EmailFormatMessage { get; }
+
+        public string NewEmailLabel { get; }
+        public string NewEmailFormatMessage { get; }
+
+        public string PhoneLabel { get; }
+        public string PhoneFormatMessage { get; }
+
+        public string NewPhoneLabel { get; }
+        public string NewPhoneFormatMessage { get; }
+
+        public string CodeLabel { get; }
+        public string CodeFormatMessage { get; }
+
 
         // Property States
         public bool LoginNotVerified { get; } // 
@@ -125,12 +153,19 @@ namespace LazyStackAuth
         public Task<AuthEventEnum> VerifyNewPhoneAsync();
         public Task<AuthEventEnum> VerifyCodeAsync();
 
-        public bool CheckLoginFormat();
-        public bool CheckEmailFormat();
-        public bool CheckPasswordFormat();
-        public bool CheckNewPasswordFormat();
-        public bool CheckPhoneFormat();
-        public bool CheckCodeFormat();
+        public new bool CheckLoginFormat(string login = null);
+        public bool CheckNewLoginFormat(string login = null);
+
+        public new bool CheckEmailFormat(string email = null);
+        public bool CheckNewEmailFormat(string email = null);
+
+        public new bool CheckPasswordFormat(string password = null );
+        public bool CheckNewPasswordFormat(string password = null);
+
+        public new bool CheckPhoneFormat(string phone = null );
+        public bool CheckNewPhoneFormat(string phone = null);
+
+        public new bool CheckCodeFormat(string code = null );
 
     }
 }

@@ -4,6 +4,6 @@ namespace LazyStackAuth
 {
     public interface IEmailFormat
     {
-        IEnumerable<string> CheckEmailFormat(string email);
+        IEnumerable<string> CheckEmailFormat(string email, string languageCode);
     }
 }

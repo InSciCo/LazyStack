@@ -14,10 +14,10 @@ namespace LazyStackAuth
 
         protected IConfiguration appConfig;
 
-        public IEnumerable<string> CheckPhoneFormat(string phone)
+        public IEnumerable<string> CheckPhoneFormat(string phone, string languageCode)
         {
-            //todo - use appConfig messages
-            yield return "";
+           if(false) // todo - create a ruleset for phone numbers
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Phone01"];
         }
     }
 }

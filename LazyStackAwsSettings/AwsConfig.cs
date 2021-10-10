@@ -34,6 +34,12 @@ namespace LazyStackAwsSettings
             string profileName, 
             string stackName)
         {
+            var awsSettings = await GetAwsSettings(profileName, stackName);
+            return awsSettings.BuildJsonWrapped();
+        }
+
+        public static async Task<AwsSettings> GetAwsSettings(string profileName, string stackName)
+        {
             if (string.IsNullOrEmpty(profileName))
                 throw new Exception($"Error: No ProfileName provided");
 
@@ -58,19 +64,21 @@ namespace LazyStackAwsSettings
             try
             {
                 // Note the need to extract region from the profile! 
-                cfClient = new AmazonCloudFormationClient(creds, profile.Region );
+                cfClient = new AmazonCloudFormationClient(creds, profile.Region);
                 getTemplateRequestOriginal = new GetTemplateRequest()
                 {
                     StackName = stackName
-                    , TemplateStage = Amazon.CloudFormation.TemplateStage.Original
-                    
+                    ,
+                    TemplateStage = Amazon.CloudFormation.TemplateStage.Original
+
                 };
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
                 throw new Exception($"Could not create AmazonCloudFormationClient");
             }
-                
+
             var templateReponse = cfClient.GetTemplateAsync(getTemplateRequestOriginal).GetAwaiter().GetResult();
             //var templateBodyIndex = templateReponse.StagesAvailable.IndexOf("Original");
             var templateBody = templateReponse.TemplateBody; // Original is in yaml form
@@ -158,8 +166,7 @@ namespace LazyStackAwsSettings
                         break;
 
                 }
-
-            return awsSettings.BuildJsonWrapped();
+            return awsSettings;
         }
 
         public static async Task<string> GenerateMethodMapJsonAsync(

@@ -8,7 +8,7 @@ namespace LazyStackAuth
 {
     public class LoginFormat : ILoginFormat
     {
-        public LoginFormat(IConfiguration appConfig )
+        public LoginFormat(IConfiguration appConfig)
         {
             this.appConfig = appConfig;
         }
@@ -20,10 +20,10 @@ namespace LazyStackAuth
         /// </summary>
         /// <param name="login"></param>
         /// <returns></returns>
-        public IEnumerable<string> CheckLoginFormat(string login)
+        public IEnumerable<string> CheckLoginFormat(string login, string languageCode)
         {
             if (login.Length < 8)
-                yield return "Login length must be at least 8 characters long.";
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Login01"];
         }
     }
 }

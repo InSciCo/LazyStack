@@ -4,6 +4,6 @@ namespace LazyStackAuth
 {
     public interface IPhoneFormat
     {
-        IEnumerable<string> CheckPhoneFormat(string phone);
+        IEnumerable<string> CheckPhoneFormat(string phone, string languageCode);
     }
 }

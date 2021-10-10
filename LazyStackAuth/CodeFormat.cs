@@ -16,12 +16,10 @@ namespace LazyStackAuth
 
         protected IConfiguration appConfig;
 
-        public IEnumerable<string> CheckCodeFormat(string code)
+        public IEnumerable<string> CheckCodeFormat(string code, string languageCode)
         {
-            //todo - use appConfig messages
-
-            if (code.Length < 6)
-                yield return "Enter six digit code.";
+            if (code.Length != 6)
+                yield return appConfig[$"AuthFormatMessages:{languageCode}:Code01"];
         }
     }
 }
