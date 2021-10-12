@@ -915,8 +915,6 @@ namespace LazyStackAuth
 
                             //// Note: creates Identity Pool identity if it doesn't exist
                             Credentials = CognitoUser.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
-                            var iCreds = await Credentials.GetCredentialsAsync(); // Need to call this here to avoid error calling it later. Very strange bug.
-                            //IpIdentity = await Credentials.GetIdentityIdAsync(); // Identity Pool Identity
 
                             IsSignedIn = true;
                             CurrentAuthProcess = AuthProcessEnum.None;
