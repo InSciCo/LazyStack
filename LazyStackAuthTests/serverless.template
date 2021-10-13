@@ -1,6 +1,58 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
+  HttpApiSecure:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: Dev
+      Auth:
+        Authorizers:
+          OpenIdAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer:
+                Fn::Sub: https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+              - Ref: UserPoolClient
+        DefaultAuthorizer: OpenIdAuthorizer
+      CorsConfiguration:
+        AllowOrigins:
+          - https://*
+        AllowHeaders:
+          - Authorization
+          - "*"
+        AllowMethods:
+          - GET
+          - HEAD
+          - PUT
+          - OPTIONS
+          - POST
+          - DELETE
+        ExposeHeaders:
+          - Date
+          - x-api-id
+        MaxAge: 600
+        AllowCredentials: false
+
+  ApiSecure:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ApiSecure
+      StageName: Dev
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+        AddDefaultAuthorizerToCorsPreflight: False
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      Cors:
+        AllowMethods: "'GET,HEAD,PUT,OPTIONS,POST,DELETE'"
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Authorization,Accept,Content-Type,LzIdentity,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amzn-Trace-Id,x-amz-apigw-id,x-amzn-RequestId'"
+        MaxAge: "'600'"
+        AllowCredentials: false
+
+
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -82,12 +134,63 @@ Resources:
           Statement:
           - Effect: 'Allow'
             Action:
-            - 'mobileanalytics:PutEvents'
-            - 'cognito-sync:*'
-            - 'cognito-identity:*'
-            Resource: '*'
-          - Effect: 'Allow'
-            Action:
             - 'execute-api:Invoke'
             Resource:
-              Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*
+              Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiSecure}/*
+
+  HttpApiLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}-HttpApiLambda
+      CodeUri: ../LazyStackAuthTestsLambdaHttpApi/bin/Debug/netcoreapp3.1
+      Handler: LazyStackAuthTestsLambdaHttpApi::LambdaFunc.LambdaEntryPoint::FunctionHandlerAsync
+      Description: HttpApiLambda
+      Runtime: dotnetcore3.1
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      Policies:
+      - AWSXrayWriteOnlyAccess
+      Events:
+        GetUserIdHttpApi:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: HttpApiSecure
+            Path: /httpapi/user
+            Method: GET
+
+  ApiLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}-ApiLambda
+      CodeUri: ../LazyStackAuthTestsLambdaApi/bin/Debug/netcoreapp3.1
+      Handler: LazyStackAuthTestsLambdaApi::LambdaFunc.LambdaEntryPoint::FunctionHandlerAsync
+      Description: ApiLambda
+      Runtime: dotnetcore3.1
+      MemorySize: 128
+      Timeout: 30
+      Tracing: Active
+      Policies:
+      - AWSXrayWriteOnlyAccess
+      Events:
+        GetUserApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiSecure
+            Path: /api/user
+            Method: GET
+            Auth:
+              InvokeRole: NONE
+        GetJsonTestApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiSecure
+            Path: /api/testjson
+            Method: GET
+            Auth:
+              InvokeRole: NONE

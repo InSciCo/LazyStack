@@ -45,7 +45,7 @@ using Amazon.Runtime;
 /// 
 /// A note about .ConfigureAwait()
 /// None of the methods in this class use the UI context so we use
-/// .ConfigureAwait(false) on all async calls.
+/// .ConfigureAwait(false) on all async calls into Cognito libs.
 /// 
 /// </summary>
 namespace LazyStackAuth
@@ -54,9 +54,16 @@ namespace LazyStackAuth
     /// Implements IAuthProvider using AWS Cognito as authentication provider
     /// 
     /// </summary>
-    public class AuthProviderCognito : IAuthProvider
+    public class AuthProviderCognito : IAuthProviderCognito
     { 
-        public AuthProviderCognito(IConfiguration appConfig, string stackName = "Aws")
+        public AuthProviderCognito(
+            IConfiguration appConfig, 
+            ILoginFormat loginFormat,
+            IPasswordFormat passwordFormat,
+            IEmailFormat emailFormat,
+            ICodeFormat codeFormat,
+            IPhoneFormat phoneFormat,
+            string stackName = "Aws")
         {
             regionEndpoint = RegionEndpoint.GetBySystemName(appConfig[$"{stackName}:Region"]);
             clientId = appConfig[$"{stackName}:ClientId"];
@@ -64,6 +71,11 @@ namespace LazyStackAuth
             identityPoolId = appConfig[$"{stackName}:IdentityPoolId"];
             providerClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), regionEndpoint);
             userPool = new CognitoUserPool(userPoolId, clientId, providerClient);
+            this.loginFormat = loginFormat;
+            this.passwordFormat = passwordFormat;
+            this.emailFormat = emailFormat;
+            this.codeFormat = codeFormat;
+            this.phoneFormat = phoneFormat;
         }
 
         #region AWS specific Fields
@@ -89,6 +101,12 @@ namespace LazyStackAuth
         #endregion
 
         #region Fields
+        private ILoginFormat loginFormat;
+        private IPasswordFormat passwordFormat;
+        private IEmailFormat emailFormat;
+        private ICodeFormat codeFormat;
+        private IPhoneFormat phoneFormat;
+         
         private string login; // set by VerifyLogin
         private string newLogin; // set by VerifyNewLogin
         private string password; // set by VerifyPassword
@@ -112,6 +130,31 @@ namespace LazyStackAuth
                   ? AuthChallengeList[0]
                   : AuthChallengeEnum.None;
             }
+        }
+
+        public async  Task<string> GetJWTAsync()
+        {
+            await Task.Delay(0);
+            return CognitoUser.SessionTokens.IdToken;
+        }
+
+        public async Task<Creds> GetCredsAsync()
+        {
+            ImmutableCredentials iCreds = null;
+            try
+            {
+                iCreds = await Credentials.GetCredentialsAsync();
+            } catch (Exception e)
+            {
+                ;
+            }
+            
+            return new Creds()
+            {
+                AccessKey = iCreds.AccessKey,
+                SecretKey = iCreds.SecretKey,
+                Token = iCreds.Token
+            };
         }
 
         public bool IsLoginFormatOk { get; private set; }
@@ -194,6 +237,16 @@ namespace LazyStackAuth
                 return true; 
             } 
         } // will the current challenge do a server roundtrip?
+
+        public string[] FormatMessages { get; private set; }
+        public string FormatMessage
+        {
+            get
+            {
+                return (FormatMessages?.Length > 0) ? FormatMessages[0] : "";
+            }
+        }
+        public string LanguageCode { get; set; } = "en-US";
 
         #endregion Properties
 
@@ -435,7 +488,7 @@ namespace LazyStackAuth
                                 Password = password
                             }
                             ).ConfigureAwait(false);
-                        this.password = password;
+                        this.password = password; 
                         IsPasswordVerified = true;
                         AuthChallengeList.Remove(AuthChallengeEnum.Password);
                         return await NextChallenge();
@@ -474,7 +527,6 @@ namespace LazyStackAuth
                 CognitoUser = null;
                 return AuthEventEnum.Alert_Unknown;
             }
-
         }
 
         public virtual async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
@@ -482,7 +534,7 @@ namespace LazyStackAuth
             if (CurrentChallenge != AuthChallengeEnum.NewPassword)
                 return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
-            if (!CheckPasswordFormat(newPassword))
+            if (!CheckNewPasswordFormat(newPassword))
                 return AuthEventEnum.Alert_PasswordFormatRequirementsFailed;
 
             try
@@ -505,7 +557,7 @@ namespace LazyStackAuth
                     case AuthProcessEnum.ResettingPassword:
                         this.newPassword = newPassword;
                         CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
-                        await user.ForgotPasswordAsync().ConfigureAwait(false); //todo - is this wrong?
+                        await user.ForgotPasswordAsync().ConfigureAwait(false); 
                         AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
                         AuthChallengeList.Add(AuthChallengeEnum.Code);
                         return await NextChallenge();
@@ -784,25 +836,6 @@ namespace LazyStackAuth
             }
         }
 
-        //private async Task<bool> CheckForAWSChallenges()
-        //{
-
-        //    if (authFlowResponse.AuthenticationResult != null)
-        //        return;
-
-        //    if (authFlowResponse.ChallengeName == ChallengeNameType.NEW_PASSWORD_REQUIRED) // Update Passsword
-        //    {
-        //        if (!AuthChallengeList.Contains(AuthChallengeEnum.NewPassword))
-        //            AuthChallengeList.Add(AuthChallengeEnum.NewPassword);
-        //    }
-        //    else
-        //    if (authFlowResponse.ChallengeName == ChallengeNameType.SMS_MFA) // Multi-factor auth
-        //    {
-        //        if (!AuthChallengeList.Contains(AuthChallengeEnum.Code))
-        //            AuthChallengeList.Add(AuthChallengeEnum.Code);
-        //    }
-        //}
-
         private async Task<AuthEventEnum> NextChallenge(AuthEventEnum lastAuthEventEnum = AuthEventEnum.AuthChallenge)
         {
             try
@@ -882,7 +915,7 @@ namespace LazyStackAuth
 
                             //// Note: creates Identity Pool identity if it doesn't exist
                             Credentials = CognitoUser.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
-                            //IpIdentity = await Credentials.GetIdentityIdAsync(); // Identity Pool Identity
+
                             IsSignedIn = true;
                             CurrentAuthProcess = AuthProcessEnum.None;
                             ClearSensitiveFields();
@@ -917,6 +950,7 @@ namespace LazyStackAuth
             catch (InvalidPasswordException) { return AuthEventEnum.Alert_PasswordFormatRequirementsFailed; }
             catch (TooManyRequestsException) { return AuthEventEnum.Alert_TooManyAttempts; }
             catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
+            catch (PasswordResetRequiredException) { return AuthEventEnum.Alert_PasswordResetRequiredException; }
             catch (Exception e)
             {
                 Debug.WriteLine($"SignUp() threw an exception {e}");
@@ -932,43 +966,44 @@ namespace LazyStackAuth
 
         public bool CheckLoginFormat(string login)
         {
-            //Todo: Implement name content rules
-            return IsLoginFormatOk = login.Length > 5;
+            FormatMessages = loginFormat.CheckLoginFormat(login, LanguageCode).ToArray();
+            return IsLoginFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckEmailFormat(string email)
         {
-            //Todo: Implement email content rules
-            return IsEmailFormatOk = email.Length > 3 && email.Contains("@");
+            FormatMessages = emailFormat.CheckEmailFormat(email, LanguageCode).ToArray();
+            return IsEmailFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckPasswordFormat(string password)
         {
-            //Todo: Implement password content rules
-            return IsPasswordFormatOk = password.Length >= 8;
+            FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
+            return IsPasswordFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckNewPasswordFormat(string password)
         {
-            return IsNewPasswordFormatOk = password.Length >= 8;
+            FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
+            return IsNewPasswordFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckCodeFormat(string code)
         {
-            // Todo: Implement Code content rules
-            return IsCodeFormatOk = code.Length > 4;
+            FormatMessages = codeFormat.CheckCodeFormat(code, LanguageCode).ToArray();
+            return IsCodeFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckPhoneFormat(string phone)
         {
-            //todo - implement
-            return IsPhoneFormatOk = false;
+            FormatMessages = phoneFormat.CheckPhoneFormat(phone, LanguageCode).ToArray();
+            return IsPhoneFormatOk = (FormatMessages.Length == 0);
         }
 
 
         private async Task NoOp()
         {
-            await Task.Yield(); // best implementation I know of Better than await Task.Delay(0);
+            await Task.Delay(0); 
         }
 
         public virtual async Task<string> GetAccessToken()
@@ -979,8 +1014,7 @@ namespace LazyStackAuth
                 return CognitoUser.SessionTokens.AccessToken;
             if(await RefreshTokenAsync())
                 return CognitoUser.SessionTokens.AccessToken;
-            else
-                return null;
+            return null;
         }
 
         public virtual async Task<string> GetIdentityToken()
@@ -998,7 +1032,6 @@ namespace LazyStackAuth
                 {
                     var IpIdentity = await credentials.GetIdentityIdAsync();
                     Debug.WriteLine($" IpIdentity {IpIdentity}");
-
                     return IpIdentity;
                 }
                 catch (Exception e)
@@ -1007,15 +1040,13 @@ namespace LazyStackAuth
                     return null;
                 }
             }
-            else // Using UserPools directly
-            {
-                if (CognitoUser.SessionTokens.IsValid())
-                    return CognitoUser.SessionTokens.IdToken;
-                if (await RefreshTokenAsync())
-                    return CognitoUser.SessionTokens.IdToken;
-                else
-                    return null;
-            }
+
+            // Using UserPools directly
+            if (CognitoUser.SessionTokens.IsValid())
+                return CognitoUser.SessionTokens.IdToken;
+            if (await RefreshTokenAsync())
+                return CognitoUser.SessionTokens.IdToken;
+            return null;
         }
 
         private async Task<bool> RefreshTokenAsync()
@@ -1029,7 +1060,6 @@ namespace LazyStackAuth
                 {
                     AuthFlowType = AuthFlowType.REFRESH_TOKEN_AUTH
                 }).ConfigureAwait(false);
-
                 return true;
             }
             catch (Exception e)

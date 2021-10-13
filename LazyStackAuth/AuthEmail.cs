@@ -48,13 +48,13 @@ namespace LazyStackAuth
 
                     var results = inbox.Search(query);
 
-                    if(results.Count > 0)
+                    if (results.Count > 0)
                     {
                         // Grab the latest entry
                         var message = inbox.GetMessage(results[results.Count - 1]);
-                            var bodyparts = message.HtmlBody.Split(" ");
-                            verificationCode = bodyparts[^1];
-                            foundCode = true;
+                        var bodyparts = message.HtmlBody.Split(" ");
+                        verificationCode = bodyparts[^1];
+                        foundCode = true;
                     }
                     mailClient.Disconnect(true);
                 }
@@ -65,7 +65,7 @@ namespace LazyStackAuth
                 if (tryCount > 5)
                     throw new Exception("Failed to find email with auth code");
 
-                if(!foundCode)
+                if (!foundCode)
                     Thread.Sleep(1000);
 
             } while (!foundCode);

@@ -61,8 +61,8 @@ namespace LazyStackDynamoDBRepo
                 await client.PutItemAsync(request);
                 return data; 
             }
-            catch (ConditionalCheckFailedException) { return new ConflictResult(); }
-            catch (AmazonDynamoDBException) { return new StatusCodeResult(400); }
+            catch (ConditionalCheckFailedException ex) { return new ConflictResult(); }
+            catch (AmazonDynamoDBException ex) { return new StatusCodeResult(400); }
             catch (AmazonServiceException) { return new StatusCodeResult(500); }
             catch { return new StatusCodeResult(500); }
         }

@@ -12,7 +12,6 @@ namespace LazyStackAuth
         public List<AuthChallengeEnum> AuthChallengeList { get; }
 
         public AuthChallengeEnum CurrentChallenge { get; }
-
         public AuthProcessEnum CurrentAuthProcess { get; }
 
         public bool IsLoginFormatOk { get; }
@@ -44,10 +43,18 @@ namespace LazyStackAuth
 
         public bool IsCleared { get; } // Check if sensitive fields are cleared: password, newPassword, code
 
+        // Auth state
         public bool IsSignedIn { get; }
 
+        // Challenge states
         public bool HasChallenge { get; }
 
+        // Format Messages
+        public string[] FormatMessages { get; }
+        public string FormatMessage { get; }
+        public string LanguageCode { get; set; }
+
+        // Currently Allows AuthProcess
         public bool CanSignOut { get; }
         public bool CanSignUp { get; }
         public bool CanSignIn { get; }
@@ -59,52 +66,42 @@ namespace LazyStackAuth
         public bool CanCancel { get; }
         public bool CanResendCode { get; }
 
-        public bool IsChallengeLongWait { get; }
+        public bool IsChallengeLongWait { get; } //
 
         // Methods
         public Task<AuthEventEnum> ClearAsync();
-
         public Task<AuthEventEnum> CancelAsync();
-
         public Task<AuthEventEnum> SignOutAsync();
 
         public Task<AuthEventEnum> StartSignInAsync();
-
         public Task<AuthEventEnum> StartSignUpAsync();
-
         public Task<AuthEventEnum> StartResetPasswordAsync();
-
         public Task<AuthEventEnum> StartUpdateLoginAsync();
-
         public Task<AuthEventEnum> StartUpdateEmailAsync();
-
         public Task<AuthEventEnum> StartUpdatePhoneAsync();
-
         public Task<AuthEventEnum> StartUpdatePasswordAsync();
 
         public Task<AuthEventEnum> VerifyLoginAsync(string login);
         public Task<AuthEventEnum> VerifyNewLoginAsync(string newLogin);
-
         public Task<AuthEventEnum> VerifyPasswordAsync(string password);
         public Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword);
-
         public Task<AuthEventEnum> VerifyEmailAsync(string email);
         public Task<AuthEventEnum> VerifyNewEmailAsync(string newEmail);
-
         public Task<AuthEventEnum> VerifyPhoneAsync(string phone);
         public Task<AuthEventEnum> VerifyNewPhoneAsync(string newPhone);
-
         public Task<AuthEventEnum> VerifyCodeAsync(string code);
 
         public Task<AuthEventEnum> ResendCodeAsync();
         public Task<AuthEventEnum> RefreshUserDetailsAsync();
 
-        public bool CheckLoginFormat(string userLogin);
-        public bool CheckEmailFormat(string userEmail);
+        public bool CheckLoginFormat(string login);
+        public bool CheckEmailFormat(string email);
         public bool CheckPasswordFormat(string password);
         public bool CheckNewPasswordFormat(string password);
         public bool CheckPhoneFormat(string phone);
         public bool CheckCodeFormat(string code);
 
+        public Task<Creds> GetCredsAsync();
+        public Task<string> GetJWTAsync();
     }
 }

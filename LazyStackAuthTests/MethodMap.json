@@ -1,0 +1,7 @@
+{
+  "MethodMap": {
+    "GetUserApiAsync": "ApiSecure",
+    "GetTestJsonApiAsync": "ApiSecure",
+    "GetUserHttpApiAsync": "HttpApiSecure"
+  }
+}

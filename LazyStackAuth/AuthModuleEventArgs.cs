@@ -29,7 +29,7 @@ namespace LazyStackAuth
         Phone,
         NewPhone,
         Code
-    }
+    } 
 
     // SeeAuthMessages.json for language specific messages
     public enum AuthEventEnum
@@ -83,7 +83,8 @@ namespace LazyStackAuth
         Alert_TooManyAttempts,
         Alert_NothingToDo,
         Alert_OperationNotSupportedByAuthProvider,
-
+        Alert_LimitExceededException,
+        Alert_PasswordResetRequiredException,
         // Hail Marys
         Alert_Unknown
     }

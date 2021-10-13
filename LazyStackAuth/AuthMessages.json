@@ -12,7 +12,18 @@
       "SigningOut": "Sign Out"
     }
   },
-
+  "AuthFormatMessages": {
+    "en-US": {
+      "Login01": "Login length must be at least 8 characters long.",
+      "Password01": "Password must contain at least one capital letter.",
+      "Password02": "Password must contain at least one lowercase letter.",
+      "Password03": "Password must contain at least one digit.",
+      "Password04": "Password length must be at least 8 characters long.",
+      "Email01": "Enter a valid email address.",
+      "Code01":  "Code must be six digits.",
+      "Phone01":  "Invalid phone number."
+    }
+  },
   "AuthProcessMessages": {
     "en-US": {
       "None": "",
@@ -76,8 +87,22 @@
       "Alert_TooManyAttempts": "You have exceeded the login attempt limit. Try again later.",
       "Alert_NothingToDo": "",
       "Alert_OperationNotSupportedByAuthProvider": "Operation not supported by current auth provider.",
+      "Alert_LimitExceededException": "Too many attempts. Try again later.",
+      "Alert_PasswordResetRequiredException":  "Password must be reset.",
       "Alert_Unknown": "Unknown Alert Raised."
+    }
+  },
+  "AuthLabels": {
+    "en-US": {
+      "LoginLabel": "Login",
+      "NewLoginLabel": "New Login",
+      "PasswordLabel": "Password",
+      "NewPasswordLabel": "New Password",
+      "EmailLabel": "Email",
+      "NewEmailLabel": "New Email",
+      "PhoneLabel": "Phone",
+      "NewPhoneLabel": "New Phone",
+      "CodeLabel": "Code"
     }
   }
 }
-
