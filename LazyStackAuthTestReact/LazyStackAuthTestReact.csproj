@@ -24,12 +24,6 @@
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
   </ItemGroup>
 
-  <Target Name="BeforeBuild">
-    <Message Text="Copying aws-exports.js from LazyStackAuthTests\bin\Debug\dotnetcore3.1" Importance="High" />
-    <Copy SourceFiles="..\LazyStackAuthTests\bin\Debug\dotnetcore3.1\aws-exports.js" DestinationFolder=".\ClientApp\src" />
-  </Target>
-          
-  
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
     <!-- As part of publishing, copy LazyStackAuthTest generated aws-settings.js file into ClientApp/Src folder-->
     <!-- Ensure Node.js is installed -->
@@ -62,6 +56,7 @@
   <!-- The aws-exports.js file contains the AWS Connection parameters for the LazyStackAuthTests stack.
        You must deploy that stack and run the test suite to make the aws-exports.js file avaiilable. -->
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Message Text="Copying aws-exports.js from LazyStackAuthTests\bin\Debug\dotnetcore3.1" Importance="High" />
     <Exec Command="copy ..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js .\ClientApp\src\aws-exports.js" Condition="Exists('..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js')" />
   </Target>
 
