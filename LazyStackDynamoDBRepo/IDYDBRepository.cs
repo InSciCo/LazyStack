@@ -18,6 +18,8 @@ namespace LazyStackDynamoDBRepo
         where TEnv : class, IDataEnvelope<T>, new()
         where T : class, new()
     {
+        Boolean UpdateReturnsOkResult { get; set; }
+
         /// <summary>
         /// Create PutItemRequest and call PutItemAsync
         /// </summary>

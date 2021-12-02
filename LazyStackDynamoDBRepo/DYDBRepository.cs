@@ -35,7 +35,14 @@ namespace LazyStackDynamoDBRepo
         protected string tablename;
         protected IAmazonDynamoDB client;
         #endregion
-         
+
+        #region Properties 
+        private Boolean _UpdateReturnOkResults = true;
+        public Boolean UpdateReturnsOkResult { 
+            get { return _UpdateReturnOkResults;  } 
+            set { _UpdateReturnOkResults = value; }
+        }
+        #endregion
         public async Task<ActionResult<T>> CreateAsync(T data)
         {
             try
@@ -130,7 +137,10 @@ namespace LazyStackDynamoDBRepo
                     }
                 };
                 await client.PutItemAsync(request);
-                return new OkObjectResult(envelope.EntityInstance);
+                if (UpdateReturnsOkResult)
+                    return new OkObjectResult(envelope.EntityInstance);
+                else
+                    return envelope.EntityInstance;
             }
             catch (ConditionalCheckFailedException) { return new ConflictResult(); }
             catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }

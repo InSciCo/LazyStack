@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -67,8 +68,7 @@ namespace LazyStackAwsSettings
                 cfClient = new AmazonCloudFormationClient(creds, profile.Region);
                 getTemplateRequestOriginal = new GetTemplateRequest()
                 {
-                    StackName = stackName
-                    ,
+                    StackName = stackName,
                     TemplateStage = Amazon.CloudFormation.TemplateStage.Original
 
                 };
@@ -101,7 +101,8 @@ namespace LazyStackAwsSettings
             templateBody = templateReponse.TemplateBody;
             var jTemplateObjProcessed = JObject.Parse(templateBody);
 
-            // Get Stack Resources
+            // Get Stack Resources - note: this call only returns the first 100 resources.
+            // We are calling it to get the StackId
             var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
             var describeStackResourcesResponse = await cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest);
 
@@ -111,61 +112,79 @@ namespace LazyStackAwsSettings
             // Extract region from StackId ARN -- "arn:aws:cloudformation:us-east-1:..."
             var stackIdParts = describeStackResourcesResponse.StackResources[0].StackId.Split(':');
             awsSettings.Region = stackIdParts[3];
+           
+            // Get all stack resources - paginated
+            // The the ListStackResourcesResponse does not contain the StackId. 
+            string nextToken = null;
             string apiName = null;
-            foreach (var resource in describeStackResourcesResponse.StackResources)
-                switch (resource.ResourceType)
-                {
-                    case "AWS::Cognito::UserPool":
-                        awsSettings.UserPoolId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::Cognito::UserPoolClient":
-                        awsSettings.ClientId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::Cognito::IdentityPool":
-                        awsSettings.IdentityPoolId = resource.PhysicalResourceId;
-                        break;
-                    case "AWS::ApiGatewayV2::Api":
-                        var httpApi = new AwsSettings.Api();
-                        awsSettings.ApiGateways.Add(resource.LogicalResourceId, httpApi);
-                        httpApi.Id = resource.PhysicalResourceId;
-                        httpApi.Type = "HttpApi";
-                        apiName = resource.LogicalResourceId;
-                        try
-                        {
-                            var HttpApiSecureAuthType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["components"]["securitySchemes"]["OpenIdAuthorizer"]["type"];
-                            if (HttpApiSecureAuthType.Equals("oauth2"))
-                                httpApi.SecurityLevel = AwsSettings.SecurityLevel.JWT;
-                            else
-                                httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-                        }
-                        catch
-                        {
-                            httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-                        }
-                        httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
-                        break;
-                    case "AWS::ApiGateway::RestApi":
-                        var restApi = new AwsSettings.Api();
-                        awsSettings.ApiGateways.Add(resource.LogicalResourceId, restApi);
-                        restApi.Id = resource.PhysicalResourceId;
-                        restApi.Type = "Api";
-                        apiName = resource.LogicalResourceId;
-                        try
-                        {
-                            var apiAuthSecurityType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["securityDefinitions"]["AWS_IAM"]["x-amazon-apigateway-authtype"];
-                            if (apiAuthSecurityType.Equals("awsSigv4"))
-                                restApi.SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4;
-                            else
-                                restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-                        }
-                        catch
-                        {
-                            restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
-                        }
-                        restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
-                        break;
+            int resourceCount = 0;
+            do
+            {
+                var listStackResourcesRequest = new ListStackResourcesRequest() { StackName = stackName, NextToken = nextToken };
+                var listStackResourcesResponse = await cfClient.ListStackResourcesAsync(listStackResourcesRequest);
+                nextToken = listStackResourcesResponse.NextToken;
 
+                foreach (var resource in listStackResourcesResponse.StackResourceSummaries)
+                {
+                    resourceCount++;
+                    switch (resource.ResourceType)
+                    {
+                        case "AWS::Cognito::UserPool":
+                            awsSettings.UserPoolId = resource.PhysicalResourceId;
+                            break;
+                        case "AWS::Cognito::UserPoolClient":
+                            awsSettings.ClientId = resource.PhysicalResourceId;
+                            break;
+                        case "AWS::Cognito::IdentityPool":
+                            awsSettings.IdentityPoolId = resource.PhysicalResourceId;
+                            break;
+                        case "AWS::ApiGatewayV2::Api":
+                            var httpApi = new AwsSettings.Api();
+                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, httpApi);
+                            httpApi.Id = resource.PhysicalResourceId;
+                            httpApi.Type = "HttpApi";
+                            apiName = resource.LogicalResourceId;
+                            try
+                            {
+                                var HttpApiSecureAuthType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["components"]["securitySchemes"]["OpenIdAuthorizer"]["type"];
+                                if (HttpApiSecureAuthType.Equals("oauth2"))
+                                    httpApi.SecurityLevel = AwsSettings.SecurityLevel.JWT;
+                                else
+                                    httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
+                            catch
+                            {
+                                httpApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
+                            httpApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
+                            break;
+                        case "AWS::ApiGateway::RestApi":
+                            var restApi = new AwsSettings.Api();
+                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, restApi);
+                            restApi.Id = resource.PhysicalResourceId;
+                            restApi.Type = "Api";
+                            apiName = resource.LogicalResourceId;
+                            try
+                            {
+                                var apiAuthSecurityType = (string)jTemplateObjProcessed["Resources"][apiName]["Properties"]["Body"]["securityDefinitions"]["AWS_IAM"]["x-amazon-apigateway-authtype"];
+                                if (apiAuthSecurityType.Equals("awsSigv4"))
+                                    restApi.SecurityLevel = AwsSettings.SecurityLevel.AwsSignatureVersion4;
+                                else
+                                    restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
+                            catch
+                            {
+                                restApi.SecurityLevel = AwsSettings.SecurityLevel.None;
+                            }
+                            restApi.Stage = (string)jTemplateObjOriginal["Resources"][apiName]["Properties"]["StageName"];
+                            break;
+                    }
                 }
+            } while (nextToken != null);
+
+            if (resourceCount == 0)
+                throw new Exception($"Error: No resources found for specified stack.");
+            
             return awsSettings;
         }
 
@@ -208,38 +227,47 @@ namespace LazyStackAwsSettings
             templateBody = new YamlDotNet.Serialization.SerializerBuilder().JsonCompatible().Build().Serialize(templYamlObj);
             var jTemplateObjOriginal = JObject.Parse(templateBody);
 
-            // Get Stack Resources
-            var describeStackResourcesRequest = new DescribeStackResourcesRequest() { StackName = stackName };
-            var describeStackResourcesResponse = await cfClient.DescribeStackResourcesAsync(describeStackResourcesRequest);
-
-            if (describeStackResourcesResponse.StackResources.Count == 0)
-                throw new Exception($"Error: No resources found for specified stack.");
-
+            // Get all Stack Resources
+            string nextToken = null;
+            bool foundResources = false;
             var methodMap = new Dictionary<string, string>();
-            foreach (var resource in describeStackResourcesResponse.StackResources)
-                switch (resource.ResourceType)
+            do
+            {
+                var listStackResourcesRequest = new ListStackResourcesRequest() { StackName = stackName, NextToken = nextToken };
+                var listStackResourcesResponse = await cfClient.ListStackResourcesAsync(listStackResourcesRequest);
+                nextToken = listStackResourcesResponse.NextToken;
+
+                foreach (var resource in listStackResourcesResponse.StackResourceSummaries)
                 {
-                    case "AWS::Lambda::Function":
-                        var funcName = resource.LogicalResourceId;
-                        var lambdaEvents = jTemplateObjOriginal["Resources"][funcName]["Properties"]["Events"].Children();
-                        foreach (JToken le in lambdaEvents)
-                        {
-                            var jObject = new JObject(le);
-                            var name = jObject.First.First.Path;
-                            var type = jObject[name]["Type"].ToString();
-                            var apiId = string.Empty;
+                    switch (resource.ResourceType)
+                    {
+                        case "AWS::Lambda::Function":
+                            foundResources = true;
+                            var funcName = resource.LogicalResourceId;
+                            var lambdaEvents = jTemplateObjOriginal["Resources"][funcName]["Properties"]["Events"].Children();
+                            foreach (JToken le in lambdaEvents)
+                            {
+                                var jObject = new JObject(le);
+                                var name = jObject.First.First.Path;
+                                var type = jObject[name]["Type"].ToString();
+                                var apiId = string.Empty;
 
-                            if (type.Equals("HttpApi"))
-                                apiId = jObject[name]["Properties"]["ApiId"]["Ref"].ToString();
+                                if (type.Equals("HttpApi"))
+                                    apiId = jObject[name]["Properties"]["ApiId"]["Ref"].ToString();
 
-                            else if (type.Equals("Api"))
-                                apiId = jObject[name]["Properties"]["RestApiId"]["Ref"].ToString();
+                                else if (type.Equals("Api"))
+                                    apiId = jObject[name]["Properties"]["RestApiId"]["Ref"].ToString();
 
-                            if (!string.IsNullOrEmpty(apiId))
-                                methodMap.Add(name + "Async", apiId);
-                        }
-                        break;
+                                if (!string.IsNullOrEmpty(apiId))
+                                    methodMap.Add(name + "Async", apiId);
+                            }
+                            break;
+                    }
                 }
+            } while (nextToken != null);
+
+            if (!foundResources)
+                throw new Exception($"Error: No Lambda resources found for specified stack.");
 
             var result = $"{{\"MethodMap\": {Newtonsoft.Json.JsonConvert.SerializeObject(methodMap, Newtonsoft.Json.Formatting.Indented)}}}";
             return result;

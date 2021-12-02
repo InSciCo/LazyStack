@@ -13,7 +13,7 @@
     <Company>Insight Sciences Corporation</Company>
     <Authors>Tim May, Thomas May</Authors>
     <SignAssembly>false</SignAssembly>
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,21 +34,20 @@
     <PackageReference Include="MailKit" Version="2.15.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageReference Include="JsonSubTypes" Version="1.8.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="5.0.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.12.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.14.1" />
   </ItemGroup>
   
   <!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->
-  <Import Project="..\..\LazyStackCertificate\CertPassword.csproj" 
-          Condition="'$(Configuration)' == 'Release' AND Exists('..\..\LazyStackCertificate')"/>
+  <Import Project="..\..\..\LazyStackCertificate\CertPassword.csproj" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate')" />
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND Exists('..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
-    <NugetSignCommand>$(MSBuildProjectDirectory)\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
+    <NugetSignCommand>$(MSBuildProjectDirectory)\..\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
   </PropertyGroup>
 
   
-  <Target Name="SignPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
+  <Target Name="SignPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
     <Message Importance="High" Text="Signing Package" />
     <Message Importance="High" Text="PackageVersion $(Version)" />
     <Exec Command="$(NugetSignCommand) $(MSBuildProjectDirectory)\bin\Release\$(MSBuildProjectName).$(PackageVersion).nupkg" />
