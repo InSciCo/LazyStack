@@ -57,7 +57,7 @@ namespace LazyStackAwsSettings
                 throw new Exception($"Error: Could not get AWS Credentials using specified profile \"{profileName}\".");
 
             var awsSettings = new AwsSettings();
-            awsSettings.StackName = stackName;
+            awsSettings["StackName"] = stackName;
 
             // Get Original Template
             AmazonCloudFormationClient cfClient = null;
@@ -111,13 +111,18 @@ namespace LazyStackAwsSettings
 
             // Extract region from StackId ARN -- "arn:aws:cloudformation:us-east-1:..."
             var stackIdParts = describeStackResourcesResponse.StackResources[0].StackId.Split(':');
-            awsSettings.Region = stackIdParts[3];
-           
+
+
+            var region = stackIdParts[3];
+            awsSettings["Region"] = region;
+
             // Get all stack resources - paginated
             // The the ListStackResourcesResponse does not contain the StackId. 
             string nextToken = null;
             string apiName = null;
             int resourceCount = 0;
+            var apiGateways = new Dictionary<string, AwsSettings.Api>();
+            awsSettings["ApiGateways"] = apiGateways;
             do
             {
                 var listStackResourcesRequest = new ListStackResourcesRequest() { StackName = stackName, NextToken = nextToken };
@@ -130,17 +135,13 @@ namespace LazyStackAwsSettings
                     switch (resource.ResourceType)
                     {
                         case "AWS::Cognito::UserPool":
-                            awsSettings.UserPoolId = resource.PhysicalResourceId;
-                            break;
-                        case "AWS::Cognito::UserPoolClient":
-                            awsSettings.ClientId = resource.PhysicalResourceId;
-                            break;
                         case "AWS::Cognito::IdentityPool":
-                            awsSettings.IdentityPoolId = resource.PhysicalResourceId;
+                        case "AWS::Cognito::UserPoolClient":
+                            awsSettings[resource.LogicalResourceId] = resource.PhysicalResourceId;
                             break;
                         case "AWS::ApiGatewayV2::Api":
                             var httpApi = new AwsSettings.Api();
-                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, httpApi);
+                            apiGateways.Add(resource.LogicalResourceId, httpApi);
                             httpApi.Id = resource.PhysicalResourceId;
                             httpApi.Type = "HttpApi";
                             apiName = resource.LogicalResourceId;
@@ -160,7 +161,7 @@ namespace LazyStackAwsSettings
                             break;
                         case "AWS::ApiGateway::RestApi":
                             var restApi = new AwsSettings.Api();
-                            awsSettings.ApiGateways.Add(resource.LogicalResourceId, restApi);
+                            apiGateways.Add(resource.LogicalResourceId, restApi);
                             restApi.Id = resource.PhysicalResourceId;
                             restApi.Type = "Api";
                             apiName = resource.LogicalResourceId;
@@ -208,7 +209,10 @@ namespace LazyStackAwsSettings
                 throw new Exception($"Error: Could not get AWS Credentials using specified profile \"{profileName}\".");
 
             var awsSettings = new AwsSettings();
-            awsSettings.StackName = stackName;
+            if (!awsSettings.ContainsKey("StackName"))
+                awsSettings.Add("StackName", stackName);
+            else
+                awsSettings["StackName"] = stackName;
 
             // Get Original Template
             var cfClient = new AmazonCloudFormationClient(creds);

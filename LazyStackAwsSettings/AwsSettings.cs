@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace LazyStackAwsSettings
 {
-   public class AwsSettings
+   public class AwsSettings : Dictionary<string, object>
    {
         public enum SecurityLevel
         {
@@ -23,13 +23,12 @@ namespace LazyStackAwsSettings
             public SecurityLevel SecurityLevel { get; set; }
         }
 
-        public string StackName {get; set;}
-        public string ClientId { get; set; }
-        public string UserPoolId { get; set; }
-        public string IdentityPoolId { get; set; }
-        public string Region { get; set; }
-
-        public Dictionary<string,Api> ApiGateways { get; } = new Dictionary<string,Api>();
+        public AwsSettings()
+        {
+            this.Add("StackName", string.Empty);
+            this.Add("Region", string.Empty);
+            this.Add("ApiGateways", new Dictionary<string, Api>());
+        }
 
         public string BuildJson()
         {
