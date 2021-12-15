@@ -23,7 +23,6 @@ namespace LazyStackAwsSettings
             public SecurityLevel SecurityLevel { get; set; }
         }
 
-
         public string StackName {get; set;}
         public string ClientId { get; set; }
         public string UserPoolId { get; set; }

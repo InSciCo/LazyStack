@@ -144,17 +144,17 @@ namespace LazyStackAuth
             try
             {
                 iCreds = await Credentials.GetCredentialsAsync();
+                return new Creds()
+                {
+                    AccessKey = iCreds.AccessKey,
+                    SecretKey = iCreds.SecretKey,
+                    Token = iCreds.Token
+                };
             } catch (Exception e)
             {
-                ;
+                return new Creds();
             }
-            
-            return new Creds()
-            {
-                AccessKey = iCreds.AccessKey,
-                SecretKey = iCreds.SecretKey,
-                Token = iCreds.Token
-            };
+
         }
 
         public bool IsLoginFormatOk { get; private set; }

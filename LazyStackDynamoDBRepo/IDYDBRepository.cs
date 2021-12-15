@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Amazon.DynamoDBv2.Model;
 using Microsoft.AspNetCore.Mvc;
-
+ 
 namespace LazyStackDynamoDBRepo
 {
 
@@ -73,5 +73,36 @@ namespace LazyStackDynamoDBRepo
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
         Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest);
+
+        /// <summary>
+        /// Return all records having the primary key value specified
+        /// </summary>
+        /// <param name="pK"></param>
+        /// <param name="expressionAttributeNames"></param>
+        /// <param name="projectionExpression"></param>
+        /// <returns></returns>
+        QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+
+        /// <summary>
+        /// Return a simple query request using {keyField} = SKval on index PK-{keyField}-Index
+        /// </summary>
+        /// <param name="pK"></param>
+        /// <param name="keyField"></param>
+        /// <param name="key"></param>
+        /// <param name="expressionAttributeNames"></param>
+        /// <returns></returns>
+        QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+
+
+        /// <summary>
+        /// Return a simple query request using begins_with({keyField}, SKval) on index PK-{keyField}-Index
+        /// </summary>
+        /// <param name="pK"></param>
+        /// <param name="keyField"></param>
+        /// <param name="key"></param>
+        /// <param name="expressionAttributeNames"></param>
+        /// <returns></returns>
+        QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+
     }
 }

@@ -74,6 +74,9 @@ namespace LazyStackDynamoDBRepo
             catch { return new StatusCodeResult(500); }
         }
 
+
+
+
         public async Task<ActionResult<T>> ReadAsync(string pK,  string sK = null)
         {
             try
@@ -142,7 +145,7 @@ namespace LazyStackDynamoDBRepo
                 else
                     return envelope.EntityInstance;
             }
-            catch (ConditionalCheckFailedException) { return new ConflictResult(); }
+            catch (ConditionalCheckFailedException) { return new ConflictResult(); } // STatusCode 409
             catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
             catch (AmazonServiceException) { return new StatusCodeResult(503); }
             catch { return new StatusCodeResult(500); }
@@ -202,5 +205,94 @@ namespace LazyStackDynamoDBRepo
             catch (AmazonServiceException) { return new StatusCodeResult(503); }
             catch { return new StatusCodeResult(500); }
         }
+
+
+        protected Dictionary<string,string> GetExpressionAttributeNames(Dictionary<string,string> value)
+        {
+            if (value != null)
+                return value;
+
+            return new Dictionary<string, string>()
+            {
+                {"#Data", "Data" },
+                {"#Status", "Status" },
+                {"#General", "General" }
+            };
+        }
+
+        protected string GetProjectionExpression(string value)
+        {
+            if (value == null)
+                value = "#Data, TypeName, #Status, UpdateUtcTick, CreateUtcTick, #General";
+            return value;
+        }
+
+        public QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null)
+        {
+            expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+            projectionExpression = GetProjectionExpression(projectionExpression);
+
+            return new QueryRequest()
+            {
+                TableName = tablename,
+                KeyConditionExpression = $"PK = :PKval",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":PKval", new AttributeValue() {S = pK} }
+                },
+                ExpressionAttributeNames = expressionAttributeNames,
+                ProjectionExpression = projectionExpression
+            };
+
+        }
+
+        public QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null)
+        {
+            expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+            projectionExpression = GetProjectionExpression(projectionExpression);
+
+            var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+            return new QueryRequest()
+            {
+                TableName = tablename,
+                KeyConditionExpression = $"PK = :PKval and {keyField} = :SKval",
+                IndexName = indexName,
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":PKval", new AttributeValue() {S = pK} },
+                    {":SKval", new AttributeValue() {S =  key } }
+                },
+                ExpressionAttributeNames = expressionAttributeNames,
+                ProjectionExpression = projectionExpression
+            };
+
+        }
+
+        public QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string,string> expressionAttributeNames = null, string projectionExpression = null)
+        {
+            expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+            projectionExpression = GetProjectionExpression(projectionExpression);
+
+            var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+            return new QueryRequest()
+            {
+                TableName = tablename,
+                KeyConditionExpression = $"PK = :PKval and begins_with({keyField}, :SKval)",
+                IndexName = indexName,
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":PKval", new AttributeValue() {S = pK} },
+                    {":SKval", new AttributeValue() {S =  key } }
+                },
+                ExpressionAttributeNames = expressionAttributeNames,
+                ProjectionExpression = projectionExpression
+            };
+
+        }
+
+
+
     }
 }
