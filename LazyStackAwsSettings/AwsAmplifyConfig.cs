@@ -15,24 +15,25 @@ namespace LazyStackAwsSettings
         {
             Auth = new auth
             {
-                identityPoolId = awsSettings.IdentityPoolId,
-                region = awsSettings.Region,
-                identityPoolRegion = awsSettings.Region,
-                userPoolId = awsSettings.UserPoolId,
-                userPoolWebClientId = awsSettings.ClientId,
+                identityPoolId = awsSettings["IdentityPoolId"].ToString(),
+                region = awsSettings["Region"].ToString(),
+                identityPoolRegion = awsSettings["Region"].ToString(),
+                userPoolId = awsSettings["UserPoolId"].ToString(),
+                userPoolWebClientId = awsSettings["ClientId"].ToString(),
                 mandatorySignIn = false
             };
 
             API = new ApiSpec();
-            API.endpoints = new endpointSpec[awsSettings.ApiGateways.Count];
+            var apiGateways = awsSettings["ApiGateways"] as Dictionary<string, AwsSettings.Api>;
+            API.endpoints = new endpointSpec[apiGateways.Count];
 
             int i = 0;
-            foreach (var kvp in awsSettings.ApiGateways)
+            foreach (var kvp in apiGateways)
             {
                 var api = kvp.Value;
                 var endpoint = new endpointSpec();
                 endpoint.name = kvp.Key;
-                var awshost = $"{api.Id}.{api.Service}.{awsSettings.Region}.{api.Host}";
+                var awshost = $"{api.Id}.{api.Service}.{awsSettings["Region"]}.{api.Host}";
 
                 var uriBuilder = (api.Port == 443)
                     ? new UriBuilder(api.Scheme, awshost)
