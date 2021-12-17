@@ -63,12 +63,15 @@ namespace LazyStackAuth
             IEmailFormat emailFormat,
             ICodeFormat codeFormat,
             IPhoneFormat phoneFormat,
-            string stackName = "Aws")
+            string stackName = "Aws",
+            string clientIdField = "UserPoolClient",
+            string userPoolIdField = "UserPool",
+            string identityPoolIdField = "IdentityPool")
         {
             regionEndpoint = RegionEndpoint.GetBySystemName(appConfig[$"{stackName}:Region"]);
-            clientId = appConfig[$"{stackName}:ClientId"];
-            userPoolId = appConfig[$"{stackName}:UserPoolId"];
-            identityPoolId = appConfig[$"{stackName}:IdentityPoolId"];
+            clientId = appConfig[$"{stackName}:{clientIdField}"];
+            userPoolId = appConfig[$"{stackName}:{userPoolIdField}"];
+            identityPoolId = appConfig[$"{stackName}:{identityPoolIdField}"];
             providerClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), regionEndpoint);
             userPool = new CognitoUserPool(userPoolId, clientId, providerClient);
             this.loginFormat = loginFormat;
