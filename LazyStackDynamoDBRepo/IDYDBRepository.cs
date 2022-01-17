@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Amazon.DynamoDBv2.Model;
@@ -18,14 +19,23 @@ namespace LazyStackDynamoDBRepo
         where TEnv : class, IDataEnvelope<T>, new()
         where T : class, new()
     {
-        Boolean UpdateReturnsOkResult { get; set; }
+        bool UpdateReturnsOkResult { get; set; }
+        bool AlwaysCache { get; set; }
+        long CacheTimeSeconds { get; set; }
+        long MaxItems { get; set; }
+
+        /// <summary>
+        /// Flush the cache
+        /// </summary>
+        /// <returns></returns>
+        Task FlushCache(string table = null);
 
         /// <summary>
         /// Create PutItemRequest and call PutItemAsync
         /// </summary>
         /// <param name="data"></param>
         /// <returns>ActionResult</returns>
-        Task<ActionResult<T>> CreateAsync(T data);
+        Task<ActionResult<T>> CreateAsync(T data, string table = null, bool? useCache = null);
 
         /// <summary>
         /// Read data entity (calls ReadEAsync)
@@ -33,7 +43,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="pK"></param>
         /// <param name="sK"></param>
         /// <returns>ActionResult<T></returns>
-        Task<ActionResult<T>> ReadAsync(string pK, string sK = null);
+        Task<ActionResult<T>> ReadAsync(string pK, string sK = null, string table = null, bool? useCache = null);
 
 
         /// <summary>
@@ -42,14 +52,14 @@ namespace LazyStackDynamoDBRepo
         /// <param name="pK"></param>
         /// <param name="sK"></param>
         /// <returns></returns>
-        Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null);
+        Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null, string table = null, bool? useCache = null);
 
         /// <summary>
         /// Ccreate PutItemRequest and call PutItmeAsync. Use UpdateUtcTick to do optimistic lock.
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        Task<ActionResult<T>> UpdateAsync(T data);
+        Task<ActionResult<T>> UpdateAsync(T data, string table = null);
 
         /// <summary>
         /// Call DeleteItemAsyunc
@@ -57,22 +67,21 @@ namespace LazyStackDynamoDBRepo
         /// <param name="pK"></param>
         /// <param name="sK"></param>
         /// <returns></returns>
-        Task<StatusCodeResult> DeleteAsync(string pK, string sK = null);
-
+        Task<StatusCodeResult> DeleteAsync(string pK, string sK = null, string table = null);
 
         /// <summary>
         /// Call QueryAsync and return list of envelopes
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<TEnv></TEnv></returns>
-        Task<ActionResult<ICollection<TEnv>>> ListEAsync(QueryRequest queryRequest);
+        Task<ActionResult<ICollection<TEnv>>> ListEAsync(QueryRequest queryRequest, bool? useCache = null);
 
         /// <summary>
         /// Call QueryAsync and return list of data objects of type T
         /// </summary>
         /// <param name="queryRequest"></param>
         /// <returns>List<T></returns>
-        Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest);
+        Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest, bool? useCache = null);
 
         /// <summary>
         /// Return all records having the primary key value specified
@@ -81,7 +90,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="expressionAttributeNames"></param>
         /// <param name="projectionExpression"></param>
         /// <returns></returns>
-        QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+        QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null);
 
         /// <summary>
         /// Return a simple query request using {keyField} = SKval on index PK-{keyField}-Index
@@ -91,7 +100,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="key"></param>
         /// <param name="expressionAttributeNames"></param>
         /// <returns></returns>
-        QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+        QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null);
 
 
         /// <summary>
@@ -102,7 +111,7 @@ namespace LazyStackDynamoDBRepo
         /// <param name="key"></param>
         /// <param name="expressionAttributeNames"></param>
         /// <returns></returns>
-        QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null);
+        QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null);
 
     }
 }

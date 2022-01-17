@@ -42,6 +42,7 @@ namespace LazyStackAuth
             this.appConfig = appConfig;
             this.httpClient = httpClient;
             LocalApiName = localApiName;
+            useLocalApi = false;
             this.awsSettings = appConfig.GetSection("Aws").Get<AwsSettings>();
             this.authProvider = authProvider;
             this.methodMap = appConfig.GetSection("MethodMap").GetChildren().ToDictionary(x => x.Key, x => x.Value);
@@ -133,7 +134,7 @@ namespace LazyStackAuth
             try
             {
                 HttpResponseMessage response = null;
-
+                //securityLevel = AwsSettings.SecurityLevel.None;
                 switch (securityLevel)
                 {
                     case AwsSettings.SecurityLevel.None:
@@ -147,17 +148,28 @@ namespace LazyStackAuth
                         // Use JWT Token signing process
                         try
                         {
-                            var token = await authProvider.GetJWTAsync();
-                            requestMessage.Headers.Add("Authorization", token);
+                            string token = "";
+                            try {
+                                token = await authProvider.GetJWTAsync();
+                                requestMessage.Headers.Add("Authorization", token);
+                            }
+                            catch (Exception e)
+                            {
+                                // Ignore. We ignore this error and let the 
+                                // api handle the missing token. This gives us a 
+                                // way of testing an inproperly configured API.
+                                Debug.WriteLine("authProvider.GetJWTAsync() failed");
+                            }
+
                             response = await httpClient.SendAsync(
                                 requestMessage,
                                 httpCompletionOption,
                                 cancellationToken);
-                        }
-                        catch (System.Exception e)
-                        {
-                            Debug.WriteLine($"Error: {e.Message}");
-                        }
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.WriteLine($"Error: {e.Message}");
+                            }
                         break;
 
                     case AwsSettings.SecurityLevel.AwsSignatureVersion4:
