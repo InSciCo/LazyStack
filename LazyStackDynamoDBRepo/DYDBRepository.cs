@@ -427,5 +427,27 @@ namespace LazyStackDynamoDBRepo
             };
 
         }
+
+        public QueryRequest QueryBeginsWith(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
+        {
+            expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+            projectionExpression = GetProjectionExpression(projectionExpression);
+            if (string.IsNullOrEmpty(table))
+                table = tablename;
+
+            return new QueryRequest()
+            {
+                TableName = table,
+                KeyConditionExpression = $"PK = :PKval",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":PKval", new AttributeValue() {S = pK} }
+                },
+                ExpressionAttributeNames = expressionAttributeNames,
+                ProjectionExpression = projectionExpression
+            };
+
+        }
+
     }
 }

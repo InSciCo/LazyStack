@@ -53,30 +53,26 @@ namespace LazyStackDynamoDBRepoTests
             Assert.IsTrue(createResponse.Result is ConflictResult, "Opps, allowed create of existing item");
 
             // Update a record 
-            var sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
+            var sampleResponse = await sampleRepo.ReadAsync("Sample:", "1:");
             Assert.IsNotNull(sampleResponse.Value, sampleResponse.ToString());
             var sample = sampleResponse.Value;
             sample.Name = "Randy";
             var updateUtcTick = sample.UpdateUtcTick;
-            sampleResponse = await sampleRepo.UpdateAsync(sample);
-            Assert.IsTrue(sampleResponse.Result is OkObjectResult, sampleResponse.ToString());
-            sample = (sampleResponse.Result as OkObjectResult)?.Value as Sample;
+            sample = (await sampleRepo.UpdateAsync(sample)).Value;
+            Assert.IsTrue(sample != null); 
             Assert.IsTrue(updateUtcTick < sample.UpdateUtcTick, "UpdateUtcTick violation");
             Assert.IsTrue(sample.Name.Equals("Randy"), "Update failed. Name does not match.");
 
             // Test Optimistic Lock 
             // Read the record twice
-            sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
-            var sample1 = sampleResponse.Value;
+            var sample1 = (await sampleRepo.ReadAsync("Sample:", "1:")).Value;
             Debug.WriteLine($"Sample1.UpdateUtcTick={sample1.UpdateUtcTick}");
 
-            var sampleResponse2 = await sampleRepo.ReadAsync("Samples:", "Sample:1");
-            var sample2 = sampleResponse2.Value;
+            var sample2 = (await sampleRepo.ReadAsync("Sample:", "1:")).Value;
             Debug.WriteLine($"Sample2.UpdateUtcTick={sample2.UpdateUtcTick}");
 
             // Update first record instance
-            var sampleResponse3 = await sampleRepo.UpdateAsync(sample1);
-            var sample3 = (sampleResponse3.Result as OkObjectResult)?.Value as Sample;
+            var sample3 = (await sampleRepo.UpdateAsync(sample1)).Value;
             Debug.WriteLine($"Sample3.UpdateUtcTick={sample3.UpdateUtcTick}");
 
             // Try and update second record - should fail with ConflictResult
@@ -117,29 +113,24 @@ namespace LazyStackDynamoDBRepoTests
             Assert.IsTrue(createResponse.Result is ConflictResult, "Opps, allowed create of existing item");
 
             // Update a record 
-            var sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
-            Assert.IsNotNull(sampleResponse.Value, sampleResponse.ToString());
-            var sample = sampleResponse.Value;
+            var sample = (await sampleRepo.ReadAsync("Sample:", "1:")).Value;
             sample.Name = "Randy";
             var updateUtcTick = sample.UpdateUtcTick;
-            sampleResponse = await sampleRepo.UpdateAsync(sample);
-            Assert.IsTrue((sample = sampleResponse.Value) != null);
+            sample = (await sampleRepo.UpdateAsync(sample)).Value;
+            Assert.IsTrue(sample != null);
             Assert.IsTrue(updateUtcTick < sample.UpdateUtcTick, "UpdateUtcTick violation");
             Assert.IsTrue(sample.Name.Equals("Randy"), "Update failed. Name does not match.");
 
             // Test Optimistic Lock 
             // Read the record twice
-            sampleResponse = await sampleRepo.ReadAsync("Samples:", "Sample:1");
-            var sample1 = sampleResponse.Value;
+            var sample1 = (await sampleRepo.ReadAsync("Sample:", "1:")).Value;
             Debug.WriteLine($"Sample1.UpdateUtcTick={sample1.UpdateUtcTick}");
 
-            var sampleResponse2 = await sampleRepo.ReadAsync("Samples:", "Sample:1");
-            var sample2 = sampleResponse2.Value;
+            var sample2 = (await sampleRepo.ReadAsync("Sample:", "1:")).Value;
             Debug.WriteLine($"Sample2.UpdateUtcTick={sample2.UpdateUtcTick}");
 
             // Update first record instance
-            var sampleResponse3 = await sampleRepo.UpdateAsync(sample1);
-            var sample3 = sampleResponse3.Value;
+            var sample3 = (await sampleRepo.UpdateAsync(sample1)).Value;
             Assert.IsTrue(sample3 != null);
             Debug.WriteLine($"Sample3.UpdateUtcTick={sample3.UpdateUtcTick}");
 

@@ -16,8 +16,8 @@ namespace LazyStackDynamoDBRepoTests
             // Set the Envelope Key fields from the EntityInstance data
             TypeName = "Sample.v1.0.0";
             // Primary Key is PartitionKey + SortKey 
-            PK = "Samples:"; // Partition key
-            SK = $"Sample:{EntityInstance.Id}"; // sort/range key
+            PK = "Sample:"; // Partition key
+            SK = $"{EntityInstance.Id}:"; // sort/range key
 
             // The base method copies information from the envelope keys into the dbRecord
             base.SetDbRecordFromEnvelopeInstance();
@@ -39,20 +39,22 @@ namespace LazyStackDynamoDBRepoTests
     {
         public SampleRepo(
             IAmazonDynamoDB client
-            ) : base(client, envVarTableName: "TABLE_NAME") {}
-
-        // This dictionary allows us to use class attribute names that happen to also be
-        // DynamoDB reserved words in our Qury and ProjectionExpressions
-        Dictionary<string, string> _ExpressionAttributeNames = new Dictionary<string, string>()
+            ) : base(client, envVarTableName: "TABLE_NAME") 
         {
-            {"#Data", "Data" },
-            {"#Status", "Status" },
-            {"#General", "General" }
-        };
+            UpdateReturnsOkResult = false; // just return value
+        }
+
+        const string PK = "Sample:";
 
         public async Task<StatusCodeResult> ClearSamplesAsync()
         {
-            var response = await ListSampleEnvelopesAsync();
+            // This example shows how to retrieve only the fields you really need/want from the table record. In this case, all we need 
+            // is the PK and SK fields. When you call ListEAsync you need to be very specific about what you want. You need to be doing something 
+            // special, and low level, to really need to use ListEAsync. You could just as easily have used ListAsync and extracted the SK 
+            // value from the corresponding entity.Id field. This use case, of deleting a bunch of records, is a good use case to consider. For instance,
+            // what if each of these records stored a large entity? Then using this approach would dramatically reduce the amount of data returned for
+            // processing.
+            var response = await ListEAsync(QueryBeginsWith(PK, expressionAttributeNames: new Dictionary<string,string>() ,projectionExpression: "PK, SK"));
 
             if (response.Value == null) // Something went wrong! Return error 
                 return response.Result as StatusCodeResult;
@@ -66,7 +68,6 @@ namespace LazyStackDynamoDBRepoTests
             }
             return new OkResult();
         }
-
 
         public async Task<StatusCodeResult> SeedSampleAsync()
         {
@@ -96,53 +97,19 @@ namespace LazyStackDynamoDBRepoTests
         }
 
         public async Task<ActionResult<Sample>> GetSampleByIdAsync(long orderId)
-        {
-            return await ReadAsync("Samples:", "Sample:" + orderId.ToString());
-        }
+            => await ReadAsync("Sample:", orderId.ToString());
 
         public async Task<ActionResult<Sample>> PutSampleByIdAsync(Sample sample)
-        {
-            return await UpdateAsync(sample);
-        }
+            => await UpdateAsync(sample);
 
         public async Task<StatusCodeResult> DeleteSampleByIdAsync(long orderId)
-        {
-            return await DeleteAsync("Samples:", "Sample:" + orderId.ToString());
-        }
+            => await DeleteAsync("Sample:", orderId.ToString());
 
         public async Task<ActionResult<ICollection<Sample>>> ListSamplesAsync()
-        {
-            var queryRequest = new QueryRequest()
-            {
-                TableName = tablename,
-                KeyConditionExpression = "PK = :PKval AND begins_with(SK, :SKval)",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                        {
-                            {":PKval", new AttributeValue() {S = "Samples:"} },
-                            {":SKval", new AttributeValue() {S = "Sample:"} }
-                        },
-                ExpressionAttributeNames = _ExpressionAttributeNames,
-                ProjectionExpression = "PK, SK, #Data, TypeName, #Status, UpdateUtcTick, CreateUtcTick, #General"
-            };
-            return await ListAsync(queryRequest);
-        }
+            => await ListAsync(QueryBeginsWith(PK));
 
         public async Task<ActionResult<ICollection<SampleEnvelope>>> ListSampleEnvelopesAsync()
-        {
-            var queryRequest = new QueryRequest()
-            {
-                TableName = tablename,
-                KeyConditionExpression = "PK = :PKval AND begins_with(SK, :SKval)",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                        {
-                            {":PKval", new AttributeValue() {S = "Samples:"} },
-                            {":SKval", new AttributeValue() {S = "Sample:"} }
-                        },
-                ExpressionAttributeNames = _ExpressionAttributeNames,
-                ProjectionExpression = "PK, SK, #Data, TypeName, #Status, UpdateUtcTick, CreateUtcTick, #General"
-            };
-            return await ListEAsync(queryRequest);
-        }
+            => await ListEAsync(QueryBeginsWith(PK));
 
     }
 }
