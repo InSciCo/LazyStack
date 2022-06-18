@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.Runtime;
+using AwsSignatureVersion4;
 
 namespace LazyStackAuth
 {
@@ -181,14 +182,16 @@ namespace LazyStackAuth
 
                             var iCreds = await authProvider.GetCredsAsync();
                             var awsCreds = new ImmutableCredentials(iCreds.AccessKey, iCreds.SecretKey, iCreds.Token);
-
+                            
+                            // Note. Using named parameters to satisfy new version 3.x.x signature of 
+                            // AwsSignatureVersion4 SendAsync method.
                             response = await httpClient.SendAsync(
-                            requestMessage,
-                            httpCompletionOption,
-                            cancellationToken,
-                            awsSettings.Region,
-                            api.Service,
-                            awsCreds);
+                            request: requestMessage,
+                            completionOption: httpCompletionOption,
+                            cancellationToken: cancellationToken,
+                            regionName: awsSettings.Region,
+                            serviceName: api.Service,
+                            credentials: awsCreds);
                             return response;
                         }
                         catch (System.Exception e)

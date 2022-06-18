@@ -137,6 +137,11 @@ namespace LazyStackAwsSettings
                         case "AWS::Cognito::UserPool":
                         case "AWS::Cognito::IdentityPool":
                         case "AWS::Cognito::UserPoolClient":
+                        case "AWS::SQS::Queue":
+                        case "AWS::Events::EventsBus":
+                        case "AWS::StepFunctions::StateMachine":
+                        case "AWS::CodeBuild::Project":
+                        case "AWS::DynamoDB::Table":
                             awsSettings[resource.LogicalResourceId] = resource.PhysicalResourceId;
                             break;
                         case "AWS::ApiGatewayV2::Api":

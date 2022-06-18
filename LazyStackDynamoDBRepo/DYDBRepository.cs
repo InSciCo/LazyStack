@@ -40,7 +40,7 @@ namespace LazyStackDynamoDBRepo
         #region Fields
         protected string tablename;
         protected IAmazonDynamoDB client;
-        protected Dictionary<string, (TEnv envelope, long lastReadTick)> cache = new Dictionary<string, (TEnv, long)>();
+        protected Dictionary<string, (TEnv envelope, long lastReadTick)> cache = new();
         #endregion
 
         #region Properties 
@@ -104,7 +104,7 @@ namespace LazyStackDynamoDBRepo
             try
             {
                 var now = DateTime.UtcNow.Ticks;
-                TEnv envelope = new TEnv() 
+                TEnv envelope = new() 
                 { 
                     EntityInstance = data,
                     CreateUtcTick = now,
@@ -212,7 +212,7 @@ namespace LazyStackDynamoDBRepo
             if (data.Equals(null))
                 return new StatusCodeResult(400);
 
-            TEnv envelope = new TEnv() { EntityInstance = data };
+            TEnv envelope = new() { EntityInstance = data };
              
             try
             {

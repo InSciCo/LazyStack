@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuth", "LazyStackAuth\LazyStackAuth.csproj", "{040A2363-D90F-4A3C-AE69-1CB8757D051E}"
 EndProject
@@ -29,9 +29,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestsControlle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestsLambdaApi", "LazyStackAuthTestsLambdaApi\LazyStackAuthTestsLambdaApi.csproj", "{74ECCC96-13FB-41AB-8415-A6E06282339D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackAuthTestReact", "LazyStackAuthTestReact\LazyStackAuthTestReact.csproj", "{8354B0D8-B068-45EA-8BCB-1F331C7272EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestReact", "LazyStackAuthTestReact\LazyStackAuthTestReact.csproj", "{8354B0D8-B068-45EA-8BCB-1F331C7272EB}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LazyStackAwsSettingsSharedCode", "LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.shproj", "{77DB02D7-3D16-455B-BB98-7BB22AE14FD8}"
 EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{77db02d7-3d16-455b-bb98-7bb22ae14fd8}*SharedItemsImports = 13
+		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{920d9f56-bfd6-4402-9025-56dc0b1feb36}*SharedItemsImports = 5
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU

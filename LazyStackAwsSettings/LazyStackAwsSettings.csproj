@@ -18,11 +18,6 @@
     <PackageReference Include="YamlDotNet" Version="9.1.4" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+  <Import Project="..\LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems" Label="Shared" />
 
 </Project>
