@@ -2,39 +2,30 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq; 
+using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Amazon.Runtime;
-using AwsSignatureVersion4;
 
 namespace LazyStackAuth
 {
     /// <summary>
     /// This client makes secure calls against AWS Gateways.
-    /// It supports three security models:
+    /// It supports two security models:
     /// - none
     /// - JWT
-    /// - AwsSignatureVersion4
     /// </summary>
-    public class LzHttpClient : ILzHttpClient
+    public class LzHttpClientWASM : ILzHttpClient
     {
-        public LzHttpClient(
+        public LzHttpClientWASM(
             IConfiguration appConfig,
             IAuthProvider authProvider,  // IAuthProviderCognito inherits IAuthProvider
             string localApiName = null) :
-#if DEBUG
-        this(appConfig, authProvider, new HttpClient(GetInsecureHandler()), localApiName)
+            this(appConfig, authProvider, new HttpClient(), localApiName)
         { }
-#else
-        this(appConfig, authProvider, new HttpClient(), localApiName)
-        { }
-#endif
 
-        private LzHttpClient(
+        private LzHttpClientWASM(
             IConfiguration appConfig,
             IAuthProvider authProvider,
             HttpClient httpClient,
@@ -74,7 +65,7 @@ namespace LazyStackAuth
         protected bool useLocalApi = false;
         public bool UseLocalApi
         {
-            get { return useLocalApi; } 
+            get { return useLocalApi; }
             set { useLocalApi = value; }
         }
 
@@ -150,7 +141,8 @@ namespace LazyStackAuth
                         try
                         {
                             string token = "";
-                            try {
+                            try
+                            {
                                 token = await authProvider.GetJWTAsync();
                                 requestMessage.Headers.Add("Authorization", token);
                             }
@@ -166,33 +158,18 @@ namespace LazyStackAuth
                                 requestMessage,
                                 httpCompletionOption,
                                 cancellationToken);
-                            }
-                            catch (System.Exception e)
-                            {
-                                Debug.WriteLine($"Error: {e.Message}");
-                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.WriteLine($"Error: {e.Message}");
+                        }
                         break;
 
                     case AwsSettings.SecurityLevel.AwsSignatureVersion4:
                         // Use full request signing process
                         try
                         {
-                            var token = await authProvider.GetJWTAsync();
-                            requestMessage.Headers.Add("LzIdentity", token);
-
-                            var iCreds = await authProvider.GetCredsAsync();
-                            var awsCreds = new ImmutableCredentials(iCreds.AccessKey, iCreds.SecretKey, iCreds.Token);
-                            
-                            // Note. Using named parameters to satisfy new version 3.x.x signature of 
-                            // AwsSignatureVersion4 SendAsync method.
-                            response = await httpClient.SendAsync(
-                            request: requestMessage,
-                            completionOption: httpCompletionOption,
-                            cancellationToken: cancellationToken,
-                            regionName: awsSettings.Region,
-                            serviceName: api.Service,
-                            credentials: awsCreds);
-                            return response;
+                            throw new Exception("AwsSignatureVersion4 not supported in LzHttpClientWASM");
                         }
                         catch (System.Exception e)
                         {
@@ -208,27 +185,6 @@ namespace LazyStackAuth
             }
             return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
         }
-
-#if DEBUG        
-        //https://docs.microsoft.com/en-us/xamarin/cross-platform/deploy-test/connect-to-local-web-services
-        //Attempting to invoke a local secure web service from an application running in the iOS simulator 
-        //or Android emulator will result in a HttpRequestException being thrown, even when using the managed 
-        //network stack on each platform.This is because the local HTTPS development certificate is self-signed, 
-        //and self-signed certificates aren't trusted by iOS or Android.
-        public static HttpClientHandler GetInsecureHandler()
-        {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) =>
-                {
-                    if (cert.Issuer.Equals("CN=localhost"))
-                        return true;
-                    return errors == System.Net.Security.SslPolicyErrors.None;
-                }
-            };
-            return handler;
-        }
-#endif
         public void Dispose()
         {
             httpClient.Dispose();

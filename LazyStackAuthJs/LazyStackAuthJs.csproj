@@ -1,8 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="lazystackauth.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="JS\src\lazystackauth.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="5.0.10" />
@@ -13,9 +23,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="lazystackauth.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Folder Include="wwwroot\js\" />
+  
   </ItemGroup>
-
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Condition="$(Configuration) == 'Debug'" Command="cd JS &amp;&amp; npm run snowpack-build" />
+		<Exec Condition="$(Configuration) == 'Release'" Command="cd JS &amp;&amp; npm run snowpack-build" />
+	</Target>
+	
 </Project>

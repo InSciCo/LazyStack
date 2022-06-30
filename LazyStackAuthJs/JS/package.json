@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "snowpack-build": "snowpack build --polyfill-node"
+  },
+  "devDependencies": {
+    "@snowpack/plugin-optimize": "^0.2.13",
+    "exit": "^0.1.2",
+    "snowpack": "^2.18.5"
+  },
+  "dependencies": {
+    "aws-amplify": "^4.3.26"
+  }
+}

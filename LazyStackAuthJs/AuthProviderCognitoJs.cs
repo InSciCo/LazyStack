@@ -51,19 +51,25 @@ namespace LazyStackAuthJs
             IPhoneFormat phoneFormat,
             ICodeFormat codeFormat,
             ILogger<AuthProviderCognitoJs> logger,
-            string stackName = "Aws")
+            IJSRuntime jsRuntime,
+            string stackName = "Aws",
+            string clientIdField="UserPoolClient",
+            string userPoolIdField="UserPool",
+            string identityPoolIdField="IdentityPool")
         {
             regionEndpoint = appConfig[$"{stackName}:Region"];
-            clientId = appConfig[$"{stackName}:ClientId"];
-            userPoolId = appConfig[$"{stackName}:UserPoolId"];
-            identityPoolId = appConfig[$"{stackName}:IdentityPoolId"];
+            clientId = appConfig[$"{stackName}:{clientIdField}"];
+            userPoolId = appConfig[$"{stackName}:{userPoolIdField}"];
+            identityPoolId = appConfig[$"{stackName}:{identityPoolIdField}"];
             this.serviceProvider = serviceProvider;
             this.loginFormat = loginFormat;
             this.passwordFormat = passwordFormat;
             this.emailFormat = emailFormat;
             this.phoneFormat = phoneFormat;
             this.codeFormat = codeFormat;
+            this.jsRuntime = jsRuntime;
             this.logger = logger;
+
             logger.LogInformation("AuthProviderCognitoJs constructor");
         }
 
@@ -263,13 +269,12 @@ namespace LazyStackAuthJs
 
         public async Task Init()
         {
-
             if (jsRuntime != null && !isConfigured)
             {
                 try 
                 {
                     if (jsModule == null)
-                        jsModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./js/PiiSliceApp.js");
+                        jsModule = await jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/LazyStackAuthJs/js/lazystackauth.js");
 
                     var config = new Dictionary<string, string>()
                     {
@@ -299,7 +304,6 @@ namespace LazyStackAuthJs
             }
         }
         #endregion
-
 
         #region Challenge Flow Methods -- affect AuthChallengeList or IsAuthorized
 
