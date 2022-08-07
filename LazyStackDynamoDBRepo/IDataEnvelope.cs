@@ -98,5 +98,7 @@ namespace LazyStackDynamoDBRepo
         /// </summary>
         string General { get; set; }
 
+        void SealEnvelope();
     }
+
 }

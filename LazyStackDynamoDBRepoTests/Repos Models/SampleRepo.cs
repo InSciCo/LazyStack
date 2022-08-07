@@ -11,7 +11,7 @@ namespace LazyStackDynamoDBRepoTests
     public class SampleEnvelope : DataEnvelope<Sample>
     {
         /// Called in EntityInstance set Set
-        protected override void SetDbRecordFromEnvelopeInstance()
+        public override void SealEnvelope()
         {
             // Set the Envelope Key fields from the EntityInstance data
             TypeName = "Sample.v1.0.0";
@@ -20,7 +20,7 @@ namespace LazyStackDynamoDBRepoTests
             SK = $"{EntityInstance.Id}:"; // sort/range key
 
             // The base method copies information from the envelope keys into the dbRecord
-            base.SetDbRecordFromEnvelopeInstance();
+            base.SealEnvelope();
         }
     }
 
@@ -32,14 +32,14 @@ namespace LazyStackDynamoDBRepoTests
         Task<ActionResult<Sample>> PutSampleByIdAsync(Sample sample); //Update
         Task<StatusCodeResult> DeleteSampleByIdAsync(long sampleId); //Delete
         Task<ActionResult<ICollection<Sample>>> ListSamplesAsync(); //List
-        Task<ActionResult<ICollection<SampleEnvelope>>> ListSampleEnvelopesAsync(); 
+        Task<ActionResult<ICollection<SampleEnvelope>>> ListSampleEnvelopesAsync();
     }
 
     public class SampleRepo : DYDBRepository<SampleEnvelope, Sample>, ISampleRepo
     {
         public SampleRepo(
             IAmazonDynamoDB client
-            ) : base(client, envVarTableName: "TABLE_NAME") 
+            ) : base(client, envVarTableName: "TABLE_NAME")
         {
             UpdateReturnsOkResult = false; // just return value
         }
@@ -54,11 +54,11 @@ namespace LazyStackDynamoDBRepoTests
             // value from the corresponding entity.Id field. This use case, of deleting a bunch of records, is a good use case to consider. For instance,
             // what if each of these records stored a large entity? Then using this approach would dramatically reduce the amount of data returned for
             // processing.
-            var response = await ListEAsync(QueryBeginsWith(PK, expressionAttributeNames: new Dictionary<string,string>() ,projectionExpression: "PK, SK"));
+            var response = await ListEAsync(QueryBeginsWith(PK, expressionAttributeNames: new Dictionary<string, string>(), projectionExpression: "PK, SK"));
 
             if (response.Value == null) // Something went wrong! Return error 
                 return response.Result as StatusCodeResult;
-            
+
             // Delete each existing record
             foreach (var r in response.Value)
             {

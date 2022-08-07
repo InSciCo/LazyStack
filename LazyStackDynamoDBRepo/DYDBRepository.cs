@@ -11,8 +11,6 @@ using Newtonsoft.Json;
 
 namespace LazyStackDynamoDBRepo
 {
-
-
     /// <summary>
     /// Map CRUDL operations onto DynamoDBv2.Model namespace operations (low level access)
     /// DynamoDB offers a variety of access libraries. 
@@ -40,30 +38,32 @@ namespace LazyStackDynamoDBRepo
         #region Fields
         protected string tablename;
         protected IAmazonDynamoDB client;
-        protected Dictionary<string, (TEnv envelope, long lastReadTick)> cache = new();
+        protected Dictionary<string, (TEnv envelope, long lastReadTick)> cache = new Dictionary<string, (TEnv, long)>();
         #endregion
 
         #region Properties 
         private bool _UpdateReturnOkResults = true;
-        public bool UpdateReturnsOkResult { 
-            get { return _UpdateReturnOkResults;  } 
+        public bool UpdateReturnsOkResult
+        {
+            get { return _UpdateReturnOkResults; }
             set { _UpdateReturnOkResults = value; }
         }
         public bool AlwaysCache { get; set; } = false;
         private long cacheTime = 0;
-        public long CacheTimeSeconds {
+        public long CacheTimeSeconds
+        {
             get { return cacheTime / 10000000; } // 10 million ticks in a second, 600 million ticks in a minute
-            set { cacheTime = value * 10000000; } 
+            set { cacheTime = value * 10000000; }
         }
 
-        public long MaxItems { get; set; } 
+        public long MaxItems { get; set; }
 
 
         #endregion
 
         /// <summary>
         /// Make sure cach has less than MaxItems 
-        /// MaxItems == 0 means infinate cache
+        /// MaxItems == 0 means infinite cache
         /// </summary>
         /// <returns></returns>
         protected void PruneCache(string table = null)
@@ -104,15 +104,17 @@ namespace LazyStackDynamoDBRepo
             try
             {
                 var now = DateTime.UtcNow.Ticks;
-                TEnv envelope = new() 
-                { 
+                TEnv envelope = new TEnv()
+                {
                     EntityInstance = data,
                     CreateUtcTick = now,
                     UpdateUtcTick = now
                 };
 
+                envelope.SealEnvelope();
+
                 // Wait until just before write to serialize EntityInstance (captures updates to UtcTick fields)
-                envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance)});
+                envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance) });
 
                 var request = new PutItemRequest()
                 {
@@ -120,6 +122,8 @@ namespace LazyStackDynamoDBRepo
                     Item = envelope.DbRecord,
                     ConditionExpression = "attribute_not_exists(PK)" // Technique to avoid replacing an existing record
                 };
+
+
 
                 await client.PutItemAsync(request);
 
@@ -129,7 +133,7 @@ namespace LazyStackDynamoDBRepo
                     PruneCache();
                 }
 
-                return data; 
+                return data;
             }
             catch (ConditionalCheckFailedException ex) { return new ConflictResult(); }
             catch (AmazonDynamoDBException ex) { return new StatusCodeResult(400); }
@@ -138,7 +142,7 @@ namespace LazyStackDynamoDBRepo
         }
 
 
-        public async Task<ActionResult<T>> ReadAsync(string pK,  string sK = null, string table = null, bool? useCache = null)
+        public async Task<ActionResult<T>> ReadAsync(string pK, string sK = null, string table = null, bool? useCache = null)
         {
             if (string.IsNullOrEmpty(table))
                 table = tablename;
@@ -164,7 +168,7 @@ namespace LazyStackDynamoDBRepo
             if (string.IsNullOrEmpty(table))
                 table = tablename;
 
-            bool useCache2 = (useCache != null) ? (bool) useCache : AlwaysCache;
+            bool useCache2 = (useCache != null) ? (bool)useCache : AlwaysCache;
             try
             {
                 var key = $"{table}:{pK}{sK}";
@@ -182,7 +186,7 @@ namespace LazyStackDynamoDBRepo
                 {
                     TableName = table,
                     Key = new Dictionary<string, AttributeValue>()
-                    { 
+                    {
                         {"PK", new AttributeValue {S = pK}},
                         {"SK", new AttributeValue {S = sK } }
                     }
@@ -190,7 +194,7 @@ namespace LazyStackDynamoDBRepo
                 var response = await client.GetItemAsync(request);
 
                 var item = new TEnv() { DbRecord = response.Item };
-                if (useCache2 )
+                if (useCache2)
                 {
                     cache[key] = (item, DateTime.UtcNow.Ticks);
                     PruneCache();
@@ -212,13 +216,15 @@ namespace LazyStackDynamoDBRepo
             if (data.Equals(null))
                 return new StatusCodeResult(400);
 
-            TEnv envelope = new() { EntityInstance = data };
-             
+            TEnv envelope = new TEnv() { EntityInstance = data };
+
             try
             {
                 var OldUpdateUtcTick = envelope.UpdateUtcTick;
                 var now = DateTime.UtcNow.Ticks;
                 envelope.UpdateUtcTick = now; // The UpdateUtcTick Set calls SetUpdateUtcTick where you can update your entity data record 
+
+                envelope.SealEnvelope();
 
                 // Waiting until just before write to serialize EntityInstance (captures updates to UtcTick fields)
                 envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance) });
@@ -234,6 +240,8 @@ namespace LazyStackDynamoDBRepo
                         {":OldUpdateUtcTick", new AttributeValue() {N = OldUpdateUtcTick.ToString()} }
                     }
                 };
+
+
 
                 await client.PutItemAsync(request);
 
@@ -273,7 +281,7 @@ namespace LazyStackDynamoDBRepo
                         {"SK", new AttributeValue {S = sK} }
                     }
                 };
-                
+
                 await client.DeleteItemAsync(request);
 
                 var key = $"{table}:{pK}{sK}";
@@ -330,15 +338,17 @@ namespace LazyStackDynamoDBRepo
                 PruneCache();
                 return list;
             }
-            catch (AmazonDynamoDBException e) {
+            catch (AmazonDynamoDBException e)
+            {
                 ;
-                return new StatusCodeResult(500); }
+                return new StatusCodeResult(500);
+            }
             catch (AmazonServiceException) { return new StatusCodeResult(503); }
             catch { return new StatusCodeResult(500); }
         }
 
 
-        protected Dictionary<string,string> GetExpressionAttributeNames(Dictionary<string,string> value)
+        protected Dictionary<string, string> GetExpressionAttributeNames(Dictionary<string, string> value)
         {
             if (value != null)
                 return value;
@@ -403,7 +413,7 @@ namespace LazyStackDynamoDBRepo
             };
         }
 
-        public QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string,string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
+        public QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
         {
             expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
             projectionExpression = GetProjectionExpression(projectionExpression);
@@ -446,8 +456,41 @@ namespace LazyStackDynamoDBRepo
                 ExpressionAttributeNames = expressionAttributeNames,
                 ProjectionExpression = projectionExpression
             };
+        }
+
+        public QueryRequest QueryRange(
+            string pK,
+            string keyField,
+            string keyStart,
+            string keyEnd,
+            Dictionary<string, string> expressionAttributeNames = null,
+            string projectionExpression = null,
+            string table = null)
+        {
+            expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+            projectionExpression = GetProjectionExpression(projectionExpression);
+            if (string.IsNullOrEmpty(table))
+                table = tablename;
+
+            var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+            return new QueryRequest()
+            {
+                TableName = table,
+                KeyConditionExpression = $"PK = :PKval and {keyField} between :SKStart and :SKEnd ",
+                IndexName = indexName,
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    {":PKval", new AttributeValue() {S = pK} },
+                    {":SKStart", new AttributeValue() {S =  keyStart }},
+                    {":SKEnd", new AttributeValue() {S = keyEnd} }
+                },
+                ExpressionAttributeNames = expressionAttributeNames,
+                ProjectionExpression = projectionExpression
+            };
 
         }
+
 
     }
 }

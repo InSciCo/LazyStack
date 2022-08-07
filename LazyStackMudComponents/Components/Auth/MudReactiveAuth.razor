@@ -1,0 +1,282 @@
+﻿@namespace LzMudComponents
+@inherits MudReactiveComponentBase<IAuthProcess>
+
+<!--
+Notes
+- Since MudBlazor lacks something like OnBlurOrReturn, we use both OnBlur and OnKeyUp to call authProcess Verify* operations.
+- MudBlazor AutoFocus fails with this form so we override OnAfterRenderAsync to force focus into current input field.
+-->
+
+<MudGrid Class="d-flex" >
+    <MudItem xs="12" sm="8" md="6"> 
+        <MudForm >
+            <MudCard Class="pa-1 border-solid rounded-0" Elevation="0">
+                <MudCardContent>
+                    @if (!string.IsNullOrEmpty(AuthProcessMessage()))
+                    {
+                        <MudText>@AuthProcessMessage()</MudText>
+                    }
+                    <MudText Class="@isVisibleClass(ViewModel.IsLongBusy)">Calling Server</MudText>
+                    @if (ViewModel.CurrentChallengeIsLogin)
+                    {
+                        <MudTextField Label="@ViewModel.LoginLabel"
+                                  @ref="login"
+                                  @bind-Value="ViewModel.Login"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyLoginAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyLoginAsync,e))"
+                                  HelperText="@ViewModel.LoginFormatMessage"
+                                  AutoFocus=true />
+                    }
+                    @if (ViewModel.CurrentChallengeIsNewLogin)
+                    {
+                        <MudTextField Label="@ViewModel.NewLoginLabel"
+                                  @ref="newLogin"
+                                  @bind-Value="ViewModel.NewLogin"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyNewLoginAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewLoginAsync, e))"
+                                  Helpertext="@ViewModel.NewLoginFormatMessage"
+                                  AutoFocus=true/>
+                    }
+                    @if (ViewModel.CurrentChallengeIsPassword)
+                    {
+                        <MudTextField Label="@ViewModel.PasswordLabel"
+                                  @ref="password"
+                                  @bind-Value="ViewModel.Password"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyPasswordAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyPasswordAsync,e))"
+                                  Variant="Variant.Outlined"
+                                  InputType="@PasswordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordInputIcon"
+                                  OnAdornmentClick="PasswordAdornmentClick"
+                                  AdornmentAriaLabel="Show Password"
+                                  HelperText="@ViewModel.PasswordFormatMessage"
+                                  AutoFocus=true />
+                    }
+                    @if (ViewModel.CurrentChallengeIsNewPassword)
+                    {
+                        <MudTextField Label="@ViewModel.NewPasswordLabel"
+                                  @ref="newPassword"
+                                  @bind-Value="ViewModel.NewPassword"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyNewPasswordAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewPasswordAsync,e))"
+                                  Variant="Variant.Outlined"
+                                  InputType="@PasswordInput"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@PasswordInputIcon"
+                                  OnAdornmentClick="PasswordAdornmentClick"
+                                  AdornmentAriaLabel="Show Password"
+                                  HelperText="@ViewModel.NewPasswordFormatMessage"
+                                  AutoFocus="true" />
+                    }
+                    @if (ViewModel.CurrentChallengeIsEmail)
+                    {
+                        <MudTextField Label="@ViewModel.EmailLabel"
+                                  @ref="email"
+                                  @bind-Value="ViewModel.Email"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyEmailAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyEmailAsync,e))"
+                                  HelperText="@ViewModel.EmailFormatMessage"
+                                  AutoFocus="true" />
+                    }
+
+                    @if (ViewModel.CurrentChallengeIsNewEmail)
+                    {
+                        <MudTextField Label="@ViewModel.NewEmailLabel"
+                                  @ref="newEmail"
+                                  @bind-Value="ViewModel.NewEmail"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyNewEmailAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewEmailAsync,e))"
+                                  HelperText="@ViewModel.NewEmailFormatMessage"
+                                  AutoFocus="true" />
+                    }
+                    @if (ViewModel.CurrentChallengeIsPhone)
+                    {
+                        <MudTextField Label="@ViewModel.PhoneLabel"
+                                  @ref="phone"
+                                  @bind-Value="ViewModel.Phone"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyPhoneAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyPhoneAsync,e))"
+                                  HelperText="@ViewModel.PhoneFormatMessage"
+                                  AutoFocus="true" />
+                    }
+
+                    @if(ViewModel.CurrentChallengeIsNewPhone) 
+                    {
+                        <MudTextField Label="@ViewModel.NewPhoneLabel"
+                                  @ref="newPhone"
+                                  @bind-Value="ViewModel.NewPhone"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyNewPhoneAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewPhoneAsync,e))"
+                                  HelperText="@ViewModel.NewPhoneFormatMessage"
+                                  AutoFocus="true" />
+                    }
+
+                    @if (ViewModel.CurrentChallengeIsCode)
+                    {
+                        <MudTextField Label="@ViewModel.CodeLabel"
+                                  @ref="code"
+                                  @bind-Value="ViewModel.Code"
+                                  OnBlur="@(async () => await PerformStep(ViewModel.VerifyCodeAsync))"
+                                  OnKeyUp="@(async (e) => await PerformStep(ViewModel.VerifyCodeAsync,e))"
+                                  HelperText="@ViewModel.CodeFormatMessage"
+                                  AutoFocus="true" />
+                    }
+
+                    <MudText Text="@ViewModel.AlertMessage"
+                             Class="@isVisibleClass(ViewModel.HasAlert)" />
+
+                </MudCardContent>
+                <MudCardContent>
+                    @if (ViewModel.CanSignIn)
+                    {
+                        <MudButton Label="Sign In"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartSignInAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Sign In</MudButton>
+                    }
+                    @if(ViewModel.CanSignUp)
+                    {
+                        <MudButton Label="Sign Up"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartSignUpAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Sign Up</MudButton>
+                    }
+                    @if(ViewModel.CanResetPassword)
+                    {
+                        <MudButton Label="Forgot Password"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartResetPasswordAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Forgot Password</MudButton>
+                    }
+                    @if(ViewModel.CanUpdateEmail)
+                    {
+                        <MudButton Label="Update Email"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartUpdateEmailAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Update Email</MudButton>
+                    }
+                    @if(ViewModel.CanUpdatePassword)
+                    {
+                        <MudButton Label="Update Password"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartUpdatePasswordAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Update Password</MudButton>
+                    }
+                    @if(ViewModel.CanUpdatePhone) 
+                    {
+                        <MudButton Label="Update Phone"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.StartUpdatePhoneAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Update Phone</MudButton>
+                    }
+                    @if(ViewModel.CanSignOut)
+                    {
+                        <MudButton Label="Sign Out"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.SignOutAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Sign Out</MudButton>
+                    }
+                    @if(ViewModel.CanResendCode)
+                    {
+                        <MudButton Label="Resend Code"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.ResendCodeAsync())"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Resend Code</MudButton>
+                    }
+                    @if(ViewModel.CanCancel)
+                    {
+                        <MudButton Label="Cancel"
+                               @ref="cancel"
+                               Class="ml-auto mt-3 mx-3"
+                               OnClick="@(async() => await ViewModel.CancelAsync())"
+                               Disabled="@cancelButtonDisabled"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary">Cancel</MudButton>
+                    }
+
+                </MudCardContent>
+            </MudCard>
+        </MudForm>
+    </MudItem>
+</MudGrid>
+@code {
+    [Inject]
+    public IAuthProcess authViewModel { set => ViewModel = value; }
+
+    bool isShowPassword = false;
+    InputType PasswordInput = InputType.Password; // Used by both Password and NewPassword components
+    string PasswordInputIcon = Icons.Material.Filled.VisibilityOff; // Used by both Password and NewPassword components
+    MudBaseInput<string>? login;
+    MudBaseInput<string>? newLogin;
+    MudBaseInput<string>? password;
+    MudBaseInput<string>? newPassword;
+    MudBaseInput<string>? email;
+    MudBaseInput<string>? newEmail;
+    MudBaseInput<string>? phone;
+    MudBaseInput<string>? newPhone;
+    MudBaseInput<string>? code;
+    MudButton? cancel;
+    bool cancelButtonDisabled = false;
+    const KeyboardEventArgs emptyKeyboardEventArgs = null;
+    bool LoginFailed = false;
+
+    string isVisibleClass(bool isVisible) => isVisible ? "" : "d-none ";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewModel.AssignFieldOnCheck = false;
+        ViewModel.IsChatty = true; 
+        await base.OnInitializedAsync();
+    }
+
+    protected async Task PerformStep(Func<Task<AuthEventEnum>> step, KeyboardEventArgs e = emptyKeyboardEventArgs)
+    {
+        if (e == null || e.Key == "Enter")
+        {
+            try
+            {
+                cancelButtonDisabled = true;
+                var currentChallenge = ViewModel.CurrentChallenge;
+                await step();
+            }
+            finally
+            {
+                cancelButtonDisabled = false;
+            }
+        }
+    }
+
+    // This method is useful only for debugging (as a hook into the render process)
+    // TODO: remove once we figure out the MediatR issue.
+    protected string AuthProcessMessage()
+    {
+        var msg = ViewModel.AuthChallengeMessage;
+        return msg;
+    }
+
+    void PasswordAdornmentClick()
+    {
+        @if (isShowPassword)
+        {
+            isShowPassword = false;
+            PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+            PasswordInput = InputType.Password;
+        }
+        else
+        {
+            isShowPassword = true;
+            PasswordInputIcon = Icons.Material.Filled.Visibility;
+            PasswordInput = InputType.Text;
+        }
+    }
+
+}

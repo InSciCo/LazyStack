@@ -8,13 +8,13 @@ namespace LazyStackDynamoDBRepo
         where T : class, new()
     {
         private Dictionary<string, AttributeValue> _dbRecord;
-        public Dictionary<string, AttributeValue> DbRecord 
+        public Dictionary<string, AttributeValue> DbRecord
         {
             get { return _dbRecord; }
             set
             {
                 _dbRecord = value;
-                SetEnvelopeInstanceFromDbRecord();
+                OpenEnvelope();
             }
         }
 
@@ -36,13 +36,13 @@ namespace LazyStackDynamoDBRepo
         protected static string propNameUpdateUtcTick = "UpdateUtcTick";
 
         private T _entityInstance;
-        public T EntityInstance 
-        { 
-            get { return _entityInstance;  }
+        public T EntityInstance
+        {
+            get { return _entityInstance; }
             set
             {
                 _entityInstance = value;
-                SetDbRecordFromEnvelopeInstance();
+                // SetDbRecordFromEnvelopeInstance();
             }
         } // Data entity in latest version form
 
@@ -73,26 +73,26 @@ namespace LazyStackDynamoDBRepo
 
         public string Status { get; set; } = null; // Projection attribute
 
-        public long CreateUtcTick 
+        public long CreateUtcTick
         {
             get { return GetCreateUtcTick(); }
-            set 
-            { 
+            set
+            {
                 SetCreateUtcTick(value);
                 if (DbRecord != null && DbRecord.ContainsKey("CreateUtcTick"))
                     DbRecord["CreateUtcTick"].N = value.ToString();
-            } 
+            }
         } // Projection attribute
 
-        public long UpdateUtcTick 
+        public long UpdateUtcTick
         {
             get { return GetUpdateUtcTick(); }
-            set 
-            { 
+            set
+            {
                 SetUpdateUtcTick(value);
                 if (DbRecord != null && DbRecord.ContainsKey("UpdateUtcTick"))
                     DbRecord["UpdateUtcTick"].N = value.ToString();
-            } 
+            }
         } // Projection attribute
 
         public string General { get; set; } = null; // Projection attribute
@@ -139,7 +139,7 @@ namespace LazyStackDynamoDBRepo
         /// <returns></returns>
         protected virtual long SetCreateUtcTick(long value)
         {
-            if(defaultUtcHandling && EntityInstance != null && propInfoCreateUtcTick != null)
+            if (defaultUtcHandling && EntityInstance != null && propInfoCreateUtcTick != null)
                 propInfoCreateUtcTick.SetValue(EntityInstance, value);
             return value;
         }
@@ -154,7 +154,7 @@ namespace LazyStackDynamoDBRepo
         /// <returns></returns>
         protected virtual long SetUpdateUtcTick(long value)
         {
-            if(defaultUtcHandling && EntityInstance != null && propInfoUpdateUtcTick != null)
+            if (defaultUtcHandling && EntityInstance != null && propInfoUpdateUtcTick != null)
                 propInfoUpdateUtcTick.SetValue(EntityInstance, value);
             return value;
         }
@@ -163,7 +163,7 @@ namespace LazyStackDynamoDBRepo
         /// You must implement this method
         /// The EntityInstance Set method calls this method.
         /// </summary>
-        protected virtual void SetDbRecordFromEnvelopeInstance() 
+        public virtual void SealEnvelope()
         {
             _dbRecord = new Dictionary<string, AttributeValue>
             {
@@ -209,7 +209,7 @@ namespace LazyStackDynamoDBRepo
         /// You must implement this method
         /// The DbRecord Set method calls this method.
         /// </summary>
-        protected virtual void SetEnvelopeInstanceFromDbRecord() 
+        protected virtual void OpenEnvelope()
         {
             if (_dbRecord.TryGetValue("PK", out AttributeValue pk))
                 PK = pk.S;
