@@ -16,19 +16,24 @@ using LazyStackAwsSettings;
 // Integration Tests for Auth library
 // This integration test requires:
 // An active AWS stack -- see the serverless.template included in project
-// A gmail account
-//  - gmail account security must have "Access to less secure apps" turned on
-//  - We recommend creating a gmail account just for this purpose and that you don't use your primary gmail account
-//  - We use gmail becuase it has an auto alias feature that makes it possible to create multiple Cognito user accounts
-//      - gmail allows you to create an alias using the '+' char. ex: myemail@gmail.com, myemail+01@gmail.com
-//      - each Cognito user account requires a unique email and it doesn't know myemail+01@gmail.com is an alias
+// A gmail account or AWS WorkMail account
+//  - We recommend creating a email account just for this purpose and that you don't use your primary email account
+//  - We use gmail or AWS Workmail becuase they provide an email subaddress feature making it possible to create multiple
+//    Cognito user accounts without creating new email accounts or manually adding email aliases to an email account
+//      - Create a subaddress using the '+' char. ex: myemail@gmail.com, myemail+01@gmail.com
+//      - each Cognito user account requires a unique email and it doesn't know myemail+01@gmail.com is a subaddress
 //      - we create Cognito user accounts that all send email to the same email account through the individual aliases
-// Note: gmail turns the "Access to less secure apps" setting off without telling you every so often, so you need to
-// make sure it is on before running this test if you haven't run the the testsuite recently.
+// Gmail Notes: gmail account security must have "Access to less secure apps" turned on
+//              gmail turns the "Access to less secure apps" setting off without telling you every so often, so you need to
+//              make sure it is on before running this test if you haven't run the the testsuite recently.
+// AWS WorkMail doesn't mess with our settings so it is preferred if you don't mind the $4/mo charge for the email account
 //
-// Visual Studio User Secrets containing the login and password for the gmail account:
+// Create a Visual Studio User Secret containing the email account information:
 //  {
-//    "Gmail": {
+//    "EmailAccount: {
+//      "Domain": "imap.gmail.com",
+//      "Port::"993,
+//      "UseSSL":true,
 //      "Email": "myemail@gmail.com",
 //      "Password": "AbCDEFGHIJK!"
 //    }
