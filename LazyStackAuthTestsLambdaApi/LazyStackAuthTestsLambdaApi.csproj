@@ -10,8 +10,8 @@
 
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.1" />
-    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.0.0" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.2" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="7.2.0" />
     <ProjectReference Include="..\LazyStackAuthTestsController\LazyStackAuthTestsController.csproj" />
   </ItemGroup>
 </Project>

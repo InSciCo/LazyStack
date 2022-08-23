@@ -19,8 +19,8 @@ namespace LazyStackAuth
         public static string GetAuthCode(IConfiguration appConfig, string emailTo)
         {
             // Start SignUp process - will send  a verification code to specified email account
-            var email = appConfig["Gmail:Email"];
-            var emailPassword = appConfig["Gmail:Password"];
+            var email = appConfig["EmailAccount:Email"];
+            var emailPassword = appConfig["EmailAccount:Password"];
             var verificationCode = string.Empty;
 
             bool foundCode = false;
@@ -33,7 +33,10 @@ namespace LazyStackAuth
                     tryCount++;
                     var messages = new List<string>();
                     using var mailClient = new ImapClient();
-                    mailClient.Connect("imap.gmail.com", 993, true);
+                    var domain = appConfig["EmailAccount:Domain"];
+                    var port = Int32.Parse(appConfig["EmailAccount:Port"]);
+                    var useSSL = Boolean.Parse(appConfig["EmailAccount:UseSSL"]);
+                    mailClient.Connect(domain, port, useSSL);
                     // Note: since we don't have an OAuth2 token, disable
                     // the XOAUTH2 authentication mechanism.
                     mailClient.AuthenticationMechanisms.Remove("XOAUTH2");
