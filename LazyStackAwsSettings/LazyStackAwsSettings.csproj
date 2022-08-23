@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
     <Description>Utility library - used by LazyStackAuth and LazyStackGetAwsSettings projects</Description>
     <Authors>Tim May, Thomas May</Authors>
     <Company>Insight Sciences Corporation</Company>
@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.CloudFormation" Version="3.7.7" />
+    <PackageReference Include="AWSSDK.CloudFormation" Version="3.7.11.18" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="YamlDotNet" Version="9.1.4" />
   </ItemGroup>

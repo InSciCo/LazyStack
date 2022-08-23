@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using LazyStackAuth; 
+using LazyStackAuth;
 
 /// <summary>
 /// AWS Authentication and Authorization Strategy

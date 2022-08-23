@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
     <Authors>Tim May, Thomas May</Authors>
     <Company>Insight Sciences Corporation</Company>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.17.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
   

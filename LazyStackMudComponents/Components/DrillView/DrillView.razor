@@ -1,0 +1,31 @@
+﻿@namespace LzMudComponents
+@using MudBlazor
+@inherits MudComponentBase
+
+<h3>DrillView</h3>
+
+@code {
+    // DrillView reads a json file and dynamically renders 
+    // components based on the specifications in the json file
+
+    // hack asset read - todo generalize
+    protected string data = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            //data = await http.GetStringAsync("Data/Discover.json");
+            //data = ReadAllText("wwwroot/Data/Discover.json"); // only works in MAUI
+            ;
+        }
+        catch (Exception ex)
+        {
+            ;
+        }
+        await base.OnInitializedAsync();
+
+    }
+
+}

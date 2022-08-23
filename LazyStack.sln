@@ -34,10 +34,6 @@ EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LazyStackAwsSettingsSharedCode", "LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.shproj", "{77DB02D7-3D16-455B-BB98-7BB22AE14FD8}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{77db02d7-3d16-455b-bb98-7bb22ae14fd8}*SharedItemsImports = 13
-		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{920d9f56-bfd6-4402-9025-56dc0b1feb36}*SharedItemsImports = 5
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -93,5 +89,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9CF40041-34A3-426B-952C-84C4644828E8}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{77db02d7-3d16-455b-bb98-7bb22ae14fd8}*SharedItemsImports = 13
+		LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems*{920d9f56-bfd6-4402-9025-56dc0b1feb36}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
