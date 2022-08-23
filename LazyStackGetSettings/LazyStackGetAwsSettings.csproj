@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <Copyright>Copyright (c) 2021, Insight Sciences Corporation. All rights reserved.</Copyright>
+    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
     <Authors>Tim May, Thomas May</Authors>
     <Company>Insight Sciences Corporation</Company>
     <Description>Console utility for getting AWS Settings from a published stack</Description>
