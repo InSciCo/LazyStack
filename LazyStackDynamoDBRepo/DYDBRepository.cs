@@ -477,7 +477,7 @@ namespace LazyStackDynamoDBRepo
             return new QueryRequest()
             {
                 TableName = table,
-                KeyConditionExpression = $"PK = :PKval and {keyField} between :SKStart and :SKEnd ",
+                KeyConditionExpression = $"PK = :PKval and {keyField} between :SKStart and :SKEnd",
                 IndexName = indexName,
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
@@ -488,9 +488,6 @@ namespace LazyStackDynamoDBRepo
                 ExpressionAttributeNames = expressionAttributeNames,
                 ProjectionExpression = projectionExpression
             };
-
         }
-
-
     }
 }

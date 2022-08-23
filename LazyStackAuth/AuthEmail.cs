@@ -11,7 +11,7 @@ using MailKit.Search;
 namespace LazyStackAuth
 {
     /// <summary>
-    /// Opens your gmail account and retrieves authorization codes sent to that 
+    /// Opens your email account and retrieves authorization codes sent to that 
     /// email account by the AuthProvider.
     /// </summary>
     public static class AuthEmail
@@ -19,6 +19,15 @@ namespace LazyStackAuth
         public static string GetAuthCode(IConfiguration appConfig, string emailTo)
         {
             // Start SignUp process - will send  a verification code to specified email account
+<<<<<<< HEAD
+=======
+            var domain = appConfig["EmailAccount:Domain"];
+
+            int port = 993;
+            Int32.TryParse(appConfig["EmailAccount:Port"], out port);
+            bool useSSL = true;
+            bool.TryParse(appConfig["EmailAccount:UseSSL"], out useSSL);
+>>>>>>> bae58d6bd997e701031e6d49aba9d076f5471b8d
             var email = appConfig["EmailAccount:Email"];
             var emailPassword = appConfig["EmailAccount:Password"];
             var verificationCode = string.Empty;
@@ -33,9 +42,12 @@ namespace LazyStackAuth
                     tryCount++;
                     var messages = new List<string>();
                     using var mailClient = new ImapClient();
+<<<<<<< HEAD
                     var domain = appConfig["EmailAccount:Domain"];
                     var port = Int32.Parse(appConfig["EmailAccount:Port"]);
                     var useSSL = Boolean.Parse(appConfig["EmailAccount:UseSSL"]);
+=======
+>>>>>>> bae58d6bd997e701031e6d49aba9d076f5471b8d
                     mailClient.Connect(domain, port, useSSL);
                     // Note: since we don't have an OAuth2 token, disable
                     // the XOAUTH2 authentication mechanism.
