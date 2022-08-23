@@ -42,7 +42,6 @@ namespace LazyStackDynamoDBRepo
             set
             {
                 _entityInstance = value;
-                // SetDbRecordFromEnvelopeInstance();
             }
         } // Data entity in latest version form
 
