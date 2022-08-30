@@ -8,7 +8,7 @@ namespace LazyStackAuthJs
 {
     public interface IAuthProviderCognitoJs : IAuthProvider
     {
-        public void InitJsRuntime();
+        //public void InitJsRuntime();
         public Task Init();
     }
 
