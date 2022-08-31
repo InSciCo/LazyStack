@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LazyStackAuth;
+namespace LazyStackAuthV2;
 
 public interface IMethodMap
 {

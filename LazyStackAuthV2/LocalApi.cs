@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public class LocalApi
 {
-    public class LocalApi
-    {
-        public string Scheme { get; set; }
-        public string Host { get; set; }
-        public int Port { get; set; }
-    }
+    public string Scheme { get; set; }
+    public string Host { get; set; }
+    public int Port { get; set; }
 }
 
 

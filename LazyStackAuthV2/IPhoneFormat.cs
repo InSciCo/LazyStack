@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public interface IPhoneFormat
 {
-    public interface IPhoneFormat
-    {
-        IEnumerable<string> CheckPhoneFormat(string phone, string languageCode);
-    }
+    IEnumerable<string> CheckPhoneFormat(string phone, string languageCode);
 }

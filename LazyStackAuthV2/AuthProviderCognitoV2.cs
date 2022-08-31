@@ -48,34 +48,33 @@ using Amazon.Runtime;
 /// .ConfigureAwait(false) on all async calls into Cognito libs.
 /// 
 /// </summary>
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+/// <summary>
+/// Implements IAuthProvider using AWS Cognito as authentication provider
+/// 
+/// </summary>
+public class AuthProviderCognito : AuthProviderCognitoBase
 {
-    /// <summary>
-    /// Implements IAuthProvider using AWS Cognito as authentication provider
-    /// 
-    /// </summary>
-    public class AuthProviderCognito : AuthProviderCognitoBase
+    public AuthProviderCognito(
+        ILoginFormat loginFormat,
+        IPasswordFormat passwordFormat,
+        IEmailFormat emailFormat,
+        ICodeFormat codeFormat,
+        IPhoneFormat phoneFormat,
+        IStacksConfig stacksConfig
+
+    )
     {
-        public AuthProviderCognitoV2(
-            ILoginFormat loginFormat,
-            IPasswordFormat passwordFormat,
-            IEmailFormat emailFormat,
-            ICodeFormat codeFormat,
-            IPhoneFormat phoneFormat,
-            IStacksConfig stacksConfig
-
-        )
-        {
-            this.loginFormat = loginFormat;
-            this.passwordFormat = passwordFormat;
-            this.emailFormat = emailFormat;
-            this.codeFormat = codeFormat;
-            this.phoneFormat = phoneFormat;
-            this.stacksConfig = stacksConfig;
-            SetStack();
-        }
-
-
+        this.loginFormat = loginFormat;
+        this.passwordFormat = passwordFormat;
+        this.emailFormat = emailFormat;
+        this.codeFormat = codeFormat;
+        this.phoneFormat = phoneFormat;
+        this.stacksConfig = stacksConfig;
+        SetStack();
     }
+
+
 }
 

@@ -18,7 +18,10 @@
 
 	<ItemGroup>
 		<None Remove="AuthMessages.json" />
-		<None Include="LICENSE.txt" />
+		<None Include="LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

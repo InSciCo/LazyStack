@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace LazyStackAuth;
+namespace LazyStackAuthV2;
 
 /// <summary>
 /// This ILzHttpClient supports calling Local, CloudFront or ApiGateway endpoints.

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public interface IPasswordFormat
 {
-    public interface IPasswordFormat
-    {
-        IEnumerable<string> CheckPasswordFormat(string password, string languageCode);
-    }
+    IEnumerable<string> CheckPasswordFormat(string password, string languageCode);
 }

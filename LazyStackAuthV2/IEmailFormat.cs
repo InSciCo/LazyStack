@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public interface IEmailFormat
 {
-    public interface IEmailFormat
-    {
-        IEnumerable<string> CheckEmailFormat(string email, string languageCode);
-    }
+    IEnumerable<string> CheckEmailFormat(string email, string languageCode);
 }

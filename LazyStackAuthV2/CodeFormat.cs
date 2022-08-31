@@ -5,21 +5,20 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public class CodeFormat : ICodeFormat
 {
-    public class CodeFormat : ICodeFormat
+    public CodeFormat(IConfiguration appConfig)
     {
-        public CodeFormat(IConfiguration appConfig)
-        {
-            this.appConfig = appConfig;
-        }
+        this.appConfig = appConfig;
+    }
 
-        protected IConfiguration appConfig;
+    protected IConfiguration appConfig;
 
-        public IEnumerable<string> CheckCodeFormat(string code, string languageCode)
-        {
-            if (code.Length != 6)
-                yield return appConfig[$"AuthFormatMessages:{languageCode}:Code01"];
-        }
+    public IEnumerable<string> CheckCodeFormat(string code, string languageCode)
+    {
+        if (code.Length != 6)
+            yield return appConfig[$"AuthFormatMessages:{languageCode}:Code01"];
     }
 }

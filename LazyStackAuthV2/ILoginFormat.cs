@@ -4,10 +4,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 
-namespace LazyStackAuth
+namespace LazyStackAuthV2;
+
+public interface ILoginFormat
 {
-    public interface ILoginFormat
-    {
-        public IEnumerable<string> CheckLoginFormat(string password, string languageCode);
-    }
+    public IEnumerable<string> CheckLoginFormat(string password, string languageCode);
 }

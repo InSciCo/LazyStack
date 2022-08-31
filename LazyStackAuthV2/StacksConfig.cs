@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LazyStackAuth;
+namespace LazyStackAuthV2;
 
 public class SvcConfig
 {
