@@ -33,7 +33,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthTestReact", "L
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LazyStackAwsSettingsSharedCode", "LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.shproj", "{77DB02D7-3D16-455B-BB98-7BB22AE14FD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackAuthV2", "LazyStackAuthV2\LazyStackAuthV2.csproj", "{9013AEA0-DF44-47FD-A311-C6D3854FAD96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackAuthV2", "LazyStackAuthV2\LazyStackAuthV2.csproj", "{9013AEA0-DF44-47FD-A311-C6D3854FAD96}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStack.Utils", "LazyStack.Utils\LazyStack.Utils.csproj", "{B3A78BDB-A813-4948-A3B9-68306933EFB3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStack.ViewModels", "LazyStack.ViewModels\LazyStack.ViewModels.csproj", "{26FE84AD-9B50-4817-AF1A-F638DE70CB07}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStack.Components", "LazyStack.Components\LazyStack.Components.csproj", "{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +95,18 @@ Global
 		{9013AEA0-DF44-47FD-A311-C6D3854FAD96}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9013AEA0-DF44-47FD-A311-C6D3854FAD96}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9013AEA0-DF44-47FD-A311-C6D3854FAD96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3A78BDB-A813-4948-A3B9-68306933EFB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3A78BDB-A813-4948-A3B9-68306933EFB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3A78BDB-A813-4948-A3B9-68306933EFB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3A78BDB-A813-4948-A3B9-68306933EFB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26FE84AD-9B50-4817-AF1A-F638DE70CB07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26FE84AD-9B50-4817-AF1A-F638DE70CB07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26FE84AD-9B50-4817-AF1A-F638DE70CB07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26FE84AD-9B50-4817-AF1A-F638DE70CB07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
