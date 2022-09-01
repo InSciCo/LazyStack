@@ -14,9 +14,9 @@ public class PhoneFormat : IPhoneFormat
 
     protected IConfiguration appConfig;
 
-    public IEnumerable<string> CheckPhoneFormat(string phone, string languageCode)
+    public IEnumerable<string> CheckPhoneFormat(string phone)
     {
-       if(false) // todo - create a ruleset for phone numbers
-            yield return appConfig[$"AuthFormatMessages:{languageCode}:Phone01"];
+        if (false) // todo - create a ruleset for phone numbers
+            yield return "AuthFormatMessages_Phone01";
     }
 }

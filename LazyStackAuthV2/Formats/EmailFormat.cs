@@ -16,7 +16,7 @@ public class EmailFormat : IEmailFormat
 
     protected IConfiguration appConfig;
 
-    public IEnumerable<string> CheckEmailFormat(string email, string languageCode)
+    public IEnumerable<string> CheckEmailFormat(string email)
     {
         string msg = null;
 
@@ -26,10 +26,10 @@ public class EmailFormat : IEmailFormat
         }
         catch
         {
-            msg =  appConfig[$"AuthFormatMessages:{languageCode}:Email01"];
+            msg = "AuthFormatMessages_Email01";
         }
 
-        if(msg != null)
+        if (msg != null)
             yield return msg;
     }
 }

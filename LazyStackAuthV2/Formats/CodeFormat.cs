@@ -16,9 +16,9 @@ public class CodeFormat : ICodeFormat
 
     protected IConfiguration appConfig;
 
-    public IEnumerable<string> CheckCodeFormat(string code, string languageCode)
+    public IEnumerable<string> CheckCodeFormat(string code)
     {
         if (code.Length != 6)
-            yield return appConfig[$"AuthFormatMessages:{languageCode}:Code01"];
+            yield return "AuthFormatMessages_Code01";
     }
 }

@@ -8,5 +8,5 @@ namespace LazyStackAuthV2;
 
 public interface ILoginFormat
 {
-    public IEnumerable<string> CheckLoginFormat(string password, string languageCode);
+    public IEnumerable<string> CheckLoginFormat(string password);
 }

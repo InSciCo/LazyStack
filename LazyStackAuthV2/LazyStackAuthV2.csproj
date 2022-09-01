@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
@@ -17,17 +17,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Remove="AuthMessages.json" />
 		<None Include="LICENSE.txt">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<EmbeddedResource Include="AuthMessages.json">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
-		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

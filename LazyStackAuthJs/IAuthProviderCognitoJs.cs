@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LazyStackAuth;
+using LazyStackAuthV2;
 
 namespace LazyStackAuthJs
 {

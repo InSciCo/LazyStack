@@ -85,7 +85,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
     protected ICodeFormat codeFormat;
     protected IPhoneFormat phoneFormat;
     protected IStacksConfig stacksConfig;
-     
+
     private string login; // set by VerifyLogin
     private string newLogin; // set by VerifyNewLogin
     private string password; // set by VerifyPassword
@@ -104,12 +104,12 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
     {
         get
         {
-            return (AuthChallengeList.Count > 0)
+            return AuthChallengeList.Count > 0
               ? AuthChallengeList[0]
               : AuthChallengeEnum.None;
         }
     }
-    public async  Task<string> GetJWTAsync()
+    public async Task<string> GetJWTAsync()
     {
         await Task.Delay(0);
         return CognitoUser.SessionTokens.IdToken;
@@ -126,7 +126,8 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                 SecretKey = iCreds.SecretKey,
                 Token = iCreds.Token
             };
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             return new Creds();
         }
@@ -163,15 +164,15 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
     public bool CanUpdatePhone => false; // not currently implemented
     public bool CanCancel => CurrentAuthProcess != AuthProcessEnum.None;
     public bool CanResendCode => CurrentChallenge == AuthChallengeEnum.Code;
-    public bool IsChallengeLongWait 
-    { 
-        get 
-        { 
-            switch(CurrentChallenge)
+    public bool IsChallengeLongWait
+    {
+        get
+        {
+            switch (CurrentChallenge)
             {
                 case AuthChallengeEnum.Code:
                     return true;
-                
+
                 case AuthChallengeEnum.Password:
                     return CurrentAuthProcess == AuthProcessEnum.SigningIn;
 
@@ -196,18 +197,17 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                 case AuthChallengeEnum.None:
                     return false;
             }
-            return true; 
-        } 
+            return true;
+        }
     } // will the current challenge do a server roundtrip?
     public string[] FormatMessages { get; private set; }
     public string FormatMessage
     {
         get
         {
-            return (FormatMessages?.Length > 0) ? FormatMessages[0] : "";
+            return FormatMessages?.Length > 0 ? FormatMessages[0] : "";
         }
     }
-    public string LanguageCode { get; set; } = "en-US";
     #endregion Properties
     /// <summary>
     /// Call SetStack if you modify the IStacksConfig instance. This 
@@ -217,12 +217,12 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
     /// <exception cref="Exception"></exception>
     public void SetStack()
     {
-        if(stacksConfig == null)
+        if (stacksConfig == null)
         {
             throw new Exception("Can't call SetStack if stacksConfig is null. Did you use the wrong Constructor?");
         }
 
-        var currentStack = stacksConfig.CurrentStack;
+        var currentStack = stacksConfig.CurrentStackName;
         var stacks = stacksConfig.Stacks;
         if (!stacksConfig.Stacks.TryGetValue(currentStack, out var stack))
         {
@@ -293,12 +293,12 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
         await Task.Delay(0);
         InternalClearAsync();
         return AuthEventEnum.SignedOut;
-    } 
+    }
     // Cancel the currently executing auth process
     public virtual async Task<AuthEventEnum> CancelAsync()
     {
         await Task.Delay(0);
-        switch(CurrentAuthProcess)
+        switch (CurrentAuthProcess)
         {
             case AuthProcessEnum.None:
             case AuthProcessEnum.SigningIn:
@@ -394,7 +394,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
         if (CurrentChallenge != AuthChallengeEnum.Login)
             return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
-        if (!CheckLoginFormat(login)) 
+        if (!CheckLoginFormat(login))
             return AuthEventEnum.Alert_LoginFormatRequirementsFailed;
 
         try
@@ -410,7 +410,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                     IsLoginVerified = true;
                     AuthChallengeList.Remove(AuthChallengeEnum.Login);
                     return await NextChallenge();
-            
+
                 case AuthProcessEnum.SigningUp:
                     if (IsSignedIn)
                         return AuthEventEnum.Alert_AlreadySignedIn;
@@ -438,7 +438,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
         catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
         catch (Exception e)
         {
-            
+
             Debug.WriteLine($"VerifyLogin() threw an exception {e}");
             CognitoUser = null;
             return AuthEventEnum.Alert_Unknown;
@@ -478,7 +478,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                             Password = password
                         }
                         ).ConfigureAwait(false);
-                    this.password = password; 
+                    this.password = password;
                     IsPasswordVerified = true;
                     AuthChallengeList.Remove(AuthChallengeEnum.Password);
                     return await NextChallenge();
@@ -546,7 +546,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                 case AuthProcessEnum.ResettingPassword:
                     this.newPassword = newPassword;
                     CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
-                    await user.ForgotPasswordAsync().ConfigureAwait(false); 
+                    await user.ForgotPasswordAsync().ConfigureAwait(false);
                     AuthChallengeList.Remove(AuthChallengeEnum.NewPassword);
                     AuthChallengeList.Add(AuthChallengeEnum.Code);
                     return await NextChallenge();
@@ -583,7 +583,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
 
         try
         {
-            switch(CurrentAuthProcess)
+            switch (CurrentAuthProcess)
             {
                 case AuthProcessEnum.SigningUp:
                     IsEmailVerified = true;
@@ -628,7 +628,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                         return AuthEventEnum.Alert_CantRetrieveUserDetails;
 
                     // make sure the values are different
-                    if (this.email.Equals(newEmail)) //todo - check
+                    if (email.Equals(newEmail)) //todo - check
                     {
                         return AuthEventEnum.Alert_EmailAddressIsTheSame;
                     }
@@ -762,7 +762,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
 
         try
         {
-            switch(CurrentAuthProcess)
+            switch (CurrentAuthProcess)
             {
                 case AuthProcessEnum.UpdatingEmail:
                     // We need to re-submit the email change request for Amazon to resend the code
@@ -795,7 +795,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                 case AuthProcessEnum.ResettingPassword:
                     // we need to issue the ForgotPassword again to resend code
                     CognitoUser user = new CognitoUser(login, clientId, userPool, providerClient);
-                    await user.ForgotPasswordAsync().ConfigureAwait(false); 
+                    await user.ForgotPasswordAsync().ConfigureAwait(false);
                     return AuthEventEnum.AuthChallenge;
 
                 case AuthProcessEnum.SigningUp:
@@ -843,10 +843,10 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                         if (!IsLoginFormatOk)
                             AuthChallengeList.Add(AuthChallengeEnum.Login);
                         else
-                        if (!IsPasswordFormatOk) 
+                        if (!IsPasswordFormatOk)
                             AuthChallengeList.Add(AuthChallengeEnum.Password);
                         else
-                        if (!IsEmailFormatOk) 
+                        if (!IsEmailFormatOk)
                             AuthChallengeList.Add(AuthChallengeEnum.Email);
 
                         if (HasChallenge)
@@ -904,7 +904,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
                         return AuthEventEnum.SignedIn;
 
                     case AuthProcessEnum.UpdatingEmail:
-                        if(!IsCodeVerified)
+                        if (!IsCodeVerified)
                         {
                             AuthChallengeList.Add(AuthChallengeEnum.Code);
                             return AuthEventEnum.VerificationCodeSent;
@@ -946,37 +946,37 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
     #region Non ChallengeFlow Methods - do not affect AuthChallengeList or IaAuthorized
     public bool CheckLoginFormat(string login)
     {
-        FormatMessages = loginFormat.CheckLoginFormat(login, LanguageCode).ToArray();
-        return IsLoginFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = loginFormat.CheckLoginFormat(login).ToArray();
+        return IsLoginFormatOk = FormatMessages.Length == 0;
     }
     public bool CheckEmailFormat(string email)
     {
-        FormatMessages = emailFormat.CheckEmailFormat(email, LanguageCode).ToArray();
-        return IsEmailFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = emailFormat.CheckEmailFormat(email).ToArray();
+        return IsEmailFormatOk = FormatMessages.Length == 0;
     }
     public bool CheckPasswordFormat(string password)
     {
-        FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
-        return IsPasswordFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
+        return IsPasswordFormatOk = FormatMessages.Length == 0;
     }
     public bool CheckNewPasswordFormat(string password)
     {
-        FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
-        return IsNewPasswordFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
+        return IsNewPasswordFormatOk = FormatMessages.Length == 0;
     }
     public bool CheckCodeFormat(string code)
     {
-        FormatMessages = codeFormat.CheckCodeFormat(code, LanguageCode).ToArray();
-        return IsCodeFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = codeFormat.CheckCodeFormat(code).ToArray();
+        return IsCodeFormatOk = FormatMessages.Length == 0;
     }
     public bool CheckPhoneFormat(string phone)
     {
-        FormatMessages = phoneFormat.CheckPhoneFormat(phone, LanguageCode).ToArray();
-        return IsPhoneFormatOk = (FormatMessages.Length == 0);
+        FormatMessages = phoneFormat.CheckPhoneFormat(phone).ToArray();
+        return IsPhoneFormatOk = FormatMessages.Length == 0;
     }
     private async Task NoOp()
     {
-        await Task.Delay(0); 
+        await Task.Delay(0);
     }
     public virtual async Task<string> GetAccessToken()
     {
@@ -984,7 +984,7 @@ public abstract class AuthProviderCognitoBase : IAuthProviderCognito
             return null;
         if (CognitoUser.SessionTokens.IsValid())
             return CognitoUser.SessionTokens.AccessToken;
-        if(await RefreshTokenAsync())
+        if (await RefreshTokenAsync())
             return CognitoUser.SessionTokens.AccessToken;
         return null;
     }

@@ -19,12 +19,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LazyStackAuth\LazyStackAuth.csproj" />
+    <Folder Include="wwwroot\js\" />
+  
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\js\" />
-  
+    <ProjectReference Include="..\LazyStackAuthV2\LazyStackAuthV2.csproj" />
   </ItemGroup>
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 		<Exec Condition="$(Configuration) == 'Debug'" Command="cd JS &amp;&amp; npm run snowpack-build" />

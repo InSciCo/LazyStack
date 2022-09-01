@@ -7,10 +7,10 @@ namespace LazyStackAuthV2;
 
 public interface IMethodMap
 {
-	Dictionary<string, string> Map { get; }
+    Dictionary<string, string> Map { get; }
 }
 
 public class MethodMap : IMethodMap
 {
-	public Dictionary<string, string> Map { get; init; }
+    public Dictionary<string, string> Map { get; init; }
 }

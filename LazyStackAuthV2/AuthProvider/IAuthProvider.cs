@@ -38,7 +38,6 @@ public interface IAuthProvider
     // Format Messages
     public string[] FormatMessages { get; }
     public string FormatMessage { get; }
-    public string LanguageCode { get; set; }
 
     // Currently Allows AuthProcess
     public bool CanSignOut { get; }

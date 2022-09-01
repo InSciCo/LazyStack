@@ -17,7 +17,5 @@ public interface ILzHttpClient : IDisposable
         HttpCompletionOption httpCompletionOption,
         CancellationToken cancellationToken,
         [CallerMemberName] string callerMemberName = null);
-    public string LocalApiName {get; set;}  
-    public bool UseLocalApi { get; set; }
 
 }

@@ -47,31 +47,22 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public string Code { get; set; }
 
     // UI Messages
-    public string LoginLabel { get; }
     public string LoginFormatMessage { get; }
 
-    public string NewLoginLabel { get; }
     public string NewLoginFormatMessage { get; }
 
-    public string PasswordLabel { get; }
     public string PasswordFormatMessage { get; }
 
-    public string NewPasswordLabel { get; }
     public string NewPasswordFormatMessage { get; }
 
-    public string EmailLabel { get; }
     public string EmailFormatMessage { get; }
 
-    public string NewEmailLabel { get; }
     public string NewEmailFormatMessage { get; }
 
-    public string PhoneLabel { get; }
     public string PhoneFormatMessage { get; }
 
-    public string NewPhoneLabel { get; }
     public string NewPhoneFormatMessage { get; }
 
-    public string CodeLabel { get; }
     public string CodeFormatMessage { get; }
 
 

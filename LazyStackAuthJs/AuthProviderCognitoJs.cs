@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using LazyStackAuth;
+using LazyStackAuthV2;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
@@ -43,10 +43,10 @@ namespace LazyStackAuthJs
     /// Implements IAuthProvider using AWS Cognito as authentication provider
     /// 
     /// </summary>
-    public class AuthProviderCognitoJsV2 : IAuthProviderCognitoJs
+    public class AuthProviderCognitoJs : IAuthProviderCognitoJs
     {
 
-        public AuthProviderCognitoJsV2( 
+        public AuthProviderCognitoJs( 
             ILoginFormat loginFormat,
             IPasswordFormat passwordFormat,
             IEmailFormat emailFormat,
@@ -258,7 +258,7 @@ namespace LazyStackAuthJs
                 throw new Exception("Can't call SetStack if stacksConfig is null. Did you use the wrong Constructor?");
             }
 
-            var currentStack = stacksConfig.CurrentStack;
+            var currentStack = stacksConfig.CurrentStackName;
             var stacks = stacksConfig.Stacks;
             if (!stacksConfig.Stacks.TryGetValue(currentStack, out var stack))
             {
@@ -949,7 +949,7 @@ namespace LazyStackAuthJs
         public bool CheckLoginFormat(string login)
         {
             //logger.LogDebug($"CheckLoginFormat called. login={login}");
-            FormatMessages = loginFormat.CheckLoginFormat(login, LanguageCode).ToArray();
+            FormatMessages = loginFormat.CheckLoginFormat(login).ToArray();
             //foreach (var msg in FormatMessages)
             //    logger.LogDebug($"FormatMessage[]={msg}");
             return IsLoginFormatOk = (FormatMessages.Length == 0);
@@ -958,32 +958,32 @@ namespace LazyStackAuthJs
         public bool CheckEmailFormat(string email)
         {
             //Todo: Implement email content rules
-            FormatMessages = emailFormat.CheckEmailFormat(email, LanguageCode).ToArray();
+            FormatMessages = emailFormat.CheckEmailFormat(email).ToArray();
             return IsEmailFormatOk = FormatMessages.Length == 0;
         }
 
         public bool CheckPasswordFormat(string password)
         {
-            FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
+            FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
             return IsPasswordFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckNewPasswordFormat(string password)
         {
-            FormatMessages = passwordFormat.CheckPasswordFormat(password, LanguageCode).ToArray();
+            FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
             return IsNewPasswordFormatOk = (FormatMessages.Length == 0);
         }
 
         public bool CheckCodeFormat(string code)
         {
-            FormatMessages = codeFormat.CheckCodeFormat(code, LanguageCode).ToArray();
+            FormatMessages = codeFormat.CheckCodeFormat(code).ToArray();
             return IsCodeFormatOk = FormatMessages.Length == 0;
         }
 
         public bool CheckPhoneFormat(string phone)
         {
             //todo - implement
-            FormatMessages = phoneFormat.CheckPhoneFormat(phone, LanguageCode).ToArray();
+            FormatMessages = phoneFormat.CheckPhoneFormat(phone).ToArray();
             return IsPhoneFormatOk = FormatMessages.Length == 0;
         }
 

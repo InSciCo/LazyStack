@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using System.Globalization;
-using System.Runtime.CompilerServices; 
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -34,17 +34,15 @@ namespace LazyStackAuthV2;
 ///     user input.
 /// 
 /// </summary>
-public class AuthProcess : IAuthProcess
+public class AuthProcess : NotifyBase, IAuthProcess
 {
 
     public AuthProcess(IConfiguration appConfig, IAuthProvider authProvider, string languageCode = "en-US")
     {
         _authProvider = authProvider;
         this.appConfig = appConfig;
-        _authProvider.LanguageCode = languageCode;
-        LanguageCode = languageCode;
 
-    } 
+    }
 
     #region Fields
     readonly IConfiguration appConfig;
@@ -68,7 +66,8 @@ public class AuthProcess : IAuthProcess
     public string Login
     {
         get { return _login; }
-        set {
+        set
+        {
             if (IsChatty) SetProperty(ref _login, value); else _login = value;
             CheckLoginFormat();
         }
@@ -89,7 +88,8 @@ public class AuthProcess : IAuthProcess
     public string Password
     {
         get { return _password; }
-        set {
+        set
+        {
             if (IsChatty) SetProperty(ref _password, value); else _password = value;
             CheckPasswordFormat();
         }
@@ -99,7 +99,8 @@ public class AuthProcess : IAuthProcess
     public string NewPassword
     {
         get { return _newPassword; }
-        set {
+        set
+        {
             if (IsChatty) SetProperty(ref _newPassword, value); else _newPassword = value;
             CheckNewPasswordFormat();
         }
@@ -109,7 +110,8 @@ public class AuthProcess : IAuthProcess
     public string Email
     {
         get { return _email; }
-        set {
+        set
+        {
             if (IsChatty) SetProperty(ref _email, value); else _email = value;
             CheckEmailFormat();
         }
@@ -144,55 +146,38 @@ public class AuthProcess : IAuthProcess
     public string Code
     {
         get { return _code; }
-        set {
+        set
+        {
             if (IsChatty) SetProperty(ref _code, value); else _code = value;
             CheckCodeFormat();
         }
     }
 
     // UI Messages
-    private string _loginLabel;
-    public string LoginLabel { get { return _loginLabel; } }
     private string _loginFormatMessage;
     public string LoginFormatMessage { get { return _loginFormatMessage; } }
 
-    private string _newLoginLabel;
-    public string NewLoginLabel { get { return _newLoginLabel; } }
     private string _newLoginFormatMessage;
     public string NewLoginFormatMessage { get { return _newLoginFormatMessage; } }
 
-    private string _passwordLabel;
-    public string PasswordLabel { get { return _passwordLabel; } }
     private string _passwordFormatMessage;
     public string PasswordFormatMessage { get { return _passwordFormatMessage; } }
-    
-    private string _newPasswordLabel;
-    public string NewPasswordLabel { get { return _newPasswordLabel; } }
+
     private string _newPasswordFormatMessage;
     public string NewPasswordFormatMessage { get { return _newPasswordFormatMessage; } }
-    
-    private string _emailLabel;
-    public string EmailLabel { get { return _emailLabel; } }
+
     private string _emailFormatMessage;
     public string EmailFormatMessage { get { return _emailFormatMessage; } }
 
-    private string _newEmailLabel;
-    public string NewEmailLabel { get { return _newEmailLabel; } }
     private string _newEmailFormatMessage;
     public string NewEmailFormatMessage { get { return _newEmailFormatMessage; } }
 
-    private string _phoneLabel;
-    public string PhoneLabel { get { return _phoneLabel; } }
     private string _phoneFormatMessage;
     public string PhoneFormatMessage { get { return _phoneFormatMessage; } }
 
-    private string _newPhoneLabel;
-    public string NewPhoneLabel { get { return _newPhoneLabel; } }
     private string _newPhoneFormatMessage;
     public string NewPhoneFormatMessage { get { return _newPhoneFormatMessage; } }
-    
-    private string _codeLabel;
-    public string CodeLabel { get { return _codeLabel; } }
+
     private string _codeFormatMessage;
     public string CodeFormatMessage { get { return _codeFormatMessage; } }
 
@@ -243,24 +228,6 @@ public class AuthProcess : IAuthProcess
     // Format Messages
     public string[] FormatMessages { get { return _authProvider?.FormatMessages; } }
     public string FormatMessage { get { return _authProvider.FormatMessage; } }
-
-    public string LanguageCode
-    {
-        get { return _authProvider.LanguageCode; }
-        set
-        {
-            _authProvider.LanguageCode = value;
-            _loginLabel = appConfig[$"AuthLabels:{value}:LoginLabel"];
-            _newLoginLabel = appConfig[$"AuthLabels:{value}:NewLoginLabel"];
-            _passwordLabel = appConfig[$"AuthLabels:{value}:PasswordLabel"];
-            _newPasswordLabel = appConfig[$"AuthLabels:{value}:NewPasswordLabel"];
-            _emailLabel = appConfig[$"AuthLabels:{value}:EmailLabel"];
-            _newEmailLabel = appConfig[$"AuthLabels:{value}:NewEmailLabel"];
-            _phoneLabel = appConfig[$"AuthLabels:{value}:PhoneLabel"];
-            _newPhoneLabel = appConfig[$"AuthLabels:{value}:NewPhoneLabel"];
-            _codeLabel = appConfig[$"AuthLabels:{value}:CodeLabel"];
-        }
-    }
 
     // CurrentAuthProcess
     private string _authProcessMessage = string.Empty;
@@ -333,7 +300,8 @@ public class AuthProcess : IAuthProcess
     public bool IsBusy
     {
         get { return _IsBusy; }
-        set {
+        set
+        {
             SetProperty(ref _IsBusy, value);
             IsLongBusy = _IsBusy && _authProvider.IsChallengeLongWait;
         }
@@ -346,7 +314,7 @@ public class AuthProcess : IAuthProcess
         get { return _IsLongBusy; }
         set { SetProperty(ref _IsLongBusy, value); }
     }
-         
+
     public bool IsNotLongBusy => !IsLongBusy;
 
     #endregion
@@ -520,69 +488,70 @@ public class AuthProcess : IAuthProcess
 
     public async Task<AuthEventEnum> StartUpdatePasswordAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdatePasswordAsync); }
 
-    public async Task<AuthEventEnum> VerifyLoginAsync() => await Execute( _authProvider.VerifyLoginAsync, Login);
+    public async Task<AuthEventEnum> VerifyLoginAsync() => await Execute(_authProvider.VerifyLoginAsync, Login);
     public async Task<AuthEventEnum> VerifyLoginAsync(string login)
     {
         Login = login;
         return await Execute(_authProvider.VerifyLoginAsync, Login);
     }
 
-    public async Task<AuthEventEnum> VerifyNewLoginAsync() => await Execute( _authProvider.VerifyNewLoginAsync, NewLogin);
-    public async Task<AuthEventEnum> VerifyNewLoginAsync(string newLogin) {
+    public async Task<AuthEventEnum> VerifyNewLoginAsync() => await Execute(_authProvider.VerifyNewLoginAsync, NewLogin);
+    public async Task<AuthEventEnum> VerifyNewLoginAsync(string newLogin)
+    {
         _newLogin = newLogin;
         return await Execute(_authProvider.VerifyNewLoginAsync, NewLogin);
-    } 
+    }
 
-    public async Task<AuthEventEnum> VerifyPasswordAsync() => await Execute( _authProvider.VerifyPasswordAsync, Password);
+    public async Task<AuthEventEnum> VerifyPasswordAsync() => await Execute(_authProvider.VerifyPasswordAsync, Password);
     public async Task<AuthEventEnum> VerifyPasswordAsync(string password)
     {
         _password = password;
         return await Execute(_authProvider.VerifyPasswordAsync, Password);
     }
 
-    public async Task<AuthEventEnum> VerifyNewPasswordAsync() => await Execute( _authProvider.VerifyNewPasswordAsync, NewPassword);
+    public async Task<AuthEventEnum> VerifyNewPasswordAsync() => await Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
     public async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
     {
         _newPassword = newPassword;
-        return await  Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
+        return await Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
     }
 
-    public async Task<AuthEventEnum> VerifyEmailAsync() => await Execute( _authProvider.VerifyEmailAsync, Email);
+    public async Task<AuthEventEnum> VerifyEmailAsync() => await Execute(_authProvider.VerifyEmailAsync, Email);
     public async Task<AuthEventEnum> VerifyEmailAsync(string email)
     {
         _email = email;
         return await Execute(_authProvider.VerifyEmailAsync, Email);
     }
 
-    public async Task<AuthEventEnum> VerifyNewEmailAsync() => await Execute( _authProvider.VerifyNewEmailAsync, NewEmail);
+    public async Task<AuthEventEnum> VerifyNewEmailAsync() => await Execute(_authProvider.VerifyNewEmailAsync, NewEmail);
     public async Task<AuthEventEnum> VerifyNewEmailAsync(string newEmail)
     {
         _newEmail = newEmail;
-        return await  Execute(_authProvider.VerifyNewEmailAsync, NewEmail);
+        return await Execute(_authProvider.VerifyNewEmailAsync, NewEmail);
     }
 
-    public async Task<AuthEventEnum> VerifyPhoneAsync() => await Execute( _authProvider.VerifyPhoneAsync, Phone);
+    public async Task<AuthEventEnum> VerifyPhoneAsync() => await Execute(_authProvider.VerifyPhoneAsync, Phone);
     public async Task<AuthEventEnum> VerifyPhoneAsync(string phone)
     {
         _phone = phone;
         return await Execute(_authProvider.VerifyPhoneAsync, Phone);
     }
 
-    public async Task<AuthEventEnum> VerifyNewPhoneAsync() => await Execute( _authProvider.VerifyNewPhoneAsync, NewPhone);
+    public async Task<AuthEventEnum> VerifyNewPhoneAsync() => await Execute(_authProvider.VerifyNewPhoneAsync, NewPhone);
     public async Task<AuthEventEnum> VerifyNewPhoneAsync(string newPhone)
     {
         _newPhone = newPhone;
         return await Execute(_authProvider.VerifyNewPhoneAsync, NewPhone);
     }
 
-    public async Task<AuthEventEnum> VerifyCodeAsync() => await Execute( _authProvider.VerifyCodeAsync, Code);
+    public async Task<AuthEventEnum> VerifyCodeAsync() => await Execute(_authProvider.VerifyCodeAsync, Code);
     public async Task<AuthEventEnum> VerifyCodeAsync(string code)
     {
         _code = code;
         return await Execute(_authProvider.VerifyCodeAsync, Code);
     }
 
-    public async Task<AuthEventEnum> ResendCodeAsync() => await Execute( _authProvider.ResendCodeAsync);
+    public async Task<AuthEventEnum> ResendCodeAsync() => await Execute(_authProvider.ResendCodeAsync);
 
     public async Task<AuthEventEnum> RefreshUserDetailsAsync() => await Execute(_authProvider.RefreshUserDetailsAsync);
 
@@ -724,7 +693,7 @@ public class AuthProcess : IAuthProcess
         return result;
     }
 
-    protected async virtual Task<AuthEventEnum> Execute(Func<string,Task<AuthEventEnum>> func, string arg)
+    protected async virtual Task<AuthEventEnum> Execute(Func<string, Task<AuthEventEnum>> func, string arg)
     {
         IsBusy = true;
         var result = await func(arg);
@@ -751,24 +720,24 @@ public class AuthProcess : IAuthProcess
     protected async virtual Task<AuthEventEnum> RaiseAuthModuleEventAndProperties(AuthEventEnum r)
     {
         await Task.Delay(0);
-        
+
 
         OnAuthModuleEvent(new AuthModuleEventArgs(r));
         // update alert message
         _alertMessage = string.Empty;
         if ((int)r >= (int)AuthEventEnum.Alert) // All enum items after the enum Alert are Alerts
         {
-            string message = appConfig[$"AuthAlertMessages:{LanguageCode}:{r}"];
+            string message = appConfig[$"AuthAlertMessages_{r}"];
             _alertMessage =
                 message == null
                 ? r.ToString()
-                :message;
+                : message;
         }
 
         // update process message
         if (string.IsNullOrEmpty(AuthChallengeMessage) || lastAuthChallengeEnum != CurrentChallenge)
         {
-            string challengeMessage = appConfig[$"AuthChallengeMessages:{LanguageCode}:{CurrentChallenge}"];
+            string challengeMessage = appConfig[$"AuthChallengeMessages_{CurrentChallenge}"];
             _authChallengeMessage =
                 challengeMessage == null
                 ? CurrentChallenge.ToString()
@@ -777,9 +746,9 @@ public class AuthProcess : IAuthProcess
         }
 
         // update challenge message
-        if(string.IsNullOrEmpty(AuthProcessMessage) || lastAuthProcessEnum != CurrentAuthProcess)
+        if (string.IsNullOrEmpty(AuthProcessMessage) || lastAuthProcessEnum != CurrentAuthProcess)
         {
-            string processMessage = appConfig[$"AuthProcessMessages:{LanguageCode}:{CurrentAuthProcess}"];
+            string processMessage = appConfig[$"AuthProcessMessages_:{CurrentAuthProcess}"];
             _authProcessMessage =
                 processMessage == null
                 ? CurrentAuthProcess.ToString()
@@ -787,16 +756,16 @@ public class AuthProcess : IAuthProcess
             lastAuthProcessEnum = CurrentAuthProcess;
         }
 
-        if (r == AuthEventEnum.SignedIn 
-            || r==AuthEventEnum.SignedUp 
-            || r == AuthEventEnum.SignedOut 
-            || r== AuthEventEnum.PasswordResetDone
+        if (r == AuthEventEnum.SignedIn
+            || r == AuthEventEnum.SignedUp
+            || r == AuthEventEnum.SignedOut
+            || r == AuthEventEnum.PasswordResetDone
             )
         {
             ClearSensitiveFields();
         }
 
-        if(IsChatty) RaiseAllProperties();
+        if (IsChatty) RaiseAllProperties();
         return r;
     }
 
@@ -807,92 +776,4 @@ public class AuthProcess : IAuthProcess
 
     #endregion
 
-    #region INotifyPropertyChanged Implementation
-
-    /// <summary>
-    /// Occurs when a property value changes.
-    /// </summary>
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    /// <summary>
-    /// Checks if a property already matches a desired value. Sets the property and
-    /// notifies listeners only when necessary.
-    /// </summary>
-    /// <typeparam name="T">Type of the property.</typeparam>
-    /// <param name="storage">Reference to a property with both getter and setter.</param>
-    /// <param name="value">Desired value for the property.</param>
-    /// <param name="propertyName">Name of the property used to notify listeners. This
-    /// value is optional and can be provided automatically when invoked from compilers that
-    /// support CallerMemberName.</param>
-    /// <returns>True if the value was changed, false if the existing value matched the
-    /// desired value.</returns>
-    protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(storage, value))
-        {
-            return false;
-        }
-        storage = value;
-        RaisePropertyChanged(propertyName);
-        return true;
-    }
-
-    /// <summary>
-    /// Checks if a property already matches a desired value. Sets the property and
-    /// notifies listeners only when necessary.
-    /// </summary>
-    /// <typeparam name="T">Type of the property.</typeparam>
-    /// <param name="storage">Reference to a property with both getter and setter.</param>
-    /// <param name="value">Desired value for the property.</param>
-    /// <param name="propertyName">Name of the property used to notify listeners. This
-    /// value is optional and can be provided automatically when invoked from compilers that
-    /// support CallerMemberName.</param>
-    /// <param name="onChanged">Action that is called after the property value has been changed.</param>
-    /// <returns>True if the value was changed, false if the existing value matched the
-    /// desired value.</returns>
-    protected virtual bool SetProperty<T>(ref T storage, T value, Action onChanged, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(storage, value))
-        {
-            return false;
-        }
-        storage = value;
-        onChanged?.Invoke();
-        RaisePropertyChanged(propertyName);
-        return true;
-    }
-
-    /// <summary>
-    /// Raises this object's PropertyChanged event.
-    /// </summary>
-    /// <param name="propertyName">Name of the property used to notify listeners. This
-    /// value is optional and can be provided automatically when invoked from compilers
-    /// that support <see cref="T:System.Runtime.CompilerServices.CallerMemberNameAttribute" />.</param>
-    protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-    }
-
-    /// <summary>
-    /// Notifies listeners that a property value has changed.
-    /// </summary>
-    /// <param name="propertyName">Name of the property used to notify listeners. This
-    /// value is optional and can be provided automatically when invoked from compilers
-    /// that support <see cref="T:System.Runtime.CompilerServices.CallerMemberNameAttribute" />.</param>
-    [Obsolete("Please use the new RaisePropertyChanged method. This method will be removed to comply wth .NET coding standards. If you are overriding this method, you should overide the OnPropertyChanged(PropertyChangedEventArgs args) signature instead.")]
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-    }
-
-    /// <summary>
-    /// Raises this object's PropertyChanged event.
-    /// </summary>
-    /// <param name="args">The PropertyChangedEventArgs</param>
-    protected virtual void OnPropertyChanged(PropertyChangedEventArgs args)
-    {
-        this.PropertyChanged?.Invoke(this, args);
-    }
-    #endregion INotifyPropertyChanged Implementation
 }
