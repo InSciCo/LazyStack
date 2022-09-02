@@ -30,7 +30,7 @@ public class StacksConfig : NotifyBase, IStacksConfig
 
 public class StackConfig
 {
-    public SvcConfig SvcConfig { get; set; }
+    public SvcConfig ServiceConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
 
@@ -41,7 +41,7 @@ public class StackConfig
         {
             _currentApis.Clear();
             int i = 0;
-            foreach (var apis in SvcConfig.Apis)
+            foreach (var apis in ServiceConfig.Apis)
                 if (apis.Value.ApiUris.TryGetValue(RunConfig.Apis, out string uri))
                     _currentApis.Add(apis.Key, uri);
             return _currentApis;
@@ -50,7 +50,7 @@ public class StackConfig
 
     public string CurrerntAssets
     {
-        get { return SvcConfig.AssetUris.FirstOrDefault(x => x.Key == RunConfig.Assets).Value; }
+        get { return ServiceConfig.AssetUris.FirstOrDefault(x => x.Key == RunConfig.Assets).Value; }
     }
 }
 

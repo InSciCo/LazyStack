@@ -30,7 +30,7 @@ public class LzHttpClient : ILzHttpClient
     }
     private IStacksConfig stacksConfig;
     private RunConfig runConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].RunConfig; } }
-    private SvcConfig svcConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].SvcConfig; } }
+    private SvcConfig svcConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].ServiceConfig; } }
     private IMethodMap methodMap;
     private IAuthProvider authProvider;
     private Dictionary<string, HttpClient> httpClients = new();
