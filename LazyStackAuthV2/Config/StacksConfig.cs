@@ -30,7 +30,7 @@ public class StacksConfig : NotifyBase, IStacksConfig
 
 public class StackConfig
 {
-    public SvcConfig ServiceConfig { get; set; }
+    public ServiceConfig ServiceConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
 
@@ -54,7 +54,7 @@ public class StackConfig
     }
 }
 
-public class SvcConfig
+public class ServiceConfig
 {
     public Dictionary<string, Api> Apis { get; set; }
     public Dictionary<string, string> AssetUris { get; set; }
