@@ -1,4 +1,6 @@
 ﻿using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+
 namespace LazyStack.Utils;
 
 public interface IMessages
@@ -6,6 +8,8 @@ public interface IMessages
     public void ReplaceVars();
     public Dictionary<string, string> Msgs { get; set; }
     public string Msg(string key);
+
+    public void MergeJson(string messageJson);
 }
 
 public class Messages : IMessages
@@ -20,9 +24,9 @@ public class Messages : IMessages
             var msg = Msgs.ElementAt(i).Value;
             var key = Msgs.ElementAt(i).Key;
             MatchCollection matches;
-            while((matches = Regex.Matches(msg, keyPattern)).Count > 0)
-                foreach(Match match in matches)
-                    if(Msgs.TryGetValue(match.Value[2..^2], out string? replacement))
+            while ((matches = Regex.Matches(msg, keyPattern)).Count > 0)
+                foreach (Match match in matches)
+                    if (Msgs.TryGetValue(match.Value[2..^2], out string? replacement))
                         msg = msg.Replace(match.Value, replacement);
                     else
                         throw new Exception($"Msgs[{match.Value[2..^2]}] not found.");
@@ -39,10 +43,20 @@ public class Messages : IMessages
         if (key == "Nothing")
             return "";
 
-        if (Msgs.TryGetValue(key, out string? value)) { 
+        if (Msgs.TryGetValue(key, out string? value))
+        {
             return string.IsNullOrEmpty(value) ? key : value;
         }
         else
             return $"{key} not found";
+    }
+
+    public void MergeJson(string messagesJson)
+    {
+        if (string.IsNullOrEmpty(messagesJson))
+            return;
+        var newMsgs = JsonConvert.DeserializeObject<Messages>(messagesJson);
+        foreach (var kvp in newMsgs!.Msgs)
+            Msgs[kvp.Key] = kvp.Value;
     }
 }

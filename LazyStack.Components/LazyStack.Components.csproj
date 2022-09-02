@@ -13,6 +13,16 @@
     <None Remove="Util\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="Config\Messages.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Config\Messages.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
 
   <ItemGroup>
     <SupportedPlatform Include="browser" />

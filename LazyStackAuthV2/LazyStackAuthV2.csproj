@@ -17,6 +17,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <None Remove="Config\Messages.json" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Config\Messages.json">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Include="LICENSE.txt">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
@@ -32,6 +42,10 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\LazyStack.Utils\LazyStack.Utils.csproj" />
 	</ItemGroup>
 
 	<!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->

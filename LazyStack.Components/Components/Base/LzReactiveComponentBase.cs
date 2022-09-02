@@ -9,7 +9,6 @@
 using System.ComponentModel;
 using Microsoft.AspNetCore.Components;
 using ReactiveUI.Blazor;
-using LazyStack.Utils;
 using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -17,6 +16,7 @@ using System.Reactive;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
+using LazyStack.Utils;
 
 namespace LazyStack.Components;
 
