@@ -22,7 +22,10 @@ public static class ConfigureLazyStackComponents
 
     public static IMessages AddLazyStackComponents(this IMessages messages)
     {
-        using var messagesStream = typeof(ConfigureLazyStackComponents).Assembly.GetManifestResourceStream("LazyStack.Components.Config.Messages.json")!;
+        var assembly = MethodBase.GetCurrentMethod()?.DeclaringType?.Assembly;
+        var assemblyName = assembly!.GetName().Name;
+
+        using var messagesStream = assembly.GetManifestResourceStream($"{assemblyName}.Config.Messages.json")!;
         // Add/Overwrite messages with messages in this library's Messages.json
         if (messagesStream != null)
         {
