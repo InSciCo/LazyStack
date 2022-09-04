@@ -21,7 +21,7 @@ public class LzHttpClient : ILzHttpClient
 {
     public LzHttpClient(
         IStacksConfig stacksConfig,
-        IMethodMap methodMap, // map of methods to api endpoints
+        IMethodMapWrapper methodMap, // map of methods to api endpoints
         IAuthProvider authProvider)
     {
         this.stacksConfig = stacksConfig;
@@ -31,7 +31,7 @@ public class LzHttpClient : ILzHttpClient
     private IStacksConfig stacksConfig;
     private RunConfig runConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].RunConfig; } }
     private ServiceConfig svcConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].ServiceConfig; } }
-    private IMethodMap methodMap;
+    private IMethodMapWrapper methodMap;
     private IAuthProvider authProvider;
     private Dictionary<string, HttpClient> httpClients = new();
     private Dictionary<string, Api> Apis = new();
@@ -43,7 +43,7 @@ public class LzHttpClient : ILzHttpClient
         [CallerMemberName] string callerMemberName = null!)
     {
         // Lookup callerMemberName in methodMap to get api name, if not found then throw
-        if (!methodMap.Map.TryGetValue(callerMemberName, out string api))
+        if (!methodMap.MethodMap.TryGetValue(callerMemberName, out string api))
             throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. callerMemberName {callerMemberName} not found in methodMap");
 
         // Find api endpoint data
