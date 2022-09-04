@@ -40,7 +40,6 @@ public class StackConfig
         get
         {
             _currentApis.Clear();
-            int i = 0;
             foreach (var apis in ServiceConfig.Apis)
                 if (apis.Value.ApiUris.TryGetValue(RunConfig.Apis, out string uri))
                     _currentApis.Add(apis.Key, uri);
