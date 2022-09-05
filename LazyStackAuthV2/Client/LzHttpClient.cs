@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
@@ -20,17 +20,17 @@ namespace LazyStackAuthV2;
 public class LzHttpClient : ILzHttpClient
 {
     public LzHttpClient(
-        IStacksConfig stacksConfig,
+        IStackConfig stackConfig,
         IMethodMapWrapper methodMap, // map of methods to api endpoints
         IAuthProvider authProvider)
     {
-        this.stacksConfig = stacksConfig;
+        this.stackConfig = stackConfig;
         this.methodMap = methodMap; // map of methods to api endpoints
         this.authProvider = authProvider;
     }
-    private IStacksConfig stacksConfig;
-    private RunConfig runConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].RunConfig; } }
-    private ServiceConfig svcConfig { get { return stacksConfig.Stacks[stacksConfig.CurrentStackName].ServiceConfig; } }
+    private IStackConfig stackConfig;
+    private RunConfig runConfig { get { return stackConfig.RunConfig; } }
+    private ServiceConfig svcConfig { get { return stackConfig.ServiceConfig; } }
     private IMethodMapWrapper methodMap;
     private IAuthProvider authProvider;
     private Dictionary<string, HttpClient> httpClients = new();

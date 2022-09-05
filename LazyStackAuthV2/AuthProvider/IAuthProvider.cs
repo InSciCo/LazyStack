@@ -54,7 +54,6 @@ public interface IAuthProvider
     public bool IsChallengeLongWait { get; } //
 
     // Methods
-    public void SetStack();
     public Task<AuthEventEnum> ClearAsync();
     public Task<AuthEventEnum> CancelAsync();
     public Task<AuthEventEnum> SignOutAsync();

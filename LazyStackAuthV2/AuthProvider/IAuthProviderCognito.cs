@@ -8,6 +8,9 @@ namespace LazyStackAuthV2;
 
 public interface IAuthProviderCognito : IAuthProvider
 {
-    public CognitoUser CognitoUser { get; }
-    public CognitoAWSCredentials Credentials { get; }
+    //public CognitoUser CognitoUser { get; }
+    //public CognitoAWSCredentials Credentials { get; }
+    public void SetStack(ICognitoConfig cognitoConfig);
+
 }
+ 

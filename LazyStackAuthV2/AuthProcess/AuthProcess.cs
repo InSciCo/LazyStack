@@ -18,11 +18,6 @@ namespace LazyStackAuthV2;
 /// <summary>
 /// AuthProcess wraps the IAuthProvider class with state and processing 
 /// useful for UI support.
-/// 
-/// Mutli-language support, see properties:
-///     LanguageCode,
-///     AuthProcessMessage,
-///     AlertMessage.
 /// Events, see property IsChatty:
 ///     When IsChatty is true (default), the class instance genertes events 
 ///     for almost every change to a property. This is suitable for clients 
@@ -37,15 +32,13 @@ namespace LazyStackAuthV2;
 public class AuthProcess : NotifyBase, IAuthProcess
 {
 
-    public AuthProcess(IConfiguration appConfig, IAuthProvider authProvider, string languageCode = "en-US")
+    public AuthProcess(IAuthProvider authProvider)
     {
         _authProvider = authProvider;
-        this.appConfig = appConfig;
 
     }
 
     #region Fields
-    readonly IConfiguration appConfig;
     AuthProcessEnum lastAuthProcessEnum = AuthProcessEnum.None;
     AuthChallengeEnum lastAuthChallengeEnum = AuthChallengeEnum.None;
     #endregion 
@@ -320,11 +313,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
     #endregion
 
     #region Methods
-
-    public void SetStack()
-    {
-        _authProvider.SetStack();
-    }
 
     /// <summary>
     /// Raise All Properties except:
@@ -727,7 +715,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         _alertMessage = string.Empty;
         if ((int)r >= (int)AuthEventEnum.Alert) // All enum items after the enum Alert are Alerts
         {
-            string message = appConfig[$"AuthAlertMessages_{r}"];
+            string message = $"AuthAlertMessages_{r}";
             _alertMessage =
                 message == null
                 ? r.ToString()
@@ -737,7 +725,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         // update process message
         if (string.IsNullOrEmpty(AuthChallengeMessage) || lastAuthChallengeEnum != CurrentChallenge)
         {
-            string challengeMessage = appConfig[$"AuthChallengeMessages_{CurrentChallenge}"];
+            string challengeMessage = $"AuthChallengeMessages_{CurrentChallenge}";
             _authChallengeMessage =
                 challengeMessage == null
                 ? CurrentChallenge.ToString()
@@ -748,7 +736,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         // update challenge message
         if (string.IsNullOrEmpty(AuthProcessMessage) || lastAuthProcessEnum != CurrentAuthProcess)
         {
-            string processMessage = appConfig[$"AuthProcessMessages_:{CurrentAuthProcess}"];
+            string processMessage = $"AuthProcessMessages_:{CurrentAuthProcess}";
             _authProcessMessage =
                 processMessage == null
                 ? CurrentAuthProcess.ToString()

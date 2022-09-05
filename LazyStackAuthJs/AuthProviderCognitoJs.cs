@@ -43,7 +43,7 @@ namespace LazyStackAuthJs
     /// Implements IAuthProvider using AWS Cognito as authentication provider
     /// 
     /// </summary>
-    public class AuthProviderCognitoJs : IAuthProviderCognitoJs
+    public class AuthProviderCognitoJs : IAuthProviderCognito
     {
 
         public AuthProviderCognitoJs( 
@@ -52,8 +52,8 @@ namespace LazyStackAuthJs
             IEmailFormat emailFormat,
             ICodeFormat codeFormat,
             IPhoneFormat phoneFormat,
-            IStacksConfig stacksConfig,
-            IJSRuntime jsRuntime
+            IJSRuntime jsRuntime,
+            ICognitoConfig cognitoConfig = null
             )
         {
             this.loginFormat = loginFormat;
@@ -61,9 +61,11 @@ namespace LazyStackAuthJs
             this.emailFormat = emailFormat;
             this.codeFormat = codeFormat;
             this.phoneFormat = phoneFormat;
-            this.stacksConfig = stacksConfig;
             this.jsRuntime = jsRuntime;
-            SetStack();
+
+            if (cognitoConfig != null)
+                SetStack(cognitoConfig);
+
         }
 
 
@@ -98,7 +100,6 @@ namespace LazyStackAuthJs
         private string password; // set by VerifyPassword
         private string newPassword; // set by VerifyNewPassword
         private string email; // set by VerifyEmail
-        private IStacksConfig stacksConfig;
         #endregion
 
         #region Properties
@@ -244,54 +245,32 @@ namespace LazyStackAuthJs
         #endregion Properties
 
         #region Init methods
-
-        /// <summary>
-        /// Call SetStack if you modify the IStacksConfig instance. This 
-        /// allows us to switch target stacks as necessary. Most apps won't 
-        /// need this but it's really handy when it is required. 
-        /// </summary>
-        /// <exception cref="Exception"></exception>
-        public void SetStack()
-        {
-            if (stacksConfig == null)
-            {
-                throw new Exception("Can't call SetStack if stacksConfig is null. Did you use the wrong Constructor?");
-            }
-
-            var currentStack = stacksConfig.CurrentStackName;
-            var stacks = stacksConfig.Stacks;
-            if (!stacksConfig.Stacks.TryGetValue(currentStack, out var stack))
-            {
-                if (stacks.Count == 0)
-                    throw new Exception("StacksConfig.Stacks is empty!");
-                currentStack = stacks.First().Key;
-                stack = stacks.First().Value;
-            }
-
-            if (stack.CognitoConfig == null)
-                throw new Exception("StacksConfig.CognitoConfig is null");
-
-            if (string.IsNullOrEmpty(stack.CognitoConfig.Region))
-                throw new Exception("StacksConfig.CognitoConfig.Region is empty");
-            regionEndpoint = stack.CognitoConfig.Region;
-
-            if (string.IsNullOrEmpty(stack.CognitoConfig.UserPoolClientId))
-                throw new Exception("StacksConfig.CognitoConfig.UserPoolClientId is empty");
-            clientId = stack.CognitoConfig.UserPoolClientId;
-
-            if (string.IsNullOrEmpty(stack.CognitoConfig.UserPoolId))
-                throw new Exception("StacksConfig.CognitoConfig.UserPoolId is empty");
-            userPoolId = stack.CognitoConfig.UserPoolId;
-
-            // IdentityPool is optional and null value is allowed
-            identityPoolId = stack.CognitoConfig.IdentityPoolId;
-        }
-
         //public void InitJsRuntime()
         //{
         //    if (jsRuntime == null)
         //        jsRuntime = serviceProvider.GetRequiredService<IJSRuntime>();
         //}
+
+        public void SetStack(ICognitoConfig cognitoConfig)
+        {
+            if (cognitoConfig == null)
+                throw new Exception("CognitoConfig is null");
+
+            if (string.IsNullOrEmpty(cognitoConfig.Region))
+                throw new Exception("CognitoConfig.Region is empty");
+            regionEndpoint = cognitoConfig.Region;
+
+            if (string.IsNullOrEmpty(cognitoConfig.UserPoolClientId))
+                throw new Exception("CognitoConfig.UserPoolClientId is empty");
+            clientId = cognitoConfig.UserPoolClientId;
+
+            if (string.IsNullOrEmpty(cognitoConfig.UserPoolId))
+                throw new Exception("CognitoConfig.UserPoolId is empty");
+            userPoolId = cognitoConfig.UserPoolId;
+
+            // IdentityPool is optional and null value is allowed
+            identityPoolId = cognitoConfig.IdentityPoolId;
+        }
 
         public async Task Init()
         {

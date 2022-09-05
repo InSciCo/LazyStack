@@ -28,7 +28,15 @@ public class StacksConfig : NotifyBase, IStacksConfig
     public Dictionary<string, StackConfig> Stacks { get; set; }
 }
 
-public class StackConfig
+public interface IStackConfig
+{
+    public ServiceConfig ServiceConfig { get; set; }
+    public CognitoConfig CognitoConfig { get; set; }
+    public RunConfig RunConfig { get; set; }
+    public Dictionary<string, string> CurrentApis { get; }
+
+}
+public class StackConfig : IStackConfig
 {
     public ServiceConfig ServiceConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
@@ -66,7 +74,15 @@ public class Api
 
 }
 
-public class CognitoConfig 
+public interface ICognitoConfig
+{
+    public string IdentityPoolId { get; set; }
+    public string Region { get; set; }
+    public string UserPoolId { get; set; }
+    public string UserPoolClientId { get; set; }
+}
+
+public class CognitoConfig : ICognitoConfig
 {
     public string IdentityPoolId { get; set; }
     public string Region { get; set; }
