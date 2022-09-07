@@ -30,19 +30,23 @@ public class StacksConfig : NotifyBase, IStacksConfig
 
 public interface IStackConfig
 {
+    public SaaSConfig SaaSConfig { get; set; }
     public ServiceConfig ServiceConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
     public Dictionary<string, string> CurrentApis { get; }
 
 }
+
 public class StackConfig : IStackConfig
 {
+    public SaaSConfig SaaSConfig { get; set; }
     public ServiceConfig ServiceConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
 
     private Dictionary<string, string> _currentApis = new();
+    [JsonIgnore]
     public Dictionary<string,string> CurrentApis
     {
         get
@@ -54,13 +58,23 @@ public class StackConfig : IStackConfig
             return _currentApis;
         }
     }
-
+    [JsonIgnore]
     public string CurrerntAssets
     {
         get { return ServiceConfig.AssetUris.FirstOrDefault(x => x.Key == RunConfig.Assets).Value; }
     }
 }
+public interface ISaaSConfig
+{
+    public string AccountId { get; set; }
+    public string ConfigFilePath { get; set; }
+}
 
+public class SaaSConfig : ISaaSConfig
+{
+    public string AccountId { get; set; }
+    public string ConfigFilePath { get; set; }
+}
 public class ServiceConfig
 {
     public Dictionary<string, Api> Apis { get; set; }

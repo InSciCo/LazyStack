@@ -74,6 +74,7 @@
     "AuthComponent_CodeLabel": "Code",
     "AuthComponent_SignIn": "Sign In",
     "AuthComponent_SignUp": "Sign Up",
+    "AuthComponent_UpdatePassword":  "Update Password",
     "AuthComponent_ResetPassword": "Reset Password",
     "AuthComponent_UpdateEmail": "Update Email",
     "AuthCopmponent_UpdatePassword": "Update Password",
