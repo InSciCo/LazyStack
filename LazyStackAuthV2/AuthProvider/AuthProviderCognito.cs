@@ -74,7 +74,7 @@ public class AuthProviderCognito : IAuthProviderCognito
         this.codeFormat = codeFormat;
         this.phoneFormat = phoneFormat;
 
-        if(cognitoConfig != null ) 
+        if(cognitoConfig != null) 
             SetStack(cognitoConfig);
     }
 

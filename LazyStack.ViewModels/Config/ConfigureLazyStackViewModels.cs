@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using System.Reflection;
+
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 using LazyStackAuthV2;
 using LazyStack.Utils;
-using System.Reflection;
 
 namespace LazyStack.ViewModels;
 
@@ -15,9 +12,8 @@ public static class ConfigureLazyStackViewModels
 {
     public static IServiceCollection AddLazyStackViewModels(this IServiceCollection services)
     {
-        return services
-            //.AddSingleton<DevConnectViewModel>()
-            ;
+        services.TryAddSingleton<DevConnectViewModel>();
+        return services;
     }
     public static IMessages AddLazyStackViewModels(this IMessages messages)
     {

@@ -13,31 +13,31 @@ using LazyStackAuthV2;
 
 
 namespace LazyStack.ViewModels;
-//public class DevConnectViewModel : ReactiveObject
-//{
-//    public DevConnectViewModel(RunConfig runConfig)
-//    {
-//        RunConfig = runConfig;
+public class DevConnectViewModel : ReactiveObject
+{
+    public DevConnectViewModel(IStacksConfig stacksConfig)
+    {
+        this.stacksConfig = stacksConfig;
+        // Commands
+        SelectAPI = ReactiveCommand.CreateFromTask<string>(SelectAPIAsync);
+        SelectAssets = ReactiveCommand.CreateFromTask<string>(SelectAssetsAsync);
+    }
 
-//        // Commands
-//        SelectAPI = ReactiveCommand.CreateFromTask<string>(SelectAPIAsync);
-//        SelectAssets = ReactiveCommand.CreateFromTask<string>(SelectAssetsAsync);
-//    }
-
-//    public RunConfig RunConfig { get; set; }   
-//    public ReactiveCommand<string,Unit> SelectAPI { get; init; }
-//    public ReactiveCommand<string,Unit> SelectAssets { get; init; }
+    private IStacksConfig stacksConfig;
+    public RunConfig RunConfig { get { return stacksConfig.CurrentStack.RunConfig; } }
+    public ReactiveCommand<string, Unit> SelectAPI { get; init; }
+    public ReactiveCommand<string, Unit> SelectAssets { get; init; }
 
 
-//    private Task SelectAPIAsync(string api)
-//    {
-//        RunConfig.Apis = api;
-//        return Task.CompletedTask;  
-//    }
+    private Task SelectAPIAsync(string api)
+    {
+        RunConfig.Apis = api;
+        return Task.CompletedTask;
+    }
 
-//    private Task SelectAssetsAsync(string assets)
-//    {
-//        RunConfig.Assets = assets;
-//        return Task.CompletedTask;
-//    }
-//}
+    private Task SelectAssetsAsync(string assets)
+    {
+        RunConfig.Assets = assets;
+        return Task.CompletedTask;
+    }
+}

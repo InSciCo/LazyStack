@@ -1,4 +1,5 @@
 ﻿using LazyStack.Utils;
+using LazyStack.ViewModels;
 using LazyStackAuthV2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,9 @@ public static class ConfigureLazyStackComponents
 {
     public static IServiceCollection AddLazyStackComponents(this IServiceCollection services)
     {
+
+
+
         return services
             //.AddTransient(typeof(BecknVersion))
             ;

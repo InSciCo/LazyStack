@@ -104,6 +104,13 @@ public class CognitoConfig : ICognitoConfig
     public string UserPoolClientId { get; set; }
 }
 
+
+public interface IRunConfig
+{
+    public string Apis { get; set; }
+    public string Assets { get; set; }
+}
+
 public class RunConfig : NotifyBase
 {
     public string[] AllowedApis { get; set; } = { "ApiGateway", "CloudFront", "Local", "LocalAndroid" };
