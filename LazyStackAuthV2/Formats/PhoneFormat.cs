@@ -7,13 +7,6 @@ namespace LazyStackAuthV2;
 
 public class PhoneFormat : IPhoneFormat
 {
-    public PhoneFormat(IConfiguration appConfig)
-    {
-        this.appConfig = appConfig;
-    }
-
-    protected IConfiguration appConfig;
-
     public IEnumerable<string> CheckPhoneFormat(string phone)
     {
         if (false) // todo - create a ruleset for phone numbers

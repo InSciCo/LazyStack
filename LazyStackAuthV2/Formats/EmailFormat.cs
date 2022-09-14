@@ -9,13 +9,6 @@ namespace LazyStackAuthV2;
 
 public class EmailFormat : IEmailFormat
 {
-    public EmailFormat(IConfiguration appConfig)
-    {
-        this.appConfig = appConfig;
-    }
-
-    protected IConfiguration appConfig;
-
     public IEnumerable<string> CheckEmailFormat(string email)
     {
         string msg = null;

@@ -9,13 +9,6 @@ namespace LazyStackAuthV2;
 
 public class PasswordFormat : IPasswordFormat
 {
-    public PasswordFormat(IConfiguration appConfig)
-    {
-        this.appConfig = appConfig;
-    }
-
-    protected IConfiguration appConfig;
-
     public IEnumerable<string> CheckPasswordFormat(string password)
     {
         //Todo - use messages from appConfig

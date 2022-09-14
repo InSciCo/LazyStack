@@ -9,12 +9,6 @@ namespace LazyStackAuthV2;
 
 public class CodeFormat : ICodeFormat
 {
-    public CodeFormat(IConfiguration appConfig)
-    {
-        this.appConfig = appConfig;
-    }
-
-    protected IConfiguration appConfig;
 
     public IEnumerable<string> CheckCodeFormat(string code)
     {

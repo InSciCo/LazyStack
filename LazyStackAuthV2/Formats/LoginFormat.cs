@@ -8,12 +8,6 @@ namespace LazyStackAuthV2;
 
 public class LoginFormat : ILoginFormat
 {
-    public LoginFormat(IConfiguration appConfig)
-    {
-        this.appConfig = appConfig;
-    }
-
-    protected IConfiguration appConfig;
 
     /// <summary>
     /// Creates an enumeration with input requirements.

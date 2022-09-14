@@ -17,7 +17,7 @@ namespace LazyStackAuthV2
             // implementations of these classes.
             services.TryAddSingleton<ILzHttpClient, LzHttpClient>();
             services.TryAddSingleton<IAuthProcess, AuthProcess>();
-            services.TryAddSingleton<IAuthProvider, AuthProviderCognito>();
+            services.TryAddSingleton<IAuthProviderCognito, AuthProviderCognito>();
             services.TryAddSingleton<ILoginFormat, LoginFormat>();
             services.TryAddSingleton<IEmailFormat, EmailFormat>();
             services.TryAddSingleton<IPhoneFormat, PhoneFormat>();
