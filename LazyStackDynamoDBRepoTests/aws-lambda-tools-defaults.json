@@ -1,8 +1,8 @@
 
 {
-    "region" : "us-east-1",
-    "profile" : "default",
-    "s3-bucket" : "AisImage",
+    "region" : "us-west-2",
+    "profile" : "bc_test",
+    "s3-bucket" : "48b82d40-c6f3-45f3-bc67-4b98823116e5-test-lazystack",
     "template"  : "serverless.template",
     "stack-name" : "TestRepo"
 }

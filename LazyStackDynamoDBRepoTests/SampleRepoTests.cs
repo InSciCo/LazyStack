@@ -5,6 +5,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
+using Amazon;
+using Amazon.Extensions.NETCore.Setup;
 
 namespace LazyStackDynamoDBRepoTests
 {
@@ -17,7 +19,8 @@ namespace LazyStackDynamoDBRepoTests
         public SampleRepoTests()
         {
             IConfiguration appConfig = new ConfigurationBuilder().Build();
-            services.AddDefaultAWSOptions(appConfig.GetAWSOptions());
+            //services.AddDefaultAWSOptions(appConfig.GetAWSOptions());
+            services.AddDefaultAWSOptions(new AWSOptions() { Profile = "bc_test", Region = RegionEndpoint.USWest2 });
             services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
             services.AddSingleton<ISampleRepo, SampleRepo>();
             serviceProvider = services.BuildServiceProvider();

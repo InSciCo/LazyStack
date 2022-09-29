@@ -30,9 +30,11 @@
 
   <ItemGroup>
 
-	  <PackageReference Include="Blazorise.Bootstrap5" Version="1.0.5" />
+	  <PackageReference Include="Blazorise.Bootstrap5" Version="1.0.6" />
 
-	  <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.5" />
+	  <PackageReference Include="Blazorise.Components" Version="1.0.6" />
+
+	  <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.0.6" />
 
 	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
 	  <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.7" />
