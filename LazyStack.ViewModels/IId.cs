@@ -8,6 +8,6 @@ namespace LazyStack.ViewModels
 {
     public interface IId
     {
-        string Id { get; set; } 
+        string? Id { get; set; } 
     }
 }

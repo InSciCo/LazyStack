@@ -5,28 +5,61 @@ using LazyStackAuthV2;
 
 namespace LazyStack.ViewModels;
 
+public enum ItemViewModelBaseState
+{
+    New,
+    Edit,
+    Current,
+    Deleted
+}
+
+public interface IItemBreadCrumb
+{
+    string? BreadCrumbName { get; }
+    object? BreadCrumbParent { get; }
+    string ViewModelType { get; }
+}
+
+public interface IItemViewModelState
+{
+    public ItemViewModelBaseState State { get; set; }
+}
+
 /// <summary>
 /// ItemViewModelBase<T,TEdit> 
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <typeparam name="TEdit"></typeparam>
-public class ItemViewModelBase<T, TEdit> : LzViewModelBase
-    where T : class,  new()
-    where TEdit : class, T, IId, new()
+/// <typeparam name="TDTO">DTO Type</typeparam>
+/// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
+/// <typeparam name="TParent">ParentViewModel Type</typeparam>
+public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, IItemViewModelState, IItemBreadCrumb
+    where TDTO : class, new()
+    where TModel : class, TDTO, IId, new()
+    where TParent : class, IItemsViewModelBase
 {
-    public IAuthProcess AuthProcess { get; init; }
-    [Reactive] public TEdit Data { get; set; }
-    [Reactive] public bool IsDirty { get; set; }
-    [Reactive] public bool IsSaved { get; set; }
-    [Reactive] public bool IsAdd { get; set; }
-    public string Id { get; protected set; }
+    public IAuthProcess? AuthProcess { get; set; }
+    [Reactive] public TModel? Data { get; set; }
+    [Reactive] public ItemViewModelBaseState State { get; set; }
+    [Reactive] public TParent? ParentViewModel { get; set; }
+    public virtual string? BreadCrumbName => Id;
+    public virtual object? BreadCrumbParent => ParentViewModel;
+    public virtual string ViewModelType => "Item";
+    public virtual string? Id
+    {
+        get { return (Data == null) ? string.Empty : Data.Id; }
+        set { if(Data != null) Data.Id = value; }
+    }
 
-    protected Func<T, Task<T>>? SvcCreateAsync;
-    protected Func<string, Task<T>>? SvcReadAsync;
-    protected Func<T, Task<T>>? SvcUpdateAsync;
+    protected Func<TDTO, Task<TDTO>>? SvcCreateAsync;
+    protected Func<string, Task<TDTO>>? SvcReadAsync;
+    protected Func<TDTO, Task<TDTO>>? SvcUpdateAsync;
     protected Func<string, Task>? SvcDeleteAsync;
 
-    protected T? InterimData { get; set; }
+    protected TDTO? InterimData { get; set; }
+
+    public virtual Task<(bool,string)> Init(TParent parent)
+    {
+        return Task.FromResult((true, string.Empty));
+    }
 
     public virtual async Task<(bool, string)> CreateAsync()
     {
@@ -41,8 +74,8 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             if (!Validate())
                 throw new Exception("Validation failed.");
 
-            if (!IsDirty)
-                throw new Exception("Item not New. Can't create.");
+            if (State != ItemViewModelBaseState.New)
+                throw new Exception("State != New.");
 
             if (SvcCreateAsync == null)
                 throw new Exception("SvcCreateAsync not assigned.");
@@ -50,14 +83,12 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             if (Data == null)
                 throw new Exception("Data not assigned");
 
-            var item = (T)Data; 
+            var item = (TDTO)Data; 
 
             item = await SvcCreateAsync(item!);
             item.DeepCloneTo(Data);
 
-            IsDirty = false;
-            IsSaved = true;
-            IsAdd = false;
+            State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
         catch (Exception ex)
@@ -81,7 +112,7 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             var item = await SvcReadAsync(id);
             item.DeepCloneTo(Data!);
             Id = id;
-            IsDirty = false;
+            State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
         catch (Exception ex)
@@ -102,8 +133,8 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             if (!Validate())
                 throw new Exception("Validation failed.");
 
-            if (IsDirty)
-                throw new Exception("Can't update a record with New status");
+            if (State != ItemViewModelBaseState.Edit)
+                throw new Exception("State != Edit.");
 
             if (SvcUpdateAsync == null)
                 throw new Exception("SvcUpdateAsync is not assigned.");
@@ -111,11 +142,10 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             if (Data == null)
                 throw new Exception("Data not assigned");
 
-            var item = (T)Data;
+            var item = (TDTO)Data;
             item = await SvcUpdateAsync(item);
             item.DeepCloneTo(Data!);
-            IsDirty = false;
-            IsSaved = true;
+            State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
         catch (Exception ex)
@@ -133,14 +163,14 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
             if (AuthProcess.IsNotSignedIn)
                 throw new Exception("Not signed in.");
 
-            if (IsDirty)
-                throw new Exception("Can't update a record with New status");
+            if (State != ItemViewModelBaseState.Current)
+                throw new Exception("State != Current");
 
             if (SvcDeleteAsync == null)
                 throw new Exception("SvcDelete is not assigned.");
 
             await SvcDeleteAsync(Id);
-
+            State = ItemViewModelBaseState.Deleted;
             Data = null;
             return(true,String.Empty);
 
@@ -154,18 +184,49 @@ public class ItemViewModelBase<T, TEdit> : LzViewModelBase
     {
         try
         {
-            if (IsAdd)
+            if (ParentViewModel == null)
+                throw new Exception("ParentViewModel is null");
+
+            if (State == ItemViewModelBaseState.New)
             {
+
+                ParentViewModel.CancelAdd();
+                Data = null;
+                State = ItemViewModelBaseState.Deleted;
                 return (true, String.Empty);
             }
 
-            if (!IsDirty)
-                throw new Exception("Buffer not dirty");
+            if (State != ItemViewModelBaseState.Edit)
+                throw new Exception("State != Edit");
 
             await ReadAsync(Data!.Id);
-            IsDirty = false;
+            State = ItemViewModelBaseState.Current;
             return(true,String.Empty);  
         }
+        catch (Exception ex)
+        {
+            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
+        }
+    }
+    public virtual async Task<(bool,string)> SaveAsync()
+    {
+        try
+        {
+            if (ParentViewModel == null)
+                throw new Exception("ParentViewModel is null");
+
+            var isAdd = State == ItemViewModelBaseState.New;
+            var (success, msg) =
+                isAdd
+                ? await CreateAsync()
+                : await UpdateAsync();
+
+            if (success && isAdd)
+            {
+                ParentViewModel.AddViewModel(this);
+            }
+            return (success, msg);
+        } 
         catch (Exception ex)
         {
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));

@@ -12,7 +12,6 @@ namespace LazyStack.ViewModels
 {
     public abstract class LzViewModelBase: ReactiveObject, IDisposable
     {
-
         public void Dispose()
         {
             Dispose(true);
