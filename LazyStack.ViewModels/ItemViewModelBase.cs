@@ -4,20 +4,13 @@ using Force.DeepCloner;
 using LazyStackAuthV2;
 
 namespace LazyStack.ViewModels;
-
+ 
 public enum ItemViewModelBaseState
 {
     New,
     Edit,
     Current,
     Deleted
-}
-
-public interface IItemBreadCrumb
-{
-    string? BreadCrumbName { get; }
-    object? BreadCrumbParent { get; }
-    string ViewModelType { get; }
 }
 
 public interface IItemViewModelState
@@ -31,7 +24,7 @@ public interface IItemViewModelState
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
 /// <typeparam name="TParent">ParentViewModel Type</typeparam>
-public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, IItemViewModelState, IItemBreadCrumb
+public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, IItemViewModelState
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new()
     where TParent : class, IItemsViewModelBase
@@ -40,9 +33,6 @@ public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, II
     [Reactive] public TModel? Data { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
     [Reactive] public TParent? ParentViewModel { get; set; }
-    public virtual string? BreadCrumbName => Id;
-    public virtual object? BreadCrumbParent => ParentViewModel;
-    public virtual string ViewModelType => "Item";
     public virtual string? Id
     {
         get { return (Data == null) ? string.Empty : Data.Id; }
@@ -53,6 +43,11 @@ public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, II
     protected Func<string, Task<TDTO>>? SvcReadAsync;
     protected Func<TDTO, Task<TDTO>>? SvcUpdateAsync;
     protected Func<string, Task>? SvcDeleteAsync;
+
+    public bool CanCreate { get; set; } = true;
+    public bool CanRead { get; set; } = true;
+    public bool CanUpdate { get; set; } = true; 
+    public bool CanDelete { get; set; } = true; 
 
     protected TDTO? InterimData { get; set; }
 
@@ -199,7 +194,7 @@ public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, II
             if (State != ItemViewModelBaseState.Edit)
                 throw new Exception("State != Edit");
 
-            await ReadAsync(Data!.Id);
+            await ReadAsync(Data!.Id!);
             State = ItemViewModelBaseState.Current;
             return(true,String.Empty);  
         }

@@ -26,12 +26,20 @@ public class ItemsViewModelBase<TParent,TVM> : LzViewModelBase, IItemsViewModelB
     public string? Id { get; set; }
     public TParent ParentViewModel { get; set; }
     public Dictionary<string, TVM> ViewModels { get; set; } = new();
-    [Reactive] public TVM? CurrentViewModel { get; set; }
+    private TVM? currentViewModel;
+    public TVM? CurrentViewModel 
+    { 
+        get { return currentViewModel; }
+        set
+        {
+            if (value != null && value != LastViewModel && value!.State != ItemViewModelBaseState.New)
+                LastViewModel = value;
+            this.RaiseAndSetIfChanged(ref currentViewModel, value);
+        }
+    }
     [Reactive] public TVM? LastViewModel { get; set; }
     [Reactive] public bool IsChanged { get; private set; }
-    public virtual string? BreadCrumbName => Id;
-    public virtual object? BreadCrumbParent => ParentViewModel;
-    public virtual string ViewModelType => "Items";
+    public bool CanList { get; set; } = true;
     public virtual Task<(bool,string)> Init(object parentViewModel)
     {
         return Task.FromResult((true, string.Empty));
@@ -43,7 +51,7 @@ public class ItemsViewModelBase<TParent,TVM> : LzViewModelBase, IItemsViewModelB
 
     public virtual void CancelAdd()
     {
-        if (LastViewModel != null && ViewModels.ContainsKey(LastViewModel.Id!))
+        if (LastViewModel?.Id != null && ViewModels.ContainsKey(LastViewModel.Id!))
             CurrentViewModel = LastViewModel;
         else
             CurrentViewModel = null;
