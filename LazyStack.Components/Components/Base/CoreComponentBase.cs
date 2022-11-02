@@ -21,11 +21,11 @@ public class CoreComponentBase<T> : LzReactiveComponentBase<T>
 {
 
     [Inject]
-    public T _myViewModel { set => ViewModel = value; }
+    new public T _myViewModel { set => ViewModel = value; }
 
     [Inject]
-    public IMessages? Messages { get; set; }
-    protected MarkupString Msg(string key) => (MarkupString)Messages!.Msg(key);
+    new public IMessages? Messages { get; set; }
+    new protected MarkupString Msg(string key) => (MarkupString)Messages!.Msg(key);
 
     /// <inheritdoc />
 

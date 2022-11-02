@@ -34,5 +34,10 @@ namespace LazyStack.ViewModels
             return msg;
         }
 
+        protected virtual string Log(string userMsg, string detailedMsg)
+        {
+            Console.WriteLine(userMsg + " | " + detailedMsg);
+            return userMsg;
+        }
     }
 }

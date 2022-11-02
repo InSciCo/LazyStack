@@ -3,29 +3,19 @@ using ReactiveUI.Fody.Helpers;
 using ReactiveUI;
 using System.Reflection;
 using Amazon.Runtime.Internal.Transform;
+using System.Linq;
 
 namespace LazyStack.ViewModels;
 
 
-public interface IItemsViewModelBase
-{
-    public void CancelAdd();
-    public void AddViewModel(object viewModelObj);
-}
 
-public class ItemsViewModelBase<TParent,TVM> : LzViewModelBase, IItemsViewModelBase
-    where TParent : class
-    where TVM : class, IId, IItemViewModelState
+public class ItemsViewModelBase<TVM> : LzViewModelBase
+    where TVM : class, IItemViewModelBase
 {
-
-    //public ItemsViewModelBase(TParent parentViewModel)
-    //{
-    //    ParentViewModel = parentViewModel;
-    //}
 
     public string? Id { get; set; }
-    public TParent ParentViewModel { get; set; }
     public Dictionary<string, TVM> ViewModels { get; set; } = new();
+
     private TVM? currentViewModel;
     public TVM? CurrentViewModel 
     { 
@@ -38,53 +28,65 @@ public class ItemsViewModelBase<TParent,TVM> : LzViewModelBase, IItemsViewModelB
         }
     }
     [Reactive] public TVM? LastViewModel { get; set; }
-    [Reactive] public bool IsChanged { get; private set; }
+    protected int changeCount;
+    public bool IsChanged 
+    {
+        get { return changeCount > 0; }
+        set 
+        {
+            var newVal = changeCount + 1;
+            this.RaiseAndSetIfChanged(ref changeCount, newVal);
+        } 
+    }
+    [Reactive] public bool IsLoaded { get; set; }
+    [Reactive] public long LastLoadTick { get; set; }
     public bool CanList { get; set; } = true;
-    public virtual Task<(bool,string)> Init(object parentViewModel)
-    {
-        return Task.FromResult((true, string.Empty));
-    }
-    public virtual Task<(bool, string)> ReadAsync()
-    {
-        return Task.FromResult((true, string.Empty));
-    }
 
-    public virtual void CancelAdd()
+    public virtual void CancelCurrentViewModelAdd()
     {
         if (LastViewModel?.Id != null && ViewModels.ContainsKey(LastViewModel.Id!))
             CurrentViewModel = LastViewModel;
         else
             CurrentViewModel = null;
     }
-    /// <summary>
-    /// AddViewModel() takes an object arg because C# Generics don't have
-    /// an easy way to specifying the type of "self" in the conditions 
-    /// statement. There may be a way of doing it, but I've run out of time
-    /// to work on that. This call can fail at runtime if you pass the 
-    /// wrong type of object. This is unlikely in the normal uses of this
-    /// method, but it is possible.
-    /// </summary>
-    /// <param name="viewModelObj"></param>
-    /// <exception cref="Exception"></exception>
-    public virtual void AddViewModel(object viewModelObj)
+    public virtual async Task<(bool,string)> CancelCurrentViewModelEditAsync()
     {
-        var viewModel = viewModelObj as TVM;
-        if (viewModel == null)
-            throw new Exception("Can't convert object to required type");
+        try 
+        { 
+            if (CurrentViewModel == null)
+                return (false, "CurrentViewModel is null");
 
-        CurrentViewModel = viewModel;
-        if (viewModel.State == ItemViewModelBaseState.Current)
+            if (CurrentViewModel.State == ItemViewModelBaseState.New)
+                return (true, String.Empty);
+
+            if (CurrentViewModel.State != ItemViewModelBaseState.Edit)
+                throw new Exception("State != Edit");
+
+            await CurrentViewModel.ReadAsync(CurrentViewModel.Id!);
+            CurrentViewModel.State = ItemViewModelBaseState.Current;
+            return (true, String.Empty);
+        }
+        catch (Exception ex)
         {
-            if (viewModel.Id == null)
-                throw new Exception("ItemViewModel.Id is null");
-            ViewModels.TryAdd(viewModel.Id, viewModel);
+            return (false, Log(string.Empty, ex.Message));
         }
     }
 
-    public virtual async Task InitAsync()
+    public virtual async Task<(bool,string)> SaveCurrentViewModelAsync()
     {
+        if (CurrentViewModel == null)
+            return (false, "CurrentViewModel is null");
 
-        await ReadAsync();
+        var isAdd = CurrentViewModel.State == ItemViewModelBaseState.New;
+        var (success, msg) = await CurrentViewModel.SaveAsync();
+        if (success && isAdd)
+        {
+            if (CurrentViewModel.Id == null)
+                throw new Exception("ItemViewModel.Id is null");
+            ViewModels.TryAdd(CurrentViewModel.Id, CurrentViewModel);
+        }
+
+        return (success,msg);
     }
 
 }

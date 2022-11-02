@@ -13,9 +13,14 @@ public enum ItemViewModelBaseState
     Deleted
 }
 
-public interface IItemViewModelState
+public interface IItemViewModelBase
 {
+    public string? Id { get; set; }
     public ItemViewModelBaseState State { get; set; }
+    public Task<(bool, string)> CreateAsync();
+    public Task<(bool, string)> ReadAsync(string id);
+    public Task<(bool, string)> UpdateAsync();
+    public Task<(bool, string)> SaveAsync();
 }
 
 /// <summary>
@@ -24,15 +29,13 @@ public interface IItemViewModelState
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
 /// <typeparam name="TParent">ParentViewModel Type</typeparam>
-public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, IItemViewModelState
+public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBase
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new()
-    where TParent : class, IItemsViewModelBase
 {
     public IAuthProcess? AuthProcess { get; set; }
     [Reactive] public TModel? Data { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
-    [Reactive] public TParent? ParentViewModel { get; set; }
     public virtual string? Id
     {
         get { return (Data == null) ? string.Empty : Data.Id; }
@@ -51,10 +54,10 @@ public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, II
 
     protected TDTO? InterimData { get; set; }
 
-    public virtual Task<(bool,string)> Init(TParent parent)
-    {
-        return Task.FromResult((true, string.Empty));
-    }
+    //public virtual Task<(bool,string)> Init(TParent parent)
+    //{
+    //    return Task.FromResult((true, string.Empty));
+    //}
 
     public virtual async Task<(bool, string)> CreateAsync()
     {
@@ -175,51 +178,15 @@ public class ItemViewModelBase<TDTO, TModel, TParent> : LzViewModelBase, IId, II
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool,string)> CancelEditAsync()
-    {
-        try
-        {
-            if (ParentViewModel == null)
-                throw new Exception("ParentViewModel is null");
-
-            if (State == ItemViewModelBaseState.New)
-            {
-
-                ParentViewModel.CancelAdd();
-                Data = null;
-                State = ItemViewModelBaseState.Deleted;
-                return (true, String.Empty);
-            }
-
-            if (State != ItemViewModelBaseState.Edit)
-                throw new Exception("State != Edit");
-
-            await ReadAsync(Data!.Id!);
-            State = ItemViewModelBaseState.Current;
-            return(true,String.Empty);  
-        }
-        catch (Exception ex)
-        {
-            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
-        }
-    }
     public virtual async Task<(bool,string)> SaveAsync()
     {
         try
         {
-            if (ParentViewModel == null)
-                throw new Exception("ParentViewModel is null");
-
-            var isAdd = State == ItemViewModelBaseState.New;
             var (success, msg) =
-                isAdd
+                State == ItemViewModelBaseState.New
                 ? await CreateAsync()
                 : await UpdateAsync();
 
-            if (success && isAdd)
-            {
-                ParentViewModel.AddViewModel(this);
-            }
             return (success, msg);
         } 
         catch (Exception ex)

@@ -91,12 +91,20 @@ public class LzHttpClient : ILzHttpClient
             switch (securityLevel)
             {
                 case 0: // No security 
-                    response = await httpclient.SendAsync(
-                        requestMessage,
-                        httpCompletionOption,
-                        cancellationToken);
+                    try
+                    {
+                        response = await httpclient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
 
-                    return response;
+                        return response;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"Error: {callerMemberName} {e.Message}");
+                        return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+                    }
 
                 case 1: // Use JWT Token signing process
                     try
@@ -122,11 +130,12 @@ public class LzHttpClient : ILzHttpClient
                             requestMessage,
                             httpCompletionOption,
                             cancellationToken);
+                        Console.WriteLine(callerMemberName);
                         return response;
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"Error: {e.Message}");
+                        Debug.WriteLine($"Error: {callerMemberName} {e.Message}");
                         return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
                     }
                 case 2:
