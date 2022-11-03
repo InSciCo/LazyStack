@@ -15,7 +15,7 @@ using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
 using System.Collections;
 
-/// <summary>
+/// <summary> 
 /// AWS Authentication and Authorization Strategy
 /// AWS Cognito User Pools are used for Authentication
 /// AWS Cognito Identity Pools are used for Authorization
