@@ -91,7 +91,7 @@ public class LzHttpClient : ILzHttpClient
         if (string.IsNullOrEmpty(baseUrl))
             throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} uri value is null or empty.");
 
-        Console.WriteLine($"baseUrl:{baseUrl}");
+        Console.WriteLine($"baseUrl:{baseUrl} lzHost.Url:{lzHost.Url}");
 
         // Create new HttpClient for endpoint if one doesn't exist
         if (!httpClients.TryGetValue(baseUrl, out HttpClient httpclient))
