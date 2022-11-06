@@ -19,29 +19,30 @@ public interface IStacksConfig
 }
 public class StacksConfig : NotifyBase, IStacksConfig
 {
-    private string _currentStack = "";
+    private string _currentStackName = "";
     public string CurrentStackName
     {
-        get { return _currentStack; }
-        set { SetProperty(ref _currentStack, value); }
+        get { return _currentStackName; }
+        set { SetProperty(ref _currentStackName, value); }
     }
-    public Dictionary<string, StackConfig> Stacks { get; set; }
+    public Dictionary<string, StackConfig> Stacks { get; set; } = new();
 }
 
 public interface IStackConfig
 {
     public SaaSConfig SaaSConfig { get; set; }
     public ServiceConfig ServiceConfig { get; set; }
+    public TenantConfig TenantConfig { get; set; }  
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
     public Dictionary<string, string> CurrentApis { get; }
-
 }
 
 public class StackConfig : IStackConfig
 {
     public SaaSConfig SaaSConfig { get; set; }
     public ServiceConfig ServiceConfig { get; set; }
+    public TenantConfig TenantConfig { get; set; }
     public CognitoConfig CognitoConfig { get; set; }
     public RunConfig RunConfig { get; set; }
 
@@ -64,6 +65,16 @@ public class StackConfig : IStackConfig
         get { return ServiceConfig.AssetUris.FirstOrDefault(x => x.Key == RunConfig.Assets).Value; }
     }
 }
+
+public interface ITenantConfig
+{
+    public Dictionary<string,string> Tenants { get; set; }   
+}
+
+public class TenantConfig : ITenantConfig
+{
+    public Dictionary<string, string> Tenants { get; set; } = new();
+}
 public interface ISaaSConfig
 {
     public string AccountId { get; set; }
@@ -85,7 +96,6 @@ public class Api
 {
     public int SecurityLevel { get; set; }
     public Dictionary<string,string> ApiUris { get; set; }
-
 }
 
 public interface ICognitoConfig
@@ -104,15 +114,15 @@ public class CognitoConfig : ICognitoConfig
     public string UserPoolClientId { get; set; }
 }
 
-
 public interface IRunConfig
 {
     public string Apis { get; set; }
     public string Assets { get; set; }
     public string BaseURL { get; set; }
+    public string Tenant { get; set; }
 }
 
-public class RunConfig : NotifyBase
+public class RunConfig : NotifyBase, IRunConfig
 {
     public string[] AllowedApis { get; set; } = { "ApiGateway", "CloudFront", "Local", "LocalAndroid" };
     private string _apis = "CloudFront";
@@ -135,6 +145,12 @@ public class RunConfig : NotifyBase
         set { SetProperty(ref _baseURL, value); }
     }
 
+    private string _tenant = string.Empty; 
+    public string Tenant
+    {
+        get { return _tenant; }
+        set { SetProperty(ref _tenant, value); }
+    }
 }
 
 

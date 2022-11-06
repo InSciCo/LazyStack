@@ -37,6 +37,7 @@ public class LzHttpClient : ILzHttpClient
     private IStackConfig stackConfig;
     private RunConfig runConfig { get { return stackConfig.RunConfig; } }
     private ServiceConfig svcConfig { get { return stackConfig.ServiceConfig; } }
+    private ITenantConfig tentantConfig { get { return stackConfig.TenantConfig; } }
     private IMethodMapWrapper methodMap;
     private IAuthProvider authProvider;
     private ILzHost lzHost; 
@@ -103,6 +104,8 @@ public class LzHttpClient : ILzHttpClient
             httpclient.BaseAddress = new Uri(baseUrl);
             httpClients.Add(baseUrl, httpclient);
         }
+        if (tentantConfig != null && !string.IsNullOrEmpty(runConfig.Tenant) && tentantConfig.Tenants.ContainsKey(runConfig.Tenant))
+            requestMessage.Headers.Add("TenantKey", tentantConfig.Tenants[runConfig.Tenant]);
 
         try
         {
