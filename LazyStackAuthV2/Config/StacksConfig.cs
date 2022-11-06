@@ -109,6 +109,7 @@ public interface IRunConfig
 {
     public string Apis { get; set; }
     public string Assets { get; set; }
+    public string BaseURL { get; set; }
 }
 
 public class RunConfig : NotifyBase
@@ -126,6 +127,12 @@ public class RunConfig : NotifyBase
     { 
         get { return _assets; }
         set {  SetProperty(ref _assets, value); }   
+    }
+    private string _baseURL = string.Empty;
+    public string BaseURL
+    {
+        get { return _baseURL; }
+        set { SetProperty(ref _baseURL, value); }
     }
 
 }
