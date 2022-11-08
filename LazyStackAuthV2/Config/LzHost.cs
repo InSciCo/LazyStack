@@ -9,6 +9,9 @@ namespace LazyStackAuthV2;
 public interface ILzHost
 {
     string Url { get; set; }
+    bool IsMAUI { get; set; }
+    bool IsWASM { get; }
+    bool IsAndroid { get; set; }    
 }
 
 // This class contains information about the host that the 
@@ -17,11 +20,16 @@ public interface ILzHost
 // for MAUI apps. 
 public class LzHost : ILzHost
 {
-    public LzHost(string? url = null)
+    public LzHost(string? url = null, bool isMAUI = true, bool isAndroid = false)
     {
-        Url = url;  
+        Url = url;
+        IsMAUI = isMAUI;
+        IsAndroid = isAndroid;
     }
 
     public string Url { get; set; } 
+    public bool IsMAUI { get; set; }
+    public bool IsWASM => !IsMAUI;
+    public bool IsAndroid { get; set; }
 
 }

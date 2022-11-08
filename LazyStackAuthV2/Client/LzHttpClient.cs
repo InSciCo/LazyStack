@@ -67,22 +67,16 @@ public class LzHttpClient : ILzHttpClient
         // Local            RunConfig.BaseURL   RunConfig.BaseURL
         // LocalAndriod     RunConfig.BaseRUL   RunConfig.BaseURL
 
-        var isWASM = true;
-#if ANDROID || WINDOWS || IOS || TZEN || MACOS
-            isWASM = false;  
-#endif
-        var isMAUI = !isWASM;
         var apiskey = runConfig.Apis;
         var isLocal = apiskey == "Local";
-#if ANDROID
-       if(apiskey == "Local") 
+
+       if(lzHost.IsAndroid && apiskey == "Local") 
             apiskey = "LocalAndroid";
-#endif
 
         string baseUrl = "";
         try
         {
-            baseUrl = (apiskey == "CloudFront" && isWASM)
+            baseUrl = (apiskey == "CloudFront" && lzHost.IsWASM)
                 ? baseUrl = lzHost.Url
                 : apiEndpoint.ApiUris[apiskey];
         } catch { 
@@ -98,7 +92,7 @@ public class LzHttpClient : ILzHttpClient
         if (!httpClients.TryGetValue(baseUrl, out HttpClient httpclient))
         {
 
-            httpclient = isLocal && isMAUI
+            httpclient = isLocal && lzHost.IsMAUI
                 ? new HttpClient(GetInsecureHandler())
                 : new HttpClient();
             httpclient.BaseAddress = new Uri(baseUrl);
