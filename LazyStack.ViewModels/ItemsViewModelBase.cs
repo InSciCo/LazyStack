@@ -42,13 +42,6 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
     [Reactive] public long LastLoadTick { get; set; }
     public bool CanList { get; set; } = true;
 
-    public virtual void CancelCurrentViewModelAdd()
-    {
-        if (LastViewModel?.Id != null && ViewModels.ContainsKey(LastViewModel.Id!))
-            CurrentViewModel = LastViewModel;
-        else
-            CurrentViewModel = null;
-    }
     public virtual async Task<(bool,string)> CancelCurrentViewModelEditAsync()
     {
         try 
@@ -56,14 +49,20 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
             if (CurrentViewModel == null)
                 return (false, "CurrentViewModel is null");
 
+            if(CurrentViewModel.State != ItemViewModelBaseState.New && CurrentViewModel.State != ItemViewModelBaseState.Edit)
+                throw new Exception("State != Edit && State != New");
+
+            await CurrentViewModel.CancelEditAsync();
+
             if (CurrentViewModel.State == ItemViewModelBaseState.New)
-                return (true, String.Empty);
+            {
+                if (LastViewModel?.Id != null && ViewModels.ContainsKey(LastViewModel.Id!))
+                    CurrentViewModel = LastViewModel;
+                else
+                    CurrentViewModel = null;
+                return (true,string.Empty);
+            }
 
-            if (CurrentViewModel.State != ItemViewModelBaseState.Edit)
-                throw new Exception("State != Edit");
-
-            await CurrentViewModel.ReadAsync(CurrentViewModel.Id!);
-            CurrentViewModel.State = ItemViewModelBaseState.Current;
             return (true, String.Empty);
         }
         catch (Exception ex)
@@ -72,13 +71,14 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
         }
     }
 
+
     public virtual async Task<(bool,string)> SaveCurrentViewModelAsync()
     {
         if (CurrentViewModel == null)
             return (false, "CurrentViewModel is null");
 
         var isAdd = CurrentViewModel.State == ItemViewModelBaseState.New;
-        var (success, msg) = await CurrentViewModel.SaveAsync();
+        var (success, msg) = await CurrentViewModel.SaveEditAsync();
         if (success && isAdd)
         {
             if (CurrentViewModel.Id == null)

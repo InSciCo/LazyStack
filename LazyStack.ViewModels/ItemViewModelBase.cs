@@ -2,6 +2,7 @@
 using ReactiveUI.Fody.Helpers;
 using Force.DeepCloner;
 using LazyStackAuthV2;
+using ReactiveUI;
 
 namespace LazyStack.ViewModels;
  
@@ -19,8 +20,20 @@ public interface IItemViewModelBase
     public ItemViewModelBaseState State { get; set; }
     public Task<(bool, string)> CreateAsync();
     public Task<(bool, string)> ReadAsync(string id);
+    public Task<(bool, string)> ReadAsync();
     public Task<(bool, string)> UpdateAsync();
-    public Task<(bool, string)> SaveAsync();
+    public Task<(bool, string)> SaveEditAsync();
+    public Task<(bool, string)> DeleteAsync(); 
+    public Task<(bool, string)> CancelEditAsync();
+    public bool CanCreate { get; set; }
+    public bool CanRead { get; set; }   
+    public bool CanUpdate { get; set; }    
+    public bool CanDelete { get; set; } 
+    public bool IsLoaded { get; set; }  
+    public bool ActiveEdit { get; set; }    
+    public bool DataCopied { get; set; }
+
+
 }
 
 /// <summary>
@@ -33,8 +46,26 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new()
 {
+    public ItemViewModelBase()
+    {
+        CanCreate = true;
+        CanRead= true;
+        CanUpdate= true;
+        CanDelete= true;
+        IsLoaded = false;
+        ActiveEdit= false;
+
+        this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.New)
+            .ToPropertyEx(this, x => x.IsAdd);
+
+        this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.Edit)
+            .ToPropertyEx(this, x => x.IsEdit);
+
+    }
+
     public IAuthProcess? AuthProcess { get; set; }
     [Reactive] public TModel? Data { get; set; }
+    [Reactive] public TModel? DataCopy { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
     public virtual string? Id
     {
@@ -43,21 +74,22 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     }
 
     protected Func<TDTO, Task<TDTO>>? SvcCreateAsync;
-    protected Func<string, Task<TDTO>>? SvcReadAsync;
+    protected Func<string, Task<TDTO>>? SvcReadIdAsync;
+    protected Func<Task<TDTO>>? SvcReadAsync;
     protected Func<TDTO, Task<TDTO>>? SvcUpdateAsync;
-    protected Func<string, Task>? SvcDeleteAsync;
+    protected Func<string, Task>? SvcDeleteIdAsync;
+    protected Func<Task<TDTO>>? SvcDeleteAsync;
 
-    public bool CanCreate { get; set; } = true;
-    public bool CanRead { get; set; } = true;
-    public bool CanUpdate { get; set; } = true; 
-    public bool CanDelete { get; set; } = true; 
+    [Reactive] public bool CanCreate { get; set; }
+    [Reactive] public bool CanRead { get; set; }
+    [Reactive] public bool CanUpdate { get; set; }
+    [Reactive] public bool CanDelete { get; set; }
+    [Reactive] public bool IsLoaded { get; set; }
+    [Reactive] public bool ActiveEdit { get; set; }
+    [Reactive] public bool DataCopied { get; set; }
+    [ObservableAsProperty] public bool IsAdd { get; }
+    [ObservableAsProperty] public bool IsEdit { get; } 
 
-    protected TDTO? InterimData { get; set; }
-
-    //public virtual Task<(bool,string)> Init(TParent parent)
-    //{
-    //    return Task.FromResult((true, string.Empty));
-    //}
 
     public virtual async Task<(bool, string)> CreateAsync()
     {
@@ -104,12 +136,37 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             if (AuthProcess.IsNotSignedIn)
                 throw new Exception("Not signed in.");
 
+            if (SvcReadIdAsync == null)
+                throw new Exception("SvcReadAsync not assigned.");
+
+            var item = await SvcReadIdAsync(id);
+            item.DeepCloneTo(Data!);
+            Id = id;
+            State = ItemViewModelBaseState.Current;
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
+        }
+    }
+    public virtual async Task<(bool, string)> ReadAsync()
+    {
+        try
+        {
+            if (AuthProcess == null)
+                throw new Exception("AuthProcess not assigned");
+
+            if (AuthProcess.IsNotSignedIn)
+                throw new Exception("Not signed in.");
+
             if (SvcReadAsync == null)
                 throw new Exception("SvcReadAsync not assigned.");
 
-            var item = await SvcReadAsync(id);
+
+            var item = await SvcReadAsync();
             item.DeepCloneTo(Data!);
-            Id = id;
+            Id = Data!.Id;
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
@@ -137,10 +194,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             if (SvcUpdateAsync == null)
                 throw new Exception("SvcUpdateAsync is not assigned.");
 
-            if (Data == null)
+            if (Data is null)
                 throw new Exception("Data not assigned");
 
-            var item = (TDTO)Data;
+            var item = (TDTO)Data!;
             item = await SvcUpdateAsync(item);
             item.DeepCloneTo(Data!);
             State = ItemViewModelBaseState.Current;
@@ -164,10 +221,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             if (State != ItemViewModelBaseState.Current)
                 throw new Exception("State != Current");
 
-            if (SvcDeleteAsync == null)
+            if (SvcDeleteIdAsync == null)
                 throw new Exception("SvcDelete is not assigned.");
 
-            await SvcDeleteAsync(Id);
+            await SvcDeleteIdAsync(Id);
             State = ItemViewModelBaseState.Deleted;
             Data = null;
             return(true,String.Empty);
@@ -178,7 +235,52 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool,string)> SaveAsync()
+    public virtual async Task<(bool, string)> DeleteAsync()
+    {
+        try
+        {
+            if (AuthProcess == null)
+                throw new Exception("AuthProcess not assigned");
+
+            if (AuthProcess.IsNotSignedIn)
+                throw new Exception("Not signed in.");
+
+            if (State != ItemViewModelBaseState.Current)
+                throw new Exception("State != Current");
+
+            if (SvcDeleteAsync == null)
+                throw new Exception("SvcDelete is not assigned.");
+
+            await SvcDeleteAsync();
+            State = ItemViewModelBaseState.Deleted;
+            Data = null;
+            return (true, String.Empty);
+
+        }
+        catch (Exception ex)
+        {
+            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
+        }
+    }
+    public virtual Task OpenEditAsync(bool copyData = true)
+    {
+        ActiveEdit = true;
+        if(State != ItemViewModelBaseState.New)
+            State = ItemViewModelBaseState.Edit;
+        if (copyData)
+        {
+            DataCopy ??= new();
+            Data.DeepCloneTo(DataCopy);
+            DataCopied = true;
+        }
+        else
+        {
+            DataCopy = null;
+            DataCopied = false;
+        }
+        return Task.CompletedTask;
+    }
+    public virtual async Task<(bool,string)> SaveEditAsync()
     {
         try
         {
@@ -187,6 +289,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                 ? await CreateAsync()
                 : await UpdateAsync();
 
+            ActiveEdit= false;
+            State = ItemViewModelBaseState.Current;
+
             return (success, msg);
         } 
         catch (Exception ex)
@@ -194,11 +299,42 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
+    public virtual async Task<(bool,string)> CancelEditAsync()
+    {
+        if (!ActiveEdit)
+            return (false, Log(MethodBase.GetCurrentMethod()!, "No Active Edit"));
 
+        ActiveEdit = false;
+        State = (IsLoaded) ? ItemViewModelBaseState.Current : ItemViewModelBaseState.New;
+
+        if (DataCopied)
+        {
+            DataCopy.DeepCloneTo(Data);
+            DataCopied = false;
+            return (true,String.Empty);
+        }
+        try
+        {
+            if (IsLoaded)
+            {
+                if (SvcReadIdAsync != null)
+                {
+                    var data = await SvcReadIdAsync(Data!.Id!);
+                }
+                else if (SvcReadAsync != null)
+                {
+                    var data = await SvcReadAsync();
+                }
+            }
+            return (true,String.Empty); 
+        } catch (Exception ex) 
+        {
+            return (false, Log(MethodBase.GetCurrentMethod()!,ex.Message)); 
+        }
+    }
     public virtual bool Validate()
     {
         return true;
     }
-
 
 }
