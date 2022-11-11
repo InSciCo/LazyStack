@@ -134,6 +134,8 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
 
 
     // Methods
+    public Task<AuthEventEnum> TestLongCallAsync();
+
     public Task<AuthEventEnum> VerifyLoginAsync();
     public Task<AuthEventEnum> VerifyNewLoginAsync();
     public Task<AuthEventEnum> VerifyPasswordAsync(); // Happy Path Challenge: Code (optional)
@@ -151,7 +153,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool CheckNewEmailFormat(string email = null);
 
     public new bool CheckPasswordFormat(string password = null );
-    public bool CheckNewPasswordFormat(string password = null);
+    public new bool CheckNewPasswordFormat(string password = null);
 
     public new bool CheckPhoneFormat(string phone = null );
     public bool CheckNewPhoneFormat(string phone = null);

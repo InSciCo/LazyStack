@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
@@ -295,7 +296,10 @@ public class AuthProcess : NotifyBase, IAuthProcess
         get { return _IsBusy; }
         set
         {
+            var diff = _IsBusy != value;
             SetProperty(ref _IsBusy, value);
+            if(diff)
+                RaisePropertyChanged(nameof(IsNotBusy));    
             IsLongBusy = _IsBusy && _authProvider.IsChallengeLongWait;
         }
     }
@@ -305,7 +309,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool IsLongBusy
     {
         get { return _IsLongBusy; }
-        set { SetProperty(ref _IsLongBusy, value); }
+        set { 
+            var diff = _IsLongBusy != value;
+            SetProperty(ref _IsLongBusy, value);
+            if(diff)
+                RaisePropertyChanged(nameof(IsNotLongBusy));
+        }
     }
 
     public bool IsNotLongBusy => !IsLongBusy;
@@ -493,8 +502,13 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public async Task<AuthEventEnum> VerifyPasswordAsync() => await Execute(_authProvider.VerifyPasswordAsync, Password);
     public async Task<AuthEventEnum> VerifyPasswordAsync(string password)
     {
+        IsBusy = true;
         _password = password;
-        return await Execute(_authProvider.VerifyPasswordAsync, Password);
+        await Task.Delay(100);
+        var result = await _authProvider.VerifyPasswordAsync(Password).ConfigureAwait(false);
+        result = await RaiseAuthModuleEventAndProperties(result);
+        IsBusy = false;
+        return result;
     }
 
     public async Task<AuthEventEnum> VerifyNewPasswordAsync() => await Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
@@ -683,10 +697,10 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     protected async virtual Task<AuthEventEnum> Execute(Func<string, Task<AuthEventEnum>> func, string arg)
     {
-        IsBusy = true;
+        //IsBusy = true;
         var result = await func(arg);
         result = await RaiseAuthModuleEventAndProperties(result);
-        IsBusy = false;
+        //IsBusy = false;
         return result;
     }
 
@@ -760,6 +774,24 @@ public class AuthProcess : NotifyBase, IAuthProcess
     void RaiseAuthModuleEvent(AuthEventEnum r)
     {
         OnAuthModuleEvent(new AuthModuleEventArgs(r));
+    }
+
+    public async Task<AuthEventEnum> TestLongCallAsync()
+    {
+        IsBusy = true;
+        //RaisePropertyChanged(nameof(IsBusy));   
+        //await Task.Delay(2000).ConfigureAwait(false);
+        //await _authProvider.TestLongCallAsync();
+
+        await StartSignInAsync();
+        Login = "Planner02";
+        await VerifyLoginAsync();
+        Password = "Planner0201!";
+        var result = await VerifyPasswordAsync();
+        IsBusy = false;
+        return result;
+        //RaisePropertyChanged(nameof(IsBusy));
+        return AuthEventEnum.Alert;
     }
 
     #endregion

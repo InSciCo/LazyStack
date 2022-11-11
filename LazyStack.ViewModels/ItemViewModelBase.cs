@@ -32,7 +32,11 @@ public interface IItemViewModelBase
     public bool IsLoaded { get; set; }  
     public bool ActiveEdit { get; set; }    
     public bool DataCopied { get; set; }
-
+    public bool IsNew { get; }
+    public bool IsEdit { get; }
+    public bool IsCurrent { get; }
+    public bool IsDeleted { get; }
+ 
 
 }
 
@@ -56,10 +60,16 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         ActiveEdit= false;
 
         this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.New)
-            .ToPropertyEx(this, x => x.IsAdd);
+            .ToPropertyEx(this, x => x.IsNew);
 
         this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.Edit)
             .ToPropertyEx(this, x => x.IsEdit);
+
+        this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.Current)
+            .ToPropertyEx(this, x => x.IsCurrent);
+
+        this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.Deleted)
+            .ToPropertyEx(this, x => x.IsDeleted);
 
     }
 
@@ -87,9 +97,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     [Reactive] public bool IsLoaded { get; set; }
     [Reactive] public bool ActiveEdit { get; set; }
     [Reactive] public bool DataCopied { get; set; }
-    [ObservableAsProperty] public bool IsAdd { get; }
-    [ObservableAsProperty] public bool IsEdit { get; } 
-
+    [ObservableAsProperty] public bool IsNew { get; }
+    [ObservableAsProperty] public bool IsEdit { get; }
+    [ObservableAsProperty] public bool IsCurrent { get; }
+    [ObservableAsProperty] public bool IsDeleted { get; }
 
     public virtual async Task<(bool, string)> CreateAsync()
     {
