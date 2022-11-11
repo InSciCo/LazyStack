@@ -31,14 +31,14 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.2.2" />
+    <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.2.3" />
     <PackageReference Include="AwsSignatureVersion4" Version="4.0.0" />
-    <PackageReference Include="MailKit" Version="3.3.0" />
+    <PackageReference Include="MailKit" Version="3.4.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="JsonSubTypes" Version="1.9.0" />
+    <PackageReference Include="JsonSubTypes" Version="2.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.22.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.24.0" />
   </ItemGroup>
   
   <!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->
