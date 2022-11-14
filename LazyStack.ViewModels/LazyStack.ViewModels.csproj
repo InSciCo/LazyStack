@@ -18,12 +18,12 @@
 
   <ItemGroup>
 	  <PackageReference Include="DynamicData" Version="7.12.1" />
-	  <PackageReference Include="FluentValidation" Version="11.2.2" />
-	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0-rc.2.22472.3" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0-rc.2.22472.3" />
+	  <PackageReference Include="FluentValidation" Version="11.3.0" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
 	  <PackageReference Include="DeepCloner" Version="0.10.4" />
-	  <PackageReference Include="Microsoft.AspNetCore.Components" Version="6.0.10" />
-	  <PackageReference Include="Microsoft.AspNetCore.Components.Forms" Version="6.0.10" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components" Version="7.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.Forms" Version="7.0.0" />
 
 	  <PackageReference Include="ReactiveUI" Version="18.3.1" />
     <PackageReference Include="ReactiveUI.Fody" Version="18.3.1" />

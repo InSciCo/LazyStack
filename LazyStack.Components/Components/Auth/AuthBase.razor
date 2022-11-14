@@ -4,7 +4,7 @@
 @if (ViewModel != null)
 {
     <Div>
-        @if (ViewModel.CurrentChallengeIsLogin)
+        @if (ViewModel.CurrentChallengeIsLogin )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_LoginLabel")</FieldLabel>
@@ -13,13 +13,13 @@
                   Style="@fieldStyle"
                   Immediate="false"
                   Autofocus="true"
-                  FocusOut="@(async (x) => await PerformStep(ViewModel.VerifyLoginAsync))"
-                  KeyUp="@(async (e) => await PerformStep(ViewModel.VerifyLoginAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(@ViewModel.LoginFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsNewLogin)
+
+        @if (ViewModel.CurrentChallengeIsNewLogin )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_NewLoginLabel")</FieldLabel>
@@ -28,13 +28,12 @@
                   Style="@fieldStyle"
                   Immediate="false"
                   Autofocus="true"
-                  FocusOut="@(async (x) => await PerformStep(ViewModel.VerifyNewLoginAsync))"
-                  KeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewLoginAsync, e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.NewLoginFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsPassword)
+        @if (ViewModel.CurrentChallengeIsPassword )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_PasswordLabel")</FieldLabel>
@@ -44,13 +43,12 @@
                   Immediate="false"
                   Autofocus="true"
                   Role="TextRole.Password"
-                  FocusOut="@(async (x) => await PerformStep(ViewModel.VerifyPasswordAsync))"
-                  KeyUp="@(async (e) => await PerformStep(ViewModel.VerifyPasswordAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.PasswordFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsNewPassword)
+        @if (ViewModel.CurrentChallengeIsNewPassword )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_NewPasswordLabel")</FieldLabel>
@@ -60,13 +58,12 @@
                   Immediate="false"
                   Autofocus="true"
                   Role="TextRole.Password"
-                  FocusOut="@(async (x) => await PerformStep(ViewModel.VerifyNewPasswordAsync))"
-                  KeyUp="@(async (e) => await PerformStep(ViewModel.VerifyNewPasswordAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.NewPasswordFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsEmail)
+        @if (ViewModel.CurrentChallengeIsEmail )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_EmailLabel")</FieldLabel>
@@ -76,13 +73,12 @@
                   Immediate="false"
                   Autofocus="true"
                   Role="TextRole.Email"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.VerifyEmailAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.VerifyEmailAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.EmailFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsNewEmail)
+        @if (ViewModel.CurrentChallengeIsNewEmail )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_NewEmailLabel")</FieldLabel>
@@ -92,13 +88,12 @@
                   Immediate="false"
                   Autofocus="true"
                   Role="TextRole.Email"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.VerifyNewEmailAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.VerifyNewEmailAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.NewEmailFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsPhone)
+        @if (ViewModel.CurrentChallengeIsPhone )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_PhoneLabel")</FieldLabel>
@@ -107,13 +102,12 @@
                   Style="@fieldStyle"
                   Immediate="false"
                   Autofocus="true"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.VerifyPhoneAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.VerifyPhoneAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@ViewModel.PhoneFormatMessage</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsNewPhone)
+        @if (ViewModel.CurrentChallengeIsNewPhone )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_NewPhoneLabel")</FieldLabel>
@@ -122,13 +116,12 @@
                   Style="@fieldStyle"
                   Immediate="false"
                   Autofocus="true"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.VerifyNewPhoneAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.VerifyNewPhoneAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.NewPhoneFormatMessage)</FieldHelp>
             </Field>
         }
 
-        @if (ViewModel.CurrentChallengeIsCode)
+        @if (ViewModel.CurrentChallengeIsCode )
         {
             <Field>
                 <FieldLabel>@Msg("AuthComponent_CodeLabel")</FieldLabel>
@@ -137,24 +130,10 @@
                   Style="@fieldStyle"
                   Immediate="false"
                   Autofocus="true"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.VerifyCodeAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.VerifyCodeAsync,e))" />
+                  KeyUp="Verify" />
                 <FieldHelp>@Msg(ViewModel.CodeFormatMessage)</FieldHelp>
             </Field>
         }
-
-@*        <Field>
-            <FieldLabel>Junk</FieldLabel>
-            <TextEdit @bind-Text="@junk"
-                  Class="@fieldClass"
-                  Style="@fieldStyle"
-                  Immediate="false"
-                  Autofocus="true"
-                  FocusOut="@(async (x)=>await PerformStep(ViewModel.TestLongCallAsync))"
-                  KeyUp="@(async(e)=>await PerformStep(ViewModel.TestLongCallAsync,e))" />
-            <FieldHelp>@Msg(ViewModel.CodeFormatMessage)</FieldHelp>
-        </Field>*@
-
 
 
     </Div>
@@ -196,15 +175,25 @@
             <Button Class="@btnClass"
             Color="@btnColor"
             Style="@btnStyle"
-            Clicked="@(async()=>await ViewModel.CancelAsync())"
+            Clicked="@(async()=> 
+                { 
+                    await ViewModel.CancelAsync();
+                })"
             Disabled="@cancelButtonDisabled">
                 @Msg("AuthComponent_Cancel")
             </Button>
         }
 
-        <Button Class="@btnClass" Color="@btnColor" Style="@btnStyle" Clicked="@(async()=> await ViewModel.TestLongCallAsync())">TestLongCall</Button>
+        @if (ViewModel.CanCancel)
+        {
+            <Button Class="@btnClass"
+            Color="@btnColor"
+            Style="@btnStyle"
+            Clicked="@VerifyNoArg">
+                @Msg("AuthComponent_Next")
+            </Button>
 
-        <p>IsBusyHack:@isBusyHack IsBusy:@ViewModel.IsBusy CurrentChallenge:@ViewModel.CurrentChallenge</p>
+        }
     </Div>
 }
 
@@ -215,45 +204,29 @@
     private string btnClass = "m-1"; 
     private string fieldClass = "";
     private string btnStyle = "width:10rem";
-    private string fieldStyle = "width:20rem";
+    private string fieldStyle = "";
     private int renderCount = 0;
     private bool cancelButtonDisabled = false;
-    private string junk { get; set; }
     const KeyboardEventArgs emptyKeyboardEventArgs = null;
-    private bool isBusyHack = false;
 
-    private bool RenderCount()
-    {
-        renderCount++;
-        return true;
-    }
-
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() 
     {
         //ViewModel.AssignFieldOnCheck = true;
         ViewModel!.IsChatty = true;
         await base.OnInitializedAsync();
     }
 
-    protected async Task PerformStep(Func<Task<AuthEventEnum>> step, KeyboardEventArgs e = emptyKeyboardEventArgs)
+    protected async Task VerifyNoArg()
+    {
+        await ViewModel!.Verify();
+    }
+
+    protected async Task Verify(KeyboardEventArgs e)
     {
         if (e == null || e.Key == "Enter")
         {
-            try
-            {
-                isBusyHack = ViewModel!.IsChallengeLongWait;
-                if(isBusyHack)
-                    StateHasChanged();
-                cancelButtonDisabled = true;
-                await Task.Delay(200);
-                await step();
-                StateHasChanged();
-                isBusyHack = false;
-            }
-            finally
-            {
-                cancelButtonDisabled = false;
-            }
+            await ViewModel!.Verify();
         }
     }
+    
 }

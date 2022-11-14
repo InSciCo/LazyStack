@@ -17,5 +17,6 @@ public interface ILzHttpClient : IDisposable
         HttpCompletionOption httpCompletionOption,
         CancellationToken cancellationToken,
         [CallerMemberName] string callerMemberName = null);
+    public bool IsServiceAvailable { get; }
 
 }

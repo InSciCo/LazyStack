@@ -198,7 +198,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     return CurrentAuthProcess == AuthProcessEnum.SigningIn;
 
                 case AuthChallengeEnum.Email:
-                    return false;
+                    return true;
 
                 case AuthChallengeEnum.Login:
                     return false;
@@ -212,13 +212,17 @@ public class AuthProviderCognito : IAuthProviderCognito
                 case AuthChallengeEnum.NewPassword:
                     return true;
 
+                case AuthChallengeEnum.Phone:
+                    return true;
+
                 case AuthChallengeEnum.NewPhone:
                     return true;
 
                 case AuthChallengeEnum.None:
                     return false;
+                
             }
-            return true;
+            return false;
         }
     } // will the current challenge do a server roundtrip?
     public string[] FormatMessages { get; private set; }
@@ -1059,25 +1063,5 @@ public class AuthProviderCognito : IAuthProviderCognito
     }
     #endregion
 
-
-    public virtual async Task<AuthEventEnum> TestLongCallAsync()
-    {
-        // GetUserResponse getUserResponse = await CognitoUser.GetUserDetailsAsync().ConfigureAwait(false);
-        //authFlowResponse = await CognitoUser.StartWithSrpAuthAsync(
-        //    new InitiateSrpAuthRequest()
-        //    {
-        //        Password = "Planner0201!"
-        //    }
-        //    ).ConfigureAwait(false);
-        //this.password = "Planner0202!";
-        //IsPasswordVerified = true;
-        //AuthChallengeList.Remove(AuthChallengeEnum.Password);
-        //await Task.Delay(2000);
-        await StartSignInAsync();
-        login = "Planner02";
-        await VerifyLoginAsync(login);
-        password = "Planner0201!";
-        return await VerifyNewPasswordAsync(password);
-    }
 }
 
