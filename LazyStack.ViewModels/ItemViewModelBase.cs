@@ -3,9 +3,84 @@ using ReactiveUI.Fody.Helpers;
 using Force.DeepCloner;
 using LazyStackAuthV2;
 using ReactiveUI;
+using Newtonsoft.Json;
 
 namespace LazyStack.ViewModels;
- 
+/*
+Notifications 
+This ViewModel class supports INotificationSvc by providing:
+    UpdateFromNotification(string data) -- TDTO object in JSON form
+    NotificationEditOption = Cancel | Merge 
+    TModel DataCopy
+    TModel NotificationData - data updated from most recent notification if State == Edit
+    [Reactive] bool NotificationReceived - fired when a notification recieved
+
+The INotificationSvc receives Notification updates from a service (either by polling or websocket).
+Notification
+    Id - a GUID for each notification
+    TopicId - we subscribe to topics in the INotificationSvc - this selects what notifications we receive from the service
+    UserId - not currently used
+    PayloadParentId - usually the Id field of the payload items parent - normally used by ItemsViewModel subscription
+    PayloadId - usually the Id field from the payload class - normally used by ItemViewModel subscription
+    PayloadType - The name of the class serialized into the Payload data
+    Payload  - JSON string containing serialized instance of PayloadType
+    PayloadAction - Create, Update, Delete. Note that only the Update action is meaningful for the ItemViewModel
+                    Create and Delete are generally handled by the ItemsViewModel owning the ItemViewModel instances.
+    CreatedAt - datetime utc ticks (store as long)
+
+- We filter on Data.Id 
+- We process Notification Actions to update the ViewModel Data.
+
+What we do with a Notification depends on the current state of the ViewModel. 
+State == New
+    - Notification should not pass filter as the new Data has no Id
+    - Note that the ItemsViewModel normally handles adding ItemViewModel instances
+State == Current 
+    - We update the ViewModel Data
+State == Deleted
+    - Ignore
+    - The viewmodel is probably being disposed of when the notification arrives
+State == Edit 
+    This one is complicated and we use NotificationEditOption to govern behavior:
+    NotificationEditOption == Cancel 
+        - We cancel the current edit and update the ViewModel Data from the Notification
+    NotificationEditOption == Merge 
+        - We maintain three buffers 
+            - DataCopy, a copy of the data as it was before edit 
+            - NotificationBuffer, a copy of the data as updated by the last processed Notification 
+            - Data, the currently edited data 
+        - We maintain three ChangeLists Dictionary<propertyname, propertyvalue)
+            - NotificationChanges: DataCopy propertyvalue <> NotificationData propertyvalue 
+            - EditChanges: DataCopy propertyvalue <> Data propertyvalue 
+            - Conflicts: EditChanges propertyvalue <> Data propertyvalue 
+        - We let the UI do whatever it wants with this information. Example:
+            - Selectively update the Data properties from NotificationChanges and EditChanges into Data
+            - Update the UpdatedAt timestamp in Data from NotificationChanges so your SaveEditAsync() doesn't fail *** VERY IMPORTANT ***
+            - Finalize the Edit 
+
+** Effect of Notification on in-flight updates. **
+When we finalize an Edit, we call SaveEditAsync(). If the State == Edit then this is calling an 
+update on the service side. We use optimistic locking on the service side so it is possible that 
+the update may fail if another client updated the record while we were editing it in our client.
+
+If the notification created by the other client's edit arrives before we finalize our edit then 
+the NotificationEditOption process (Cancel or Merge) kicks in. 
+
+However, what happens if the Notification arrives after we Finalize our Edit (which makes the 
+SaveEditAsymc() call) to do an update on the service side? We wait for the update to fail, 
+swallow the error and proceed based on the NotificationEditOption.
+
+
+** Using Notifications ** 
+Add and initialize INotificationSvc NotificationSvc property to your implementing ViewModel. 
+In your constructor, add a subscription:
+    this.WhenAnyValue(x => x.NotificationSvc.Notification)
+        .Where(x => x.PayloadId.Equals(Id)) // Remember we reflect Data.Id to ViewModel.Id by default
+        .Subscribe(x => UpdateFromNotification(x.Payload));
+
+ */
+
+
 public enum ItemViewModelBaseState
 {
     New,
@@ -14,14 +89,27 @@ public enum ItemViewModelBaseState
     Deleted
 }
 
-public interface IItemViewModelBase
+public enum INotificationEditOption
+{
+    Cancel, // default
+    Merge
+}
+
+public interface IItemViewModelBase<TModel>
 {
     public string? Id { get; set; }
+    public TModel? Data { get; set; }
+    public TModel? DataCopy { get; set; }
+    public TModel? NotificationData { get; set; }
     public ItemViewModelBaseState State { get; set; }
+    public INotificationEditOption NotificationEditOption { get; set; } 
+    public bool NotificationReceived { get; set; }  
+   
     public Task<(bool, string)> CreateAsync();
     public Task<(bool, string)> ReadAsync(string id);
     public Task<(bool, string)> ReadAsync();
     public Task<(bool, string)> UpdateAsync();
+    public Task UpdateFromNotification(string payloadData, string payloadAction, long payloadCreatedAt, long dataUpdatedAt);
     public Task<(bool, string)> SaveEditAsync();
     public Task<(bool, string)> DeleteAsync(); 
     public Task<(bool, string)> CancelEditAsync();
@@ -30,13 +118,11 @@ public interface IItemViewModelBase
     public bool CanUpdate { get; set; }    
     public bool CanDelete { get; set; } 
     public bool IsLoaded { get; set; }  
-    public bool ActiveEdit { get; set; }    
-    public bool DataCopied { get; set; }
     public bool IsNew { get; }
     public bool IsEdit { get; }
     public bool IsCurrent { get; }
     public bool IsDeleted { get; }
- 
+
 
 }
 
@@ -46,18 +132,18 @@ public interface IItemViewModelBase
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
 /// <typeparam name="TParent">ParentViewModel Type</typeparam>
-public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBase
+public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBase<TModel>
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new()
 {
     public ItemViewModelBase()
     {
         CanCreate = true;
-        CanRead= true;
-        CanUpdate= true;
-        CanDelete= true;
+        CanRead = true;
+        CanUpdate = true;
+        CanDelete = true;
         IsLoaded = false;
-        ActiveEdit= false;
+        // ActiveEdit = false;
 
         this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.New)
             .ToPropertyEx(this, x => x.IsNew);
@@ -76,7 +162,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     public IAuthProcess? AuthProcess { get; set; }
     [Reactive] public TModel? Data { get; set; }
     [Reactive] public TModel? DataCopy { get; set; }
+    [Reactive] public TModel? NotificationData { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
+    public INotificationEditOption NotificationEditOption {get; set; }
+    [Reactive] public bool NotificationReceived { get; set; }
     public virtual string? Id
     {
         get { return (Data == null) ? string.Empty : Data.Id; }
@@ -95,8 +184,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     [Reactive] public bool CanUpdate { get; set; }
     [Reactive] public bool CanDelete { get; set; }
     [Reactive] public bool IsLoaded { get; set; }
-    [Reactive] public bool ActiveEdit { get; set; }
-    [Reactive] public bool DataCopied { get; set; }
+    [Reactive] public long LastNotificationTick { get; set; }
+    [Reactive] public bool IsMerge { get; set; }
     [ObservableAsProperty] public bool IsNew { get; }
     [ObservableAsProperty] public bool IsEdit { get; }
     [ObservableAsProperty] public bool IsCurrent { get; }
@@ -106,6 +195,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         try
         {
+            if (!CanCreate)
+                throw new Exception("Create not authorized");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -141,6 +233,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         try
         {
+            if (!CanRead) 
+                throw new Exception("Read not authorized");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -165,6 +260,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         try
         {
+            if (!CanRead)
+                throw new Exception("Read not authorized.");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -190,6 +288,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         try
         {
+            if (!CanUpdate) 
+                throw new Exception("Update not autorized");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -219,10 +320,106 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
+    public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long payLoadCreatedAt, long dataUpdatedAt)
+    {
+        /*
+            
+        */
+        Console.WriteLine($"Item Notification: {this.GetType()} {payloadAction} {payloadData}");
+
+        if (State != ItemViewModelBaseState.Edit && State != ItemViewModelBaseState.Current)
+            return;
+
+        if (payLoadCreatedAt <= LastNotificationTick)
+        {
+            Console.WriteLine("skipping: payLoadCreatedAt <= LastNotificationsTick");
+            return;
+        }
+
+        if (dataUpdatedAt >= LastNotificationTick)
+        {
+            Console.WriteLine("skipping: dataUpdatedAt >= LastNotificationTick");
+            return;
+        }
+
+        LastNotificationTick = payLoadCreatedAt;
+
+        try
+        {
+            var dataObj = JsonConvert.DeserializeObject<TDTO>(payloadData);
+            if (dataObj == null)
+            {
+                Console.WriteLine("dataObj is null");
+                return;
+            }
+
+            if(State == ItemViewModelBaseState.Current)
+            {
+                if (payloadAction.Equals("Delete"))
+                {
+                    Console.WriteLine("State == Current && Action == Delete - not handled");
+                    return; // this action is handled at the ItemsViewModel level
+                }
+                dataObj.DeepCloneTo(Data!);
+                NotificationReceived = true; // Fires off event in case we want to inform the user an update occurred
+                Console.WriteLine("Data object updated from dataObj");
+                return;
+            }
+
+            if(State == ItemViewModelBaseState.Edit)
+            {
+                if(payloadAction.Equals("Delete"))
+                {
+                    Console.WriteLine("State == Edit && Action == Delete");
+                    await CancelEditAsync();
+                    return; // The actual delete is handled at the ItemsViewModel level
+                }
+
+                switch(NotificationEditOption)
+                {
+                    case INotificationEditOption.Cancel:
+                        Console.WriteLine("State == Edit && Action == Cancel");
+                        await CancelEditAsync();
+                        dataObj.DeepCloneTo(Data!);
+                        await OpenEditAsync();
+                        break;
+
+                    case INotificationEditOption.Merge:
+                        Console.WriteLine("State == Edit && Action == Merge");
+                        dataObj.DeepCloneTo(NotificationData!);
+                        IsMerge = true;
+                        break;
+                    default:
+                        return;
+
+                }
+            }
+        } catch (Exception ex) 
+        { 
+        
+        }
+    }
+    public virtual (bool, string) UpdateFromJson(string json)
+    {
+        try
+        {
+            var item = JsonConvert.DeserializeObject<TDTO>(json);
+            item.DeepCloneTo(Data!);
+            return (true, string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
+        }
+    }
+
     public virtual async Task<(bool,string)> DeleteAsync(string Id)
     {
         try
         {
+            if (!CanDelete)
+                throw new Exception("Delete not autorized.");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -250,6 +447,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         try
         {
+            if (!CanDelete) 
+                throw new Exception("Delete not authorized");
+
             if (AuthProcess == null)
                 throw new Exception("AuthProcess not assigned");
 
@@ -273,22 +473,12 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual Task OpenEditAsync(bool copyData = true)
+    public virtual Task OpenEditAsync()
     {
-        ActiveEdit = true;
         if(State != ItemViewModelBaseState.New)
             State = ItemViewModelBaseState.Edit;
-        if (copyData)
-        {
-            DataCopy ??= new();
-            Data.DeepCloneTo(DataCopy);
-            DataCopied = true;
-        }
-        else
-        {
-            DataCopy = null;
-            DataCopied = false;
-        }
+        DataCopy ??= new();
+        Data.DeepCloneTo(DataCopy);
         return Task.CompletedTask;
     }
     public virtual async Task<(bool,string)> SaveEditAsync()
@@ -300,8 +490,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                 ? await CreateAsync()
                 : await UpdateAsync();
 
-            ActiveEdit= false;
             State = ItemViewModelBaseState.Current;
+            IsMerge = false;
+            IsLoaded = true;
 
             return (success, msg);
         } 
@@ -312,36 +503,18 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     }
     public virtual async Task<(bool,string)> CancelEditAsync()
     {
-        if (!ActiveEdit)
+        await Task.Delay(0);
+        if (State != ItemViewModelBaseState.Edit && State != ItemViewModelBaseState.New)
             return (false, Log(MethodBase.GetCurrentMethod()!, "No Active Edit"));
 
-        ActiveEdit = false;
         State = (IsLoaded) ? ItemViewModelBaseState.Current : ItemViewModelBaseState.New;
 
-        if (DataCopied)
-        {
+        if (IsMerge)
+            NotificationData.DeepCloneTo(Data);
+        else
             DataCopy.DeepCloneTo(Data);
-            DataCopied = false;
-            return (true,String.Empty);
-        }
-        try
-        {
-            if (IsLoaded)
-            {
-                if (SvcReadIdAsync != null)
-                {
-                    var data = await SvcReadIdAsync(Data!.Id!);
-                }
-                else if (SvcReadAsync != null)
-                {
-                    var data = await SvcReadAsync();
-                }
-            }
-            return (true,String.Empty); 
-        } catch (Exception ex) 
-        {
-            return (false, Log(MethodBase.GetCurrentMethod()!,ex.Message)); 
-        }
+        IsMerge= false;
+        return (true,String.Empty);
     }
     public virtual bool Validate()
     {
