@@ -97,14 +97,27 @@ public enum INotificationEditOption
 
 public interface IItemViewModelBase<TModel>
 {
+    public string UpdateTickField { get; set; }
     public string? Id { get; set; }
     public TModel? Data { get; set; }
     public TModel? DataCopy { get; set; }
     public TModel? NotificationData { get; set; }
     public ItemViewModelBaseState State { get; set; }
     public INotificationEditOption NotificationEditOption { get; set; } 
-    public bool NotificationReceived { get; set; }  
-   
+    public bool NotificationReceived { get; set; }
+    public bool CanCreate { get; set; }
+    public bool CanRead { get; set; }
+    public bool CanUpdate { get; set; }
+    public bool CanDelete { get; set; }
+    public bool IsLoaded { get; set; }
+    public long LastNotificationTick { get; set; }
+    public bool IsMerge { get; set; }
+    public long UpdateCount { get; set; }
+    public bool IsNew { get; }
+    public bool IsEdit { get; }
+    public bool IsCurrent { get; }
+    public bool IsDeleted { get; }
+
     public Task<(bool, string)> CreateAsync();
     public Task<(bool, string)> ReadAsync(string id);
     public Task<(bool, string)> ReadAsync();
@@ -113,15 +126,6 @@ public interface IItemViewModelBase<TModel>
     public Task<(bool, string)> SaveEditAsync();
     public Task<(bool, string)> DeleteAsync(); 
     public Task<(bool, string)> CancelEditAsync();
-    public bool CanCreate { get; set; }
-    public bool CanRead { get; set; }   
-    public bool CanUpdate { get; set; }    
-    public bool CanDelete { get; set; } 
-    public bool IsLoaded { get; set; }  
-    public bool IsNew { get; }
-    public bool IsEdit { get; }
-    public bool IsCurrent { get; }
-    public bool IsDeleted { get; }
 
 
 }
@@ -156,21 +160,33 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
         this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.Deleted)
             .ToPropertyEx(this, x => x.IsDeleted);
-
     }
 
     public IAuthProcess? AuthProcess { get; set; }
+    public string UpdateTickField { get; set; } = "UpdatedAt";
+    public virtual string? Id
+    {
+        get { return (Data == null) ? string.Empty : Data.Id; }
+        set { if (Data != null) Data.Id = value; }
+    }
     [Reactive] public TModel? Data { get; set; }
     [Reactive] public TModel? DataCopy { get; set; }
     [Reactive] public TModel? NotificationData { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
     public INotificationEditOption NotificationEditOption {get; set; }
     [Reactive] public bool NotificationReceived { get; set; }
-    public virtual string? Id
-    {
-        get { return (Data == null) ? string.Empty : Data.Id; }
-        set { if(Data != null) Data.Id = value; }
-    }
+    [Reactive] public bool CanCreate { get; set; }
+    [Reactive] public bool CanRead { get; set; }
+    [Reactive] public bool CanUpdate { get; set; }
+    [Reactive] public bool CanDelete { get; set; }
+    [Reactive] public bool IsLoaded { get; set; }
+    [Reactive] public long LastNotificationTick { get; set; }
+    [Reactive] public bool IsMerge { get; set; }
+    [Reactive] public virtual long UpdateCount { get; set; }
+    [ObservableAsProperty] public bool IsNew { get; }
+    [ObservableAsProperty] public bool IsEdit { get; }
+    [ObservableAsProperty] public bool IsCurrent { get; }
+    [ObservableAsProperty] public bool IsDeleted { get; }
 
     protected Func<TDTO, Task<TDTO>>? SvcCreateAsync;
     protected Func<string, Task<TDTO>>? SvcReadIdAsync;
@@ -179,17 +195,28 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     protected Func<string, Task>? SvcDeleteIdAsync;
     protected Func<Task<TDTO>>? SvcDeleteAsync;
 
-    [Reactive] public bool CanCreate { get; set; }
-    [Reactive] public bool CanRead { get; set; }
-    [Reactive] public bool CanUpdate { get; set; }
-    [Reactive] public bool CanDelete { get; set; }
-    [Reactive] public bool IsLoaded { get; set; }
-    [Reactive] public long LastNotificationTick { get; set; }
-    [Reactive] public bool IsMerge { get; set; }
-    [ObservableAsProperty] public bool IsNew { get; }
-    [ObservableAsProperty] public bool IsEdit { get; }
-    [ObservableAsProperty] public bool IsCurrent { get; }
-    [ObservableAsProperty] public bool IsDeleted { get; }
+    /// <summary>
+    /// This method uses Reflection to look for a long value 
+    /// in the field specified by the UpdateTickField property. 
+    /// If you don't want the overhead of Reflection or are 
+    /// not passing the datetime values as a long, just override 
+    /// this method to get the long value of the datetime UTC Ticks
+    /// of the lupdate datetime from the data object.
+    /// </summary>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    public virtual long ExtractUpdatedTick(object? d)
+    {
+        if (d is null) 
+            return 0;
+        if(string.IsNullOrEmpty(UpdateTickField)) 
+            return 0;
+        Type type = d.GetType();    
+        var propertyInfo = type.GetProperty(UpdateTickField);
+        if (propertyInfo == null)
+            return 0;
+        return (long)propertyInfo.GetValue(d, null)!;
+    }
 
     public virtual async Task<(bool, string)> CreateAsync()
     {
@@ -219,8 +246,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             var item = (TDTO)Data; 
 
             item = await SvcCreateAsync(item!);
-            item.DeepCloneTo(Data);
-
+            UpdateData(item);
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
@@ -246,7 +272,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                 throw new Exception("SvcReadAsync not assigned.");
 
             var item = await SvcReadIdAsync(id);
-            item.DeepCloneTo(Data!);
+            UpdateData(item);
+            LastNotificationTick = ExtractUpdatedTick(Data);
             Id = id;
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
@@ -274,7 +301,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
 
             var item = await SvcReadAsync();
-            item.DeepCloneTo(Data!);
+            UpdateData(item);
+            LastNotificationTick = ExtractUpdatedTick(Data);
             Id = Data!.Id;
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
@@ -311,7 +339,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
             var item = (TDTO)Data!;
             item = await SvcUpdateAsync(item);
-            item.DeepCloneTo(Data!);
+            UpdateData(item);
+            LastNotificationTick = ExtractUpdatedTick(Data);
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
@@ -320,29 +349,29 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long payLoadCreatedAt, long dataUpdatedAt)
+    public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long payloadCreatedAt, long dataUpdatedAt)
     {
         /*
-            
+            LastNotificationTick holds the datetime of the last read or notification processed 
+            payloadCreatedAt holds the datetime of the update time of the payload contained in the notificiation 
+            dataUpdatedAt is the updated datetime of the current data 
         */
         Console.WriteLine($"Item Notification: {this.GetType()} {payloadAction} {payloadData}");
+        Console.WriteLine($"     payloadCreatedAt: {payloadCreatedAt}");
+        Console.WriteLine($"        dataUpdatedAt: {dataUpdatedAt}");
+        Console.WriteLine($"LastNotificationsTick: {LastNotificationTick}");
+        Console.WriteLine($"payLoadCreatedAt - dataUpdatedAt {payloadCreatedAt - dataUpdatedAt}");
 
         if (State != ItemViewModelBaseState.Edit && State != ItemViewModelBaseState.Current)
             return;
 
-        if (payLoadCreatedAt <= LastNotificationTick)
+        if (payloadCreatedAt <= LastNotificationTick)
         {
             Console.WriteLine("skipping: payLoadCreatedAt <= LastNotificationsTick");
             return;
         }
 
-        if (dataUpdatedAt >= LastNotificationTick)
-        {
-            Console.WriteLine("skipping: dataUpdatedAt >= LastNotificationTick");
-            return;
-        }
-
-        LastNotificationTick = payLoadCreatedAt;
+        LastNotificationTick = payloadCreatedAt;
 
         try
         {
@@ -360,7 +389,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     Console.WriteLine("State == Current && Action == Delete - not handled");
                     return; // this action is handled at the ItemsViewModel level
                 }
-                dataObj.DeepCloneTo(Data!);
+                UpdateData(dataObj);
+                LastNotificationTick = ExtractUpdatedTick(Data);
                 NotificationReceived = true; // Fires off event in case we want to inform the user an update occurred
                 Console.WriteLine("Data object updated from dataObj");
                 return;
@@ -380,13 +410,15 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     case INotificationEditOption.Cancel:
                         Console.WriteLine("State == Edit && Action == Cancel");
                         await CancelEditAsync();
-                        dataObj.DeepCloneTo(Data!);
+                        UpdateData(dataObj);
+                        LastNotificationTick = ExtractUpdatedTick(Data);
                         await OpenEditAsync();
                         break;
 
                     case INotificationEditOption.Merge:
                         Console.WriteLine("State == Edit && Action == Merge");
-                        dataObj.DeepCloneTo(NotificationData!);
+                        UpdateData(dataObj);    
+                        LastNotificationTick = ExtractUpdatedTick(Data);
                         IsMerge = true;
                         break;
                     default:
@@ -398,18 +430,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         { 
         
         }
-    }
-    public virtual (bool, string) UpdateFromJson(string json)
-    {
-        try
+        finally
         {
-            var item = JsonConvert.DeserializeObject<TDTO>(json);
-            item.DeepCloneTo(Data!);
-            return (true, string.Empty);
-        }
-        catch (Exception ex)
-        {
-            return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
+            UpdateCount++;
         }
     }
 
@@ -521,4 +544,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         return true;
     }
 
+    protected void UpdateData(TDTO item)
+    {
+        item.DeepCloneTo(Data!);
+        this.RaisePropertyChanged(nameof(Data));
+        
+    }
 }

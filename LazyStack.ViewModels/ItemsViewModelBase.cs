@@ -82,7 +82,8 @@ public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase
     [Reactive] public long LastLoadTick { get; set; }
     [Reactive] public bool CanList { get; set; }
     [Reactive] public bool CanAdd { get; set; }
-    [Reactive] public long NotificationLastTick { get; set; }   
+    [Reactive] public long NotificationLastTick { get; set; }
+    [Reactive] public virtual long UpdateCount { get; set; }
 
     public virtual async Task<(bool,string)> CancelCurrentViewModelEditAsync()
     {
