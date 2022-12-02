@@ -37,6 +37,8 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
     /// </summary>
     protected static string propNameUpdateUtcTick = "UpdateUtcTick";
 
+    public string PayloadId { get; set; }   = string.Empty; 
+
     private T _entityInstance;
     public T EntityInstance
     {

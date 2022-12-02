@@ -150,7 +150,7 @@ public abstract
         var result = await CreateEAsync(data, table, useCache);
         if (result.Result is not null)
             return result.Result;
-
+        payloadId= payloadId ?? result.Value.PayloadId;
         await CreateNotification(topicId, payloadParentId, payloadId, JsonConvert.SerializeObject(data), result.Value.TypeName, "Create", result.Value.CreateUtcTick, table);
 
         return result.Value.EntityInstance;
@@ -278,7 +278,7 @@ public abstract
             return result.Result;
         return result.Value.EntityInstance;
     }
-    public virtual async Task<ActionResult<T>> UpdateNAsync(string topicId, string? payloadParentId, string payloadId, T data, string table = null)
+    public virtual async Task<ActionResult<T>> UpdateNAsync(string topicId, string payloadParentId, string payloadId, T data, string table = null)
     {
         var result = await UpdateEAsync(data, table);
         if (result.Result is not null)
@@ -327,7 +327,7 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(406); }
     }
-    public virtual async Task<StatusCodeResult> DeleteNAsync(string topicId, string payloadParentId, string payloadId, string pK, string sK = null, string table = null)
+    public virtual async Task<StatusCodeResult> DeleteNAsync(string topicId, string? payloadParentId, string? payloadId, string pK, string sK = null, string table = null)
     {
         if (string.IsNullOrEmpty(table))
             table = tablename;

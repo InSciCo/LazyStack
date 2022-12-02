@@ -34,6 +34,8 @@ public interface IDataEnvelope<T>
     /// </summary>
     string TypeName { get; set; }
 
+    string PayloadId { get; set; }  
+
     /// <summary>
     /// Partition Key
     /// </summary>
