@@ -6,6 +6,7 @@ using Amazon.Runtime.Internal.Transform;
 using System.Linq;
 using System;
 using Newtonsoft.Json;
+using System.Collections.Specialized;
 
 namespace LazyStack.ViewModels;
 /*
@@ -42,7 +43,7 @@ In your constructor, add a subscription:
 */
 
 
-public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase
+public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCollectionChanged
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new() 
     where TVM : class, IItemViewModelBase<TModel>
@@ -69,6 +70,9 @@ public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase
     }
     [Reactive] public TVM? LastViewModel { get; set; }
     protected int changeCount;
+
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
     public bool IsChanged 
     {
         get { return changeCount > 0; }
