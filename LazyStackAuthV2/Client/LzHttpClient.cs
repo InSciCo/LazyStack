@@ -23,10 +23,10 @@ namespace LazyStackAuthV2;
 public class LzHttpClient : NotifyBase, ILzHttpClient
 {
     public LzHttpClient(
-        IStackConfig stackConfig,
+        IStackConfig stackConfig, // servcie connection info
         IMethodMapWrapper methodMap, // map of methods to api endpoints
-        IAuthProvider authProvider,
-        ILzHost lzHost
+        IAuthProvider authProvider, // Auth service. ex: AuthProviderCognito
+        ILzHost lzHost // Runtime environment. IsMAUI, IsWASM, BaseURL etc.
         )
     {
         this.stackConfig = stackConfig; 
