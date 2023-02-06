@@ -185,7 +185,6 @@
     private Color btnColor = Color.Secondary;
     private string btnClass = "m-2 col-6 col-sm-4 col-md-2 col-lg-2 col-xl-2 col-xxl-1";
     private string fieldClass = "m-2 col-10 col-sm-8 col-md-6 col-lg-4 col-xl-3 col-xxl-2";
-    private int minWidth = 2;
     private int renderCount = 0;
     private bool cancelButtonDisabled = false;
     const KeyboardEventArgs emptyKeyboardEventArgs = null;
@@ -210,7 +209,7 @@
             try
             {
                 cancelButtonDisabled = true;
-                var currentChallenge = ViewModel.CurrentChallenge;
+                var currentChallenge = ViewModel!.CurrentChallenge;
                 await step();
                 //if(currentChallenge != authProcess.CurrentChallenge)
                 //    await mediator.Publish(new LzAuthStateChanged());

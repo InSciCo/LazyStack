@@ -24,6 +24,17 @@
     </Select>
 </Field>
 
+<Field>
+    <FieldLabel>Tenant</FieldLabel>
+    <Select TValue="string"
+        @bind-SelectedValue="@ViewModel!.RunConfig.Tenant">
+        @foreach(var item in ViewModel.Tenants)
+        {
+            <SelectItem Value="@item.Key">@item.Key</SelectItem>
+        }
+    </Select>
+</Field>
+
 @code {
     // Using Direct Binding to Model instance in ViewModel
     // This is perhaps the most trival use-case possible because:

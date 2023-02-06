@@ -13,26 +13,34 @@ namespace LazyStackAuthV2;
 /// It is not an HttClient, instead it services SendAsync() calls made from the *SvcClientSDK and 
 /// dispatches these calls to cached HttpClient(s) configured for each API. This allows each 
 /// endpoint to be separately configured for security etc.
+/// 
 /// Note that we do not support AwsSignatureVersion4 in this class. .NET doesn't have the required
 /// crypto libs necessary to implement this in WASM. We will add it back in when they fix this.
 /// If we need it sooner, we can use preprocessor directives to make it available in MAUI targets.
+/// TODO: Merge in AwsSignatureVeersion4 support now that .NET7 supports the Crypto libs.
+/// 
 /// </summary>
 public class LzHttpClient : ILzHttpClient
 {
     public LzHttpClient(
         IStackConfig stackConfig,
         IMethodMapWrapper methodMap, // map of methods to api endpoints
-        IAuthProvider authProvider)
+        IAuthProvider authProvider,
+        ILzHost lzHost
+        )
     {
         this.stackConfig = stackConfig;
         this.methodMap = methodMap; // map of methods to api endpoints
         this.authProvider = authProvider;
+        this.lzHost= lzHost;
     }
     private IStackConfig stackConfig;
     private RunConfig runConfig { get { return stackConfig.RunConfig; } }
     private ServiceConfig svcConfig { get { return stackConfig.ServiceConfig; } }
+    private ITenantConfig tentantConfig { get { return stackConfig.TenantConfig; } }
     private IMethodMapWrapper methodMap;
     private IAuthProvider authProvider;
+    private ILzHost lzHost; 
     private Dictionary<string, HttpClient> httpClients = new();
     private Dictionary<string, Api> Apis = new();
 
@@ -52,17 +60,25 @@ public class LzHttpClient : ILzHttpClient
 
         var securityLevel = apiEndpoint.SecurityLevel;
 
+        // Where do we make the API call?
+        // Config.Apis	    WASM				MAUI
+        // CloudFront       LzHost.URL          RunConfig.BaseURL
+        // ApiGateway       RunConfig.BaseURL   RunConfig.BaseURL
+        // Local            RunConfig.BaseURL   RunConfig.BaseURL
+        // LocalAndriod     RunConfig.BaseRUL   RunConfig.BaseURL
+
         var apiskey = runConfig.Apis;
         var isLocal = apiskey == "Local";
-#if ANDROID
-       if(apiskey == "Local") 
+
+       if(lzHost.IsAndroid && apiskey == "Local") 
             apiskey = "LocalAndroid";
-#endif
 
         string baseUrl = "";
         try
         {
-            baseUrl = apiEndpoint.ApiUris[apiskey];
+            baseUrl = (apiskey == "CloudFront" && lzHost.IsWASM)
+                ? baseUrl = lzHost.Url
+                : apiEndpoint.ApiUris[apiskey];
         } catch { 
             throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} value not supported.");
         }
@@ -70,20 +86,20 @@ public class LzHttpClient : ILzHttpClient
         if (string.IsNullOrEmpty(baseUrl))
             throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} uri value is null or empty.");
 
+        Console.WriteLine($"baseUrl:{baseUrl} lzHost.Url:{lzHost.Url}");
+
         // Create new HttpClient for endpoint if one doesn't exist
         if (!httpClients.TryGetValue(baseUrl, out HttpClient httpclient))
         {
 
-            var isMAUI = false;
-#if ANDROID || WINDOWS || IOS || TZEN || MACOS
-            isMAUI = true;  
-#endif
-            httpclient = isLocal && isMAUI
+            httpclient = isLocal && lzHost.IsMAUI
                 ? new HttpClient(GetInsecureHandler())
                 : new HttpClient();
             httpclient.BaseAddress = new Uri(baseUrl);
             httpClients.Add(baseUrl, httpclient);
         }
+        if (tentantConfig != null && !string.IsNullOrEmpty(runConfig.Tenant) && tentantConfig.Tenants.ContainsKey(runConfig.Tenant))
+            requestMessage.Headers.Add("TenantKey", tentantConfig.Tenants[runConfig.Tenant]);
 
         try
         {
@@ -91,12 +107,20 @@ public class LzHttpClient : ILzHttpClient
             switch (securityLevel)
             {
                 case 0: // No security 
-                    response = await httpclient.SendAsync(
-                        requestMessage,
-                        httpCompletionOption,
-                        cancellationToken);
+                    try
+                    {
+                        response = await httpclient.SendAsync(
+                            requestMessage,
+                            httpCompletionOption,
+                            cancellationToken);
 
-                    return response;
+                        return response;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine($"Error: {callerMemberName} {e.Message}");
+                        return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+                    }
 
                 case 1: // Use JWT Token signing process
                     try
@@ -122,11 +146,12 @@ public class LzHttpClient : ILzHttpClient
                             requestMessage,
                             httpCompletionOption,
                             cancellationToken);
+                        Console.WriteLine(callerMemberName);
                         return response;
                     }
                     catch (Exception e)
                     {
-                        Debug.WriteLine($"Error: {e.Message}");
+                        Debug.WriteLine($"Error: {callerMemberName} {e.Message}");
                         return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
                     }
                 case 2:
