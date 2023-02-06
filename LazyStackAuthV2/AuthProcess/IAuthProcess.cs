@@ -134,6 +134,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
 
 
     // Methods
+    public Task<AuthEventEnum> Verify(); 
     public Task<AuthEventEnum> VerifyLoginAsync();
     public Task<AuthEventEnum> VerifyNewLoginAsync();
     public Task<AuthEventEnum> VerifyPasswordAsync(); // Happy Path Challenge: Code (optional)
@@ -144,18 +145,26 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public Task<AuthEventEnum> VerifyNewPhoneAsync();
     public Task<AuthEventEnum> VerifyCodeAsync();
 
-    public new bool CheckLoginFormat(string login = null);
-    public bool CheckNewLoginFormat(string login = null);
+    public bool CheckFormat();
+    public bool CheckFormat(string? val);
+    public bool CheckLoginFormat();
+    public bool CheckNewLoginFormat();
+    public bool CheckEmailFormat();
+    public bool CheckNewEmailFormat();
+    public bool CheckPasswordFormat();
+    public bool CheckNewPasswordFormat();
+    public bool CheckPhoneFormat();
+    public bool CheckNewPhoneFormat();
+    public bool CheckCodeFormat();
 
-    public new bool CheckEmailFormat(string email = null);
-    public bool CheckNewEmailFormat(string email = null);
-
-    public new bool CheckPasswordFormat(string password = null );
-    public bool CheckNewPasswordFormat(string password = null);
-
-    public new bool CheckPhoneFormat(string phone = null );
-    public bool CheckNewPhoneFormat(string phone = null);
-
-    public new bool CheckCodeFormat(string code = null );
+    public bool CheckLoginFormat(string? login);
+    public bool CheckNewLoginFormat(string? login);
+    public bool CheckEmailFormat(string? email);
+    public bool CheckNewEmailFormat(string? email);
+    public bool CheckPasswordFormat(string? password);
+    public bool CheckNewPasswordFormat(string? password);
+    public bool CheckPhoneFormat(string? phone);
+    public bool CheckNewPhoneFormat(string? phone);
+    public bool CheckCodeFormat(string? code);
 
 }

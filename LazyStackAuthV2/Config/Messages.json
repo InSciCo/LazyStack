@@ -81,7 +81,8 @@
     "AuthComponent_UpdatePhone": "Update Phone",
     "AuthComponent_SignOut": "Sign Out",
     "AuthComponent_ResendCode": "Resend Code",
-    "AuthComponent_Cancel":  "Cancel"
+    "AuthComponent_Cancel": "Cancel",
+    "AuthComponent_Next":  "Next"
   }
 }
  

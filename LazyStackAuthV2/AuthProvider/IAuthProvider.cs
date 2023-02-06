@@ -87,4 +87,5 @@ public interface IAuthProvider
 
     public Task<Creds> GetCredsAsync();
     public Task<string> GetJWTAsync();
+
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +7,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Linq;
+using AwsSignatureVersion4.Private;
 
 // Code Naming Conventions
 // Property backing fields start with _ ex: _authProvider
@@ -295,8 +297,10 @@ public class AuthProcess : NotifyBase, IAuthProcess
         get { return _IsBusy; }
         set
         {
+            var diff = _IsBusy != value;
             SetProperty(ref _IsBusy, value);
-            IsLongBusy = _IsBusy && _authProvider.IsChallengeLongWait;
+            if(diff)
+                RaisePropertyChanged(nameof(IsNotBusy));
         }
     }
     public bool IsNotBusy { get { return !_IsBusy; } }
@@ -305,8 +309,13 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool IsLongBusy
     {
         get { return _IsLongBusy; }
-        set { SetProperty(ref _IsLongBusy, value); }
-    }
+        set { 
+            var diff = _IsLongBusy != value;
+            SetProperty(ref _IsLongBusy, value);
+            if(diff)
+                RaisePropertyChanged(nameof(IsNotLongBusy));
+        }
+    } 
 
     public bool IsNotLongBusy => !IsLongBusy;
 
@@ -458,24 +467,120 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     public async Task<AuthEventEnum> ClearAsync() => await Execute(_authProvider.ClearAsync);
 
-    public async Task<AuthEventEnum> CancelAsync() { ClearSensitiveFields(); return await Execute(_authProvider.CancelAsync); }
+    public async Task<AuthEventEnum> CancelAsync() { 
+        ClearSensitiveFields(); 
+        var result = await _authProvider.CancelAsync();
+        await RaiseAuthModuleEventAndProperties(result);
+        return result;
+    }
 
     public async Task<AuthEventEnum> SignOutAsync() { ClearSensitiveFields(); return await Execute(_authProvider.SignOutAsync); }
-
     public async Task<AuthEventEnum> StartSignInAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartSignInAsync); }
-
     public async Task<AuthEventEnum> StartSignUpAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartSignUpAsync); }
-
     public async Task<AuthEventEnum> StartResetPasswordAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartResetPasswordAsync); }
-
     public async Task<AuthEventEnum> StartUpdateLoginAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdateLoginAsync); }
-
     public async Task<AuthEventEnum> StartUpdateEmailAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdateEmailAsync); }
-
     public async Task<AuthEventEnum> StartUpdatePhoneAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdatePhoneAsync); }
-
     public async Task<AuthEventEnum> StartUpdatePasswordAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdatePasswordAsync); }
+    public async Task<AuthEventEnum> Verify()
+    {
+        var verifyResult = AuthEventEnum.Alert;
+        switch(CurrentChallenge)
+        {
+            case AuthChallengeEnum.None:
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
 
+            case AuthChallengeEnum.Login:
+                if (!CheckLoginFormat(Login))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyLoginAsync, Login);
+
+            case AuthChallengeEnum.NewLogin:
+                if (!CheckNewLoginFormat(NewLogin))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyNewLoginAsync, NewLogin);
+                return verifyResult;
+
+            case AuthChallengeEnum.Email:
+                if (!CheckEmailFormat(Email))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyEmailAsync, Email);
+
+            case AuthChallengeEnum.NewEmail:
+                if (!CheckNewEmailFormat(NewEmail))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyNewEmailAsync, NewEmail);
+
+            case AuthChallengeEnum.Phone:
+                if (!CheckPhoneFormat(Phone))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyPhoneAsync, Phone);
+
+            case AuthChallengeEnum.NewPhone:
+                if (!CheckNewPhoneFormat(NewPhone))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyNewPhoneAsync, NewPhone);
+
+            case AuthChallengeEnum.Password:
+                if (!CheckPasswordFormat(Password))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyPasswordAsync, Password);
+
+            case AuthChallengeEnum.NewPassword:
+                if (!CheckNewPasswordFormat(NewPassword))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
+
+            case AuthChallengeEnum.Code:
+                if (!CheckCodeFormat(Code))
+                    return AuthEventEnum.Alert_NotConfirmed;
+                return await Execute(_authProvider.VerifyCodeAsync, Code);
+
+            default:
+                return AuthEventEnum.Alert_NothingToDo;
+        }
+    }
+    public async Task<AuthEventEnum> Verify(string val)
+    {
+        switch(CurrentChallenge)
+        {
+            case AuthChallengeEnum.None:
+                return AuthEventEnum.Alert_VerifyCalledButNoChallengeFound;
+            case AuthChallengeEnum.Login:
+                Login = val;
+                return await Verify();
+            case AuthChallengeEnum.NewLogin:
+                NewLogin = val;
+                return await Verify();
+
+            case AuthChallengeEnum.Email:
+                Email = val;    
+                return await Verify();
+            case AuthChallengeEnum.NewEmail:
+                NewEmail = val; 
+                return await Verify();
+
+            case AuthChallengeEnum.Phone:
+                Phone = val;    
+                return await Verify();
+            case AuthChallengeEnum.NewPhone:
+                NewPhone = val;
+                return await Verify();
+
+            case AuthChallengeEnum.Password:
+                Password = val; 
+                return await Verify();
+            case AuthChallengeEnum.NewPassword:
+                NewPassword = val;
+                return await Verify();
+
+            case AuthChallengeEnum.Code:
+                Code = val;
+                return await Verify();
+            default:
+                return AuthEventEnum.Alert_NothingToDo;
+        }
+    }
     public async Task<AuthEventEnum> VerifyLoginAsync() => await Execute(_authProvider.VerifyLoginAsync, Login);
     public async Task<AuthEventEnum> VerifyLoginAsync(string login)
     {
@@ -496,7 +601,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
         _password = password;
         return await Execute(_authProvider.VerifyPasswordAsync, Password);
     }
-
     public async Task<AuthEventEnum> VerifyNewPasswordAsync() => await Execute(_authProvider.VerifyNewPasswordAsync, NewPassword);
     public async Task<AuthEventEnum> VerifyNewPasswordAsync(string newPassword)
     {
@@ -543,7 +647,87 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     public async Task<AuthEventEnum> RefreshUserDetailsAsync() => await Execute(_authProvider.RefreshUserDetailsAsync);
 
-    public bool CheckLoginFormat(string login = null)
+
+    public bool CheckFormat()
+    {
+        switch(CurrentChallenge)
+        {
+            case AuthChallengeEnum.None:
+                return false;
+            case AuthChallengeEnum.Login:
+                return CheckLoginFormat();
+            case AuthChallengeEnum.NewLogin:
+                return CheckNewLoginFormat();
+            case AuthChallengeEnum.Email:
+                return CheckEmailFormat();
+            case AuthChallengeEnum.NewEmail:
+                return CheckNewEmailFormat();
+            case AuthChallengeEnum.Phone:
+                return CheckPhoneFormat();
+            case AuthChallengeEnum.NewPhone:
+                return CheckNewPhoneFormat();
+            case AuthChallengeEnum.Password:
+                return CheckPasswordFormat();
+            case AuthChallengeEnum.NewPassword:
+                return CheckNewPasswordFormat();
+            case AuthChallengeEnum.Code:
+                return CheckCodeFormat();   
+            default:
+                return false;
+        }
+    }
+
+    public bool CheckFormat(string val)
+    {
+        switch(CurrentChallenge)
+        {
+            case AuthChallengeEnum.None:
+                return false;
+            case AuthChallengeEnum.Login:
+                Login = val;
+                return CheckFormat();
+            case AuthChallengeEnum.NewLogin:
+                NewLogin = val;
+                return CheckFormat();
+            case AuthChallengeEnum.Email:
+                Email = val;    
+                return CheckFormat();
+            case AuthChallengeEnum.NewEmail:
+                NewEmail = val;
+                return CheckFormat();
+            case AuthChallengeEnum.Phone:
+                Phone= val;
+                return CheckFormat();
+            case AuthChallengeEnum.NewPhone:
+                NewPhone = val;
+                return CheckFormat();
+            case AuthChallengeEnum.Password:
+                Password= val;  
+                return CheckFormat();
+            case AuthChallengeEnum.NewPassword:
+                NewPassword = val;
+                return CheckFormat();
+            case AuthChallengeEnum.Code:
+                Code = val; 
+                return CheckFormat();
+            default:
+                return false;
+        }
+    }
+    public bool CheckLoginFormat() => CheckLoginFormat(null);
+
+    public bool CheckNewLoginFormat() => CheckNewLoginFormat(null);
+
+    public bool CheckPasswordFormat() => CheckPasswordFormat(null);
+
+    public bool CheckNewPasswordFormat() => CheckPasswordFormat(null);
+    public bool CheckEmailFormat() => CheckEmailFormat(null);
+    public bool CheckNewEmailFormat() => CheckNewEmailFormat(null);
+    public bool CheckPhoneFormat() => CheckPhoneFormat(null);
+    public bool CheckNewPhoneFormat() => CheckNewPhoneFormat(null);
+    public bool CheckCodeFormat() => CheckCodeFormat(null);
+
+    public bool CheckLoginFormat(string login)
     {
         if (AssignFieldOnCheck && login != null)
             Login = login;
@@ -555,7 +739,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckNewLoginFormat(string login = null)
+    public bool CheckNewLoginFormat(string login)
     {
         if (AssignFieldOnCheck && login != null)
             NewLogin = login;
@@ -567,7 +751,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckPasswordFormat(string password = null)
+    public bool CheckPasswordFormat(string password)
     {
         if (AssignFieldOnCheck && password != null)
             Password = password;
@@ -580,7 +764,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckNewPasswordFormat(string password = null)
+    public bool CheckNewPasswordFormat(string password)
     {
         if (AssignFieldOnCheck && password != null)
             NewPassword = password;
@@ -593,7 +777,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckEmailFormat(string email = null)
+    public bool CheckEmailFormat(string email)
     {
         if (AssignFieldOnCheck && email != null)
             Email = email;
@@ -606,7 +790,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckNewEmailFormat(string email = null)
+    public bool CheckNewEmailFormat(string email)
     {
         if (AssignFieldOnCheck && email != null)
             NewEmail = email;
@@ -619,7 +803,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return result;
     }
 
-    public bool CheckPhoneFormat(string phone = null)
+    public bool CheckPhoneFormat(string phone)
     {
         if (AssignFieldOnCheck && phone != null)
             Phone = phone;
@@ -633,7 +817,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     }
 
-    public bool CheckNewPhoneFormat(string phone = null)
+    public bool CheckNewPhoneFormat(string phone)
     {
         if (AssignFieldOnCheck && phone != null)
             NewPhone = phone;
@@ -647,7 +831,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     }
 
-    public bool CheckCodeFormat(string code = null)
+    public bool CheckCodeFormat(string code)
     {
         if (AssignFieldOnCheck && code != null)
             Code = code;
@@ -671,22 +855,28 @@ public class AuthProcess : NotifyBase, IAuthProcess
         return await _authProvider.GetJWTAsync();
     }
 
-    // Wrap an execution in a IsBusy (IsBusy also sets IsLongBusy depending on AuthProvider  IsChallengeLongWait)
+    // Wrap an execution in a IsBusy
     protected async virtual Task<AuthEventEnum> Execute(Func<Task<AuthEventEnum>> func)
     {
         IsBusy = true;
+        if (IsLongBusy = IsChallengeLongWait) 
+            await Task.Delay(10);
         var result = await func();
         result = await RaiseAuthModuleEventAndProperties(result);
         IsBusy = false;
+        IsLongBusy = false;
         return result;
     }
 
     protected async virtual Task<AuthEventEnum> Execute(Func<string, Task<AuthEventEnum>> func, string arg)
     {
         IsBusy = true;
+        if (IsLongBusy = IsChallengeLongWait) 
+            await Task.Delay(10);
         var result = await func(arg);
-        result = await RaiseAuthModuleEventAndProperties(result);
+        result = await RaiseAuthModuleEventAndProperties(result); 
         IsBusy = false;
+        IsLongBusy = false;
         return result;
     }
 
@@ -708,7 +898,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
     protected async virtual Task<AuthEventEnum> RaiseAuthModuleEventAndProperties(AuthEventEnum r)
     {
         await Task.Delay(0);
-
 
         OnAuthModuleEvent(new AuthModuleEventArgs(r));
         // update alert message
@@ -753,9 +942,13 @@ public class AuthProcess : NotifyBase, IAuthProcess
             ClearSensitiveFields();
         }
 
+        RaisePropertyChanged(nameof(IsSignedIn));
+        RaisePropertyChanged(nameof(IsNotSignedIn));
+
         if (IsChatty) RaiseAllProperties();
         return r;
     }
+
 
     void RaiseAuthModuleEvent(AuthEventEnum r)
     {

@@ -4,14 +4,55 @@ using ReactiveUI;
 using System.Reflection;
 using Amazon.Runtime.Internal.Transform;
 using System.Linq;
+using System;
+using Newtonsoft.Json;
+using System.Collections.Specialized;
 
 namespace LazyStack.ViewModels;
+/*
+Notifications
+This ViewModel class supports INotifications by providing:
+    UpdateFromNotification(string data, string action) -- TDTO object in JSON, Action = Create | Delete
+    [Reactive] bool NotificationReceived - fired when notification received
+
+The INotificationSvc receives Notification updates from a service (either by polling or websocekt).
+Notification:
+    Id - a GUID for each notification
+    TopicId - we subscribe to topics in the INotificationSvc - this selects what notifications we receive from the service
+    UserId - not currently used
+    PayloadParentId - usually the Id field of the payload items parent - normally used by ItemsViewModel subscription
+    PayloadId - usually the Id field from the payload class - normally used by ItemViewModel subscription
+    PayloadType - The name of the class serialized into the Payload data
+    Payload  - JSON string containing serialized instance of PayloadType
+    PayloadAction - Create, Update, Delete. Create and Delete are generally handled by ItemsViewModel. Update is 
+                    generally handled by the ItemViewModel.
+    CreatedAt - datetime utc ticks (store as long)
+  
+** Using Notifications **
+Add and initialize INotificationSvc NotificationSvc property to your implementing ViewModel. 
+Add a ParentId property to your ViewModel. Usually something like string ParentId => ParentViewModel.Id.
+In your constructor, add a subscription:
+    this.WhenAnyValue(x => x.NotificationSvc.Notification)
+        .Where(x => x.PayloadParentId.Equals(ParentId) && x.PayloadAction.Equals("Create"))
+        .Subscribe(x => CreateFromNotification(new viewModel(this, JsonConvert.DeserializeObject<datatype>(x.Payload));
+
+    this.WhenAnyValue(x => x.NotificationSvc.Notification)
+        .Where(x => x.PayloadParentId.Equals(ParentId) && x.PayloadAction.Equals("Delete"))
+        .Subscribe(x => DeleteFromNotification(x.PayloadId);
+
+*/
 
 
-
-public class ItemsViewModelBase<TVM> : LzViewModelBase
-    where TVM : class, IItemViewModelBase
+public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCollectionChanged
+    where TDTO : class, new()
+    where TModel : class, TDTO, IId, new() 
+    where TVM : class, IItemViewModelBase<TModel>
 {
+    public ItemsViewModelBase()
+    {
+        CanList = true;
+        CanAdd = true;
+    }
 
     public string? Id { get; set; }
     public Dictionary<string, TVM> ViewModels { get; set; } = new();
@@ -29,6 +70,9 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
     }
     [Reactive] public TVM? LastViewModel { get; set; }
     protected int changeCount;
+
+    public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
     public bool IsChanged 
     {
         get { return changeCount > 0; }
@@ -40,7 +84,10 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
     }
     [Reactive] public bool IsLoaded { get; set; }
     [Reactive] public long LastLoadTick { get; set; }
-    public bool CanList { get; set; } = true;
+    [Reactive] public bool CanList { get; set; }
+    [Reactive] public bool CanAdd { get; set; }
+    [Reactive] public long NotificationLastTick { get; set; }
+    [Reactive] public virtual long UpdateCount { get; set; }
 
     public virtual async Task<(bool,string)> CancelCurrentViewModelEditAsync()
     {
@@ -87,6 +134,24 @@ public class ItemsViewModelBase<TVM> : LzViewModelBase
         }
 
         return (success,msg);
+    }
+
+
+    public virtual async Task DeleteFromNotification(string payloadId)
+    {
+        if(ViewModels.TryGetValue(payloadId, out var vm))
+        {
+            await vm.DeleteAsync(); // Gives the ItemViewModel a chance to inform the UI that a delete is taking place
+            ViewModels.Remove(payloadId);   
+        }
+        await Task.Delay(0);
+    }
+
+    public virtual async Task CreateFromNotification(TVM vm)
+    {
+        if(!ViewModels.ContainsKey(vm.Id!))
+            ViewModels.Add(vm.Id!, vm);
+        await Task.Delay(0);
     }
 
 }

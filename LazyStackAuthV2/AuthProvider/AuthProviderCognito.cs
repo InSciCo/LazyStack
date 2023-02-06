@@ -198,7 +198,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     return CurrentAuthProcess == AuthProcessEnum.SigningIn;
 
                 case AuthChallengeEnum.Email:
-                    return false;
+                    return true;
 
                 case AuthChallengeEnum.Login:
                     return false;
@@ -212,13 +212,17 @@ public class AuthProviderCognito : IAuthProviderCognito
                 case AuthChallengeEnum.NewPassword:
                     return true;
 
+                case AuthChallengeEnum.Phone:
+                    return true;
+
                 case AuthChallengeEnum.NewPhone:
                     return true;
 
                 case AuthChallengeEnum.None:
                     return false;
+                
             }
-            return true;
+            return false;
         }
     } // will the current challenge do a server roundtrip?
     public string[] FormatMessages { get; private set; }
@@ -288,22 +292,19 @@ public class AuthProviderCognito : IAuthProviderCognito
         CurrentAuthProcess = AuthProcessEnum.None;
 
     }
-    public virtual async Task<AuthEventEnum> ClearAsync()
+    public virtual Task<AuthEventEnum> ClearAsync()
     {
-        await Task.Delay(0);
         InternalClearAsync();
-        return AuthEventEnum.Cleared;
+        return Task.FromResult(AuthEventEnum.Cleared);
     }
-    public virtual async Task<AuthEventEnum> SignOutAsync()
+    public virtual Task<AuthEventEnum> SignOutAsync()
     {
-        await Task.Delay(0);
         InternalClearAsync();
-        return AuthEventEnum.SignedOut;
+        return Task.FromResult(AuthEventEnum.SignedOut);
     }
     // Cancel the currently executing auth process
-    public virtual async Task<AuthEventEnum> CancelAsync()
+    public virtual Task<AuthEventEnum> CancelAsync()
     {
-        await Task.Delay(0);
         switch (CurrentAuthProcess)
         {
             case AuthProcessEnum.None:
@@ -311,26 +312,25 @@ public class AuthProviderCognito : IAuthProviderCognito
             case AuthProcessEnum.SigningUp:
             case AuthProcessEnum.ResettingPassword:
                 InternalClearAsync();
-                return AuthEventEnum.Canceled;
+                return Task.FromResult(AuthEventEnum.Canceled);
 
             default:
                 ClearSensitiveFields();
                 AuthChallengeList.Clear();
                 CurrentAuthProcess = AuthProcessEnum.None;
-                return AuthEventEnum.Canceled;
+                return Task.FromResult(AuthEventEnum.Canceled);
         }
     }
-    public virtual async Task<AuthEventEnum> StartSignInAsync()
+    public virtual Task<AuthEventEnum> StartSignInAsync()
     {
-        await Task.Delay(0);
         if (IsSignedIn)
-            return AuthEventEnum.Alert_AlreadySignedIn;
+            return Task.FromResult(AuthEventEnum.Alert_AlreadySignedIn);
 
         InternalClearAsync();
         CurrentAuthProcess = AuthProcessEnum.SigningIn;
         AuthChallengeList.Add(AuthChallengeEnum.Login);
         AuthChallengeList.Add(AuthChallengeEnum.Password);
-        return AuthEventEnum.AuthChallenge;
+        return Task.FromResult(AuthEventEnum.AuthChallenge);
     }
     public virtual async Task<AuthEventEnum> StartSignUpAsync()
     {
@@ -346,54 +346,47 @@ public class AuthProviderCognito : IAuthProviderCognito
         AuthChallengeList.Add(AuthChallengeEnum.Email);
         return AuthEventEnum.AuthChallenge;
     }
-    public virtual async Task<AuthEventEnum> StartResetPasswordAsync()
+    public virtual Task<AuthEventEnum> StartResetPasswordAsync()
     {
-        await Task.Delay(0);
 
         if (IsSignedIn)
-            return AuthEventEnum.Alert_InvalidOperationWhenSignedIn;
+            return Task.FromResult(AuthEventEnum.Alert_InvalidOperationWhenSignedIn);
 
         CurrentAuthProcess = AuthProcessEnum.ResettingPassword;
 
         AuthChallengeList.Add(AuthChallengeEnum.Login);
         AuthChallengeList.Add(AuthChallengeEnum.NewPassword);
-        return AuthEventEnum.AuthChallenge;
+        return Task.FromResult(AuthEventEnum.AuthChallenge);
 
     }
-    public virtual async Task<AuthEventEnum> StartUpdateLoginAsync()
+    public virtual Task<AuthEventEnum> StartUpdateLoginAsync()
     {
-        await Task.Delay(0);
-        return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
+        return Task.FromResult(AuthEventEnum.Alert_OperationNotSupportedByAuthProvider);
     }
-    public virtual async Task<AuthEventEnum> StartUpdateEmailAsync()
+    public virtual Task<AuthEventEnum> StartUpdateEmailAsync()
     {
-        await Task.Delay(0);
-
         if (!IsSignedIn)
-            return AuthEventEnum.Alert_NeedToBeSignedIn;
+            return Task.FromResult(AuthEventEnum.Alert_NeedToBeSignedIn);
 
         CurrentAuthProcess = AuthProcessEnum.UpdatingEmail;
 
         AuthChallengeList.Add(AuthChallengeEnum.NewEmail);
-        return AuthEventEnum.AuthChallenge;
+        return Task.FromResult(AuthEventEnum.AuthChallenge);
     }
-    public virtual async Task<AuthEventEnum> StartUpdatePhoneAsync()
+    public virtual Task<AuthEventEnum> StartUpdatePhoneAsync()
     {
-        await Task.Delay(0);
-        return AuthEventEnum.Alert_InternalProcessError;
+        return Task.FromResult(AuthEventEnum.Alert_InternalProcessError);
     }
-    public virtual async Task<AuthEventEnum> StartUpdatePasswordAsync()
+    public virtual Task<AuthEventEnum> StartUpdatePasswordAsync()
     {
-        await Task.Delay(0);
-
         if (!IsSignedIn)
-            return AuthEventEnum.Alert_NeedToBeSignedIn;
+            return Task.FromResult(AuthEventEnum.Alert_NeedToBeSignedIn);
 
         CurrentAuthProcess = AuthProcessEnum.UpdatingPassword;
 
         AuthChallengeList.Add(AuthChallengeEnum.Password);
         AuthChallengeList.Add(AuthChallengeEnum.NewPassword);
-        return AuthEventEnum.AuthChallenge;
+        return Task.FromResult(AuthEventEnum.AuthChallenge);
     }
     public virtual async Task<AuthEventEnum> VerifyLoginAsync(string login)
     {
@@ -444,16 +437,14 @@ public class AuthProviderCognito : IAuthProviderCognito
         catch (TooManyFailedAttemptsException) { return AuthEventEnum.Alert_TooManyAttempts; }
         catch (Exception e)
         {
-
             Debug.WriteLine($"VerifyLogin() threw an exception {e}");
             CognitoUser = null;
             return AuthEventEnum.Alert_Unknown;
         }
     }
-    public virtual async Task<AuthEventEnum> VerifyNewLoginAsync(string login)
+    public virtual Task<AuthEventEnum> VerifyNewLoginAsync(string login)
     {
-        await Task.Delay(0);
-        return AuthEventEnum.Alert_OperationNotSupportedByAuthProvider;
+        return Task.FromResult(AuthEventEnum.Alert_OperationNotSupportedByAuthProvider);
     }
     public virtual async Task<AuthEventEnum> VerifyPasswordAsync(string password)
     {
@@ -980,9 +971,9 @@ public class AuthProviderCognito : IAuthProviderCognito
         FormatMessages = phoneFormat.CheckPhoneFormat(phone).ToArray();
         return IsPhoneFormatOk = FormatMessages.Length == 0;
     }
-    private async Task NoOp()
+    private Task NoOp()
     {
-        await Task.Delay(0);
+        return Task.CompletedTask;
     }
     public virtual async Task<string> GetAccessToken()
     {
@@ -1071,5 +1062,6 @@ public class AuthProviderCognito : IAuthProviderCognito
         }
     }
     #endregion
+
 }
 

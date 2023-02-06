@@ -20,7 +20,7 @@ namespace LazyStackAuthV2;
 /// TODO: Merge in AwsSignatureVeersion4 support now that .NET7 supports the Crypto libs.
 /// 
 /// </summary>
-public class LzHttpClient : ILzHttpClient
+public class LzHttpClient : NotifyBase, ILzHttpClient
 {
     public LzHttpClient(
         IStackConfig stackConfig,
@@ -29,7 +29,7 @@ public class LzHttpClient : ILzHttpClient
         ILzHost lzHost
         )
     {
-        this.stackConfig = stackConfig;
+        this.stackConfig = stackConfig; 
         this.methodMap = methodMap; // map of methods to api endpoints
         this.authProvider = authProvider;
         this.lzHost= lzHost;
@@ -43,6 +43,16 @@ public class LzHttpClient : ILzHttpClient
     private ILzHost lzHost; 
     private Dictionary<string, HttpClient> httpClients = new();
     private Dictionary<string, Api> Apis = new();
+    private bool isServiceAvailable = false;
+    public bool IsServiceAvailable
+    {
+        get { return isServiceAvailable; }  
+        set
+        {
+            SetProperty(ref isServiceAvailable, value);
+        }
+    }
+    private int[] serviceUnavailableCodes = new int[] { 400 };
 
     public async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage requestMessage,
@@ -86,7 +96,8 @@ public class LzHttpClient : ILzHttpClient
         if (string.IsNullOrEmpty(baseUrl))
             throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} uri value is null or empty.");
 
-        Console.WriteLine($"baseUrl:{baseUrl} lzHost.Url:{lzHost.Url}");
+        // Console.WriteLine($"baseUrl:{baseUrl} lzHost.Url:{lzHost.Url}");
+
 
         // Create new HttpClient for endpoint if one doesn't exist
         if (!httpClients.TryGetValue(baseUrl, out HttpClient httpclient))
@@ -113,9 +124,17 @@ public class LzHttpClient : ILzHttpClient
                             requestMessage,
                             httpCompletionOption,
                             cancellationToken);
-
+                        IsServiceAvailable = true;
                         return response;
                     }
+                    catch (HttpRequestException e) 
+                    {
+                        // request failed due to an underlying issue such as network connectivity,
+                        // DNS failure, server certificate validation or timeout
+                        isServiceAvailable = false;
+                        Console.WriteLine($"HttpRequestException {e.Message}");
+                        return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
+                    } 
                     catch (Exception e)
                     {
                         Debug.WriteLine($"Error: {callerMemberName} {e.Message}");
@@ -146,8 +165,17 @@ public class LzHttpClient : ILzHttpClient
                             requestMessage,
                             httpCompletionOption,
                             cancellationToken);
-                        Console.WriteLine(callerMemberName);
+                        //Console.WriteLine(callerMemberName);
+                        IsServiceAvailable = true;  
                         return response;
+                    }
+                    catch (HttpRequestException e)
+                    {
+                        // request failed due to an underlying issue such as network connectivity,
+                        // DNS failure, server certificate validation or timeout
+                        Console.WriteLine($"HttpRequestException {e.Message}");
+                        isServiceAvailable = false;
+                        return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
                     }
                     catch (Exception e)
                     {
