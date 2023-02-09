@@ -95,6 +95,14 @@ public enum INotificationEditOption
     Merge
 }
 
+public enum StorageAPI
+{
+    Default,
+    Rest, 
+    S3,
+    Http,
+    Local
+}
 public interface IItemViewModelBase<TModel>
 {
     public string UpdateTickField { get; set; }
@@ -118,16 +126,14 @@ public interface IItemViewModelBase<TModel>
     public bool IsCurrent { get; }
     public bool IsDeleted { get; }
 
-    public Task<(bool, string)> CreateAsync();
-    public Task<(bool, string)> ReadAsync(string id);
-    public Task<(bool, string)> ReadAsync();
-    public Task<(bool, string)> UpdateAsync();
+    public Task<(bool, string)> CreateAsync(StorageAPI storageAPI = StorageAPI.Default);
+    public Task<(bool, string)> ReadAsync(string id, StorageAPI storageAPI = StorageAPI.Default);
+    public Task<(bool, string)> ReadAsync(StorageAPI storageAPI = StorageAPI.Default);
+    public Task<(bool, string)> UpdateAsync(StorageAPI storageAPI = StorageAPI.Default);
     public Task UpdateFromNotification(string payloadData, string payloadAction, long payloadCreatedAt, long dataUpdatedAt);
-    public Task<(bool, string)> SaveEditAsync();
-    public Task<(bool, string)> DeleteAsync(); 
+    public Task<(bool, string)> SaveEditAsync(StorageAPI storageAPI = StorageAPI.Default);
+    public Task<(bool, string)> DeleteAsync(StorageAPI storageAPI = StorageAPI.Default); 
     public Task<(bool, string)> CancelEditAsync();
-
-
 }
 
 /// <summary>
@@ -135,7 +141,6 @@ public interface IItemViewModelBase<TModel>
 /// </summary>
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
-/// <typeparam name="TParent">ParentViewModel Type</typeparam>
 public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBase<TModel>
     where TDTO : class, new()
     where TModel : class, TDTO, IId, new()
@@ -187,6 +192,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     [ObservableAsProperty] public bool IsEdit { get; }
     [ObservableAsProperty] public bool IsCurrent { get; }
     [ObservableAsProperty] public bool IsDeleted { get; }
+    [Reactive] public StorageAPI StorageAPI { get; set; }   
 
     protected Func<TDTO, Task<TDTO>>? SvcCreateAsync;
     protected Func<string, Task<TDTO>>? SvcReadIdAsync;
@@ -194,6 +200,28 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     protected Func<TDTO, Task<TDTO>>? SvcUpdateAsync;
     protected Func<string, Task>? SvcDeleteIdAsync;
     protected Func<Task<TDTO>>? SvcDeleteAsync;
+
+    protected Func<TDTO, Task<TDTO>>? S3SvcCreateAsync;
+    protected Func<string, Task<TDTO>>? S3SvcReadIdAsync;
+    protected Func<Task<TDTO>>? S3SvcReadAsync;
+    protected Func<TDTO, Task<TDTO>>? S3SvcUpdateAsync;
+    protected Func<string, Task>? S3SvcDeleteIdAsync;
+    protected Func<Task<TDTO>>? S3SvcDeleteAsync;
+
+    protected Func<TDTO, Task<TDTO>>? LocalSvcCreateAsync;
+    protected Func<string, Task<TDTO>>? LocalSvcReadIdAsync;
+    protected Func<Task<TDTO>>? LocalSvcReadAsync;
+    protected Func<TDTO, Task<TDTO>>? LocalSvcUpdateAsync;
+    protected Func<string, Task>? LocalSvcDeleteIdAsync;
+    protected Func<Task<TDTO>>? LocalSvcDeleteAsync;
+
+    protected Func<TDTO, Task<TDTO>>? HttpSvcCreateAsync;
+    protected Func<string, Task<TDTO>>? HttpSvcReadIdAsync;
+    protected Func<Task<TDTO>>? HttpSvcReadAsync;
+    protected Func<TDTO, Task<TDTO>>? HttpSvcUpdateAsync;
+    protected Func<string, Task>? HttpSvcDeleteIdAsync;
+    protected Func<Task<TDTO>>? HttpSvcDeleteAsync;
+
 
     /// <summary>
     /// This method uses Reflection to look for a long value 
@@ -218,34 +246,75 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         return (long)propertyInfo.GetValue(d, null)!;
     }
 
-    public virtual async Task<(bool, string)> CreateAsync()
+    private void CheckAuth(StorageAPI storageAPI)
     {
+        // Check for Auth
+        switch (storageAPI)
+        {
+            case StorageAPI.Rest:
+            case StorageAPI.S3:
+                if (AuthProcess == null)
+                    throw new Exception("AuthProcess not assigned");
+
+                if (AuthProcess.IsNotSignedIn)
+                    throw new Exception("Not signed in.");
+                break;
+            case StorageAPI.Local:
+                break;
+        }
+    }
+
+
+    public virtual async Task<(bool, string)> CreateAsync(StorageAPI storageAPI = StorageAPI.Default)
+    {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default) 
+                ? StorageAPI.Rest
+                : StorageAPI;
+
         try
         {
             if (!CanCreate)
                 throw new Exception("Create not authorized");
 
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
-
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
-
-            if (!Validate())
-                throw new Exception("Validation failed.");
-
             if (State != ItemViewModelBaseState.New)
                 throw new Exception("State != New.");
-
-            if (SvcCreateAsync == null)
-                throw new Exception("SvcCreateAsync not assigned.");
 
             if (Data == null)
                 throw new Exception("Data not assigned");
 
-            var item = (TDTO)Data; 
+            var item = (TDTO)Data;
 
-            item = await SvcCreateAsync(item!);
+            if (!Validate())
+                throw new Exception("Validation failed.");
+
+            CheckAuth(storageAPI);
+
+            // Perform storage operation
+            switch (storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcCreateAsync == null)
+                        throw new Exception("SvcCreateAsync not assigned.");
+                    item = await SvcCreateAsync(item!);
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcCreateAsync == null)
+                        throw new Exception("S3SvcCreateAsync not assigned.");
+                    item = await S3SvcCreateAsync(item!);
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcCreateAsync == null)
+                        throw new Exception("HttpSvcCreateAsync not assigned.");
+                    item = await HttpSvcCreateAsync(item!);
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcCreateAsync == null)
+                        throw new Exception("LocalSvcCreateAsync not assigned.");
+                    item = await LocalSvcCreateAsync(item!);
+                    break;   
+            }
+
             UpdateData(item);
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
@@ -255,24 +324,44 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool, string)> ReadAsync(string id)
+    public virtual async Task<(bool, string)> ReadAsync(string id, StorageAPI storageAPI = StorageAPI.Default)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : StorageAPI;
         try
         {
             if (!CanRead) 
                 throw new Exception("Read not authorized");
 
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
+            CheckAuth(storageAPI);
 
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
-
-            if (SvcReadIdAsync == null)
-                throw new Exception("SvcReadAsync not assigned.");
-
-            var item = await SvcReadIdAsync(id);
-            UpdateData(item);
+            // Perform storage operation
+            switch (storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcReadIdAsync == null)
+                        throw new Exception("SvcReadIdAsync not assigned.");
+                    UpdateData(await SvcReadIdAsync(id));
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcReadIdAsync == null)
+                        throw new Exception("S3SvcReadIdAsync not assigned.");
+                    UpdateData(await S3SvcReadIdAsync(id));
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcReadIdAsync == null)
+                        throw new Exception("HttpSvcReadIdAsync not assigned.");
+                    UpdateData(await HttpSvcReadIdAsync(id));
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcReadIdAsync == null)
+                        throw new Exception("LocalSvcReadIdAsync not assigned.");
+                    UpdateData(await LocalSvcReadIdAsync(id));
+                    break;
+            }
+            
             LastNotificationTick = ExtractUpdatedTick(Data);
             Id = id;
             State = ItemViewModelBaseState.Current;
@@ -283,25 +372,43 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool, string)> ReadAsync()
+    public virtual async Task<(bool, string)> ReadAsync(StorageAPI storageAPI = StorageAPI.Default)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : StorageAPI;
         try
         {
             if (!CanRead)
-                throw new Exception("Read not authorized.");
+                throw new Exception("Read not authorized");
 
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
+            CheckAuth(storageAPI);
 
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
-
-            if (SvcReadAsync == null)
-                throw new Exception("SvcReadAsync not assigned.");
-
-
-            var item = await SvcReadAsync();
-            UpdateData(item);
+            // Perform storage operation
+            switch (storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcReadAsync == null)
+                        throw new Exception("SvcReadAsync not assigned.");
+                    UpdateData(await SvcReadAsync());
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcReadAsync == null)
+                        throw new Exception("S3SvcReadAsync not assigned.");
+                    UpdateData(await S3SvcReadAsync());
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcReadAsync == null)
+                        throw new Exception("HttpSvcReadAsync not assigned.");
+                    UpdateData(await HttpSvcReadAsync());
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcReadAsync == null)
+                        throw new Exception("LocalSvcReadIdAsync not assigned.");
+                    UpdateData(await LocalSvcReadAsync());
+                    break;
+            }
             LastNotificationTick = ExtractUpdatedTick(Data);
             Id = Data!.Id;
             State = ItemViewModelBaseState.Current;
@@ -312,34 +419,53 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool, string)> UpdateAsync()
+    public virtual async Task<(bool, string)> UpdateAsync(StorageAPI storageAPI = StorageAPI.Default)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : StorageAPI;
+
         try
         {
             if (!CanUpdate) 
                 throw new Exception("Update not autorized");
 
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
-
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
-
-            if (!Validate())
-                throw new Exception("Validation failed.");
-
             if (State != ItemViewModelBaseState.Edit)
                 throw new Exception("State != Edit.");
-
-            if (SvcUpdateAsync == null)
-                throw new Exception("SvcUpdateAsync is not assigned.");
 
             if (Data is null)
                 throw new Exception("Data not assigned");
 
-            var item = (TDTO)Data!;
-            item = await SvcUpdateAsync(item);
-            UpdateData(item);
+            if (!Validate())
+                throw new Exception("Validation failed.");
+
+            CheckAuth(storageAPI);
+
+            switch(storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcUpdateAsync == null)
+                        throw new Exception("SvcUpdateAsync is not assigned.");
+                    UpdateData(await SvcUpdateAsync((TDTO)Data!));
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcUpdateAsync == null)
+                        throw new Exception("S3SvcUpdateAsync is not assigned.");
+                    UpdateData(await S3SvcUpdateAsync((TDTO)Data!));
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcUpdateAsync == null)
+                        throw new Exception("HttpSvcUpdateAsync is not assigned.");
+                    UpdateData(await HttpSvcUpdateAsync((TDTO)Data!));
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcUpdateAsync == null)
+                        throw new Exception("LocalSvcUpdateAsync is not assigned.");
+                    UpdateData(await LocalSvcUpdateAsync((TDTO)Data!));
+                    break;
+            }
+
             LastNotificationTick = ExtractUpdatedTick(Data);
             State = ItemViewModelBaseState.Current;
             return (true, string.Empty);
@@ -436,26 +562,47 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         }
     }
 
-    public virtual async Task<(bool,string)> DeleteAsync(string Id)
+    public virtual async Task<(bool,string)> DeleteAsync(string Id, StorageAPI storageAPI = StorageAPI.Default)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : StorageAPI;
+
         try
         {
             if (!CanDelete)
-                throw new Exception("Delete not autorized.");
-
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
-
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
+                throw new Exception("Delete(id) not autorized.");
 
             if (State != ItemViewModelBaseState.Current)
                 throw new Exception("State != Current");
 
-            if (SvcDeleteIdAsync == null)
-                throw new Exception("SvcDelete is not assigned.");
+            CheckAuth(storageAPI);
 
-            await SvcDeleteIdAsync(Id);
+            switch(storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcDeleteIdAsync == null)
+                        throw new Exception("SvcDelete(id) is not assigned.");
+                    await SvcDeleteIdAsync(Id);
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcDeleteIdAsync == null)
+                        throw new Exception("S3SvcDelete(id) is not assigned.");
+                    await S3SvcDeleteIdAsync(Id);
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcDeleteIdAsync == null)
+                        throw new Exception("HttpSvcDelete(id) is not assigned.");
+                    await HttpSvcDeleteIdAsync(Id);
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcDeleteIdAsync == null)
+                        throw new Exception("LocalSvcDelete(id) is not assigned.");
+                    await LocalSvcDeleteIdAsync(Id);
+                    break;
+            }
+
             State = ItemViewModelBaseState.Deleted;
             Data = null;
             return(true,String.Empty);
@@ -466,30 +613,50 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
-    public virtual async Task<(bool, string)> DeleteAsync()
+    public virtual async Task<(bool, string)> DeleteAsync(StorageAPI storageAPI = StorageAPI.Default)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (StorageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : StorageAPI;
+
         try
         {
             if (!CanDelete) 
                 throw new Exception("Delete not authorized");
 
-            if (AuthProcess == null)
-                throw new Exception("AuthProcess not assigned");
-
-            if (AuthProcess.IsNotSignedIn)
-                throw new Exception("Not signed in.");
-
             if (State != ItemViewModelBaseState.Current)
                 throw new Exception("State != Current");
 
-            if (SvcDeleteAsync == null)
-                throw new Exception("SvcDelete is not assigned.");
+            CheckAuth(storageAPI);
 
-            await SvcDeleteAsync();
+            switch(storageAPI)
+            {
+                case StorageAPI.Rest:
+                    if (SvcDeleteAsync == null)
+                        throw new Exception("SvcDelete is not assigned.");
+                    await SvcDeleteAsync();
+                    break;
+                case StorageAPI.S3:
+                    if (S3SvcDeleteAsync == null)
+                        throw new Exception("SvcDelete is not assigned.");
+                    await S3SvcDeleteAsync();
+                    break;
+                case StorageAPI.Http:
+                    if (HttpSvcDeleteAsync == null)
+                        throw new Exception("HttpDelete is not assigned.");
+                    await HttpSvcDeleteAsync();
+                    break;
+                case StorageAPI.Local:
+                    if (LocalSvcDeleteAsync == null)
+                        throw new Exception("SvcDelete is not assigned.");
+                    await LocalSvcDeleteAsync();
+                    break;
+            }
+
             State = ItemViewModelBaseState.Deleted;
             Data = null;
             return (true, String.Empty);
-
         }
         catch (Exception ex)
         {
@@ -504,14 +671,14 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         Data.DeepCloneTo(DataCopy);
         return Task.CompletedTask;
     }
-    public virtual async Task<(bool,string)> SaveEditAsync()
+    public virtual async Task<(bool,string)> SaveEditAsync(StorageAPI storageAPI = StorageAPI.Default)
     {
         try
         {
             var (success, msg) =
                 State == ItemViewModelBaseState.New
-                ? await CreateAsync()
-                : await UpdateAsync();
+                ? await CreateAsync(storageAPI)
+                : await UpdateAsync(storageAPI);
 
             State = ItemViewModelBaseState.Current;
             IsMerge = false;
