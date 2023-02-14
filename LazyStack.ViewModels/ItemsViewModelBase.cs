@@ -72,7 +72,6 @@ public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCol
     protected int changeCount;
 
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
-
     public bool IsChanged 
     {
         get { return changeCount > 0; }
@@ -119,13 +118,13 @@ public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCol
     }
 
 
-    public virtual async Task<(bool,string)> SaveCurrentViewModelAsync()
+    public virtual async Task<(bool,string)> SaveCurrentViewModelAsync(string? id)
     {
         if (CurrentViewModel == null)
             return (false, "CurrentViewModel is null");
 
         var isAdd = CurrentViewModel.State == ItemViewModelBaseState.New;
-        var (success, msg) = await CurrentViewModel.SaveEditAsync();
+        var (success, msg) = await CurrentViewModel.SaveEditAsync(id);
         if (success && isAdd)
         {
             if (CurrentViewModel.Id == null)
@@ -141,7 +140,7 @@ public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCol
     {
         if(ViewModels.TryGetValue(payloadId, out var vm))
         {
-            await vm.DeleteAsync(); // Gives the ItemViewModel a chance to inform the UI that a delete is taking place
+            await vm.DeleteAsync(payloadId); // Gives the ItemViewModel a chance to inform the UI that a delete is taking place
             ViewModels.Remove(payloadId);   
         }
         await Task.Delay(0);

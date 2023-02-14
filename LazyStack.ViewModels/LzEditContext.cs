@@ -23,7 +23,6 @@ public interface IRegisterObservables
 {
     public void RegisterObservables();
 }
-
 public class LzEditContext<T1,T2>
     : ReactiveObject, IDisposable
     where T1 : class, new()
@@ -74,8 +73,9 @@ public class LzEditContext<T1,T2>
     {
         var abstractValidatorType = typeof(AbstractValidator<>).MakeGenericType(model.GetType());
         var modelValidatorType = Assembly.GetExecutingAssembly().GetTypes().FirstOrDefault(t => t.IsSubclassOf(abstractValidatorType));
-        var modelValidatorInstance = (IValidator)Activator.CreateInstance(modelValidatorType);
-        return modelValidatorInstance!;
+        var validatorObject = Activator.CreateInstance(modelValidatorType!);
+        var validatorInstance = validatorObject as IValidator;
+        return validatorInstance!;
     }
 
     private void ValidateField( in FieldIdentifier fieldIdentifier)
@@ -97,7 +97,6 @@ public class LzEditContext<T1,T2>
         CanCreate = EditContext.IsModified() && EditContext.Validate() && IsNew;
         EditContext.NotifyValidationStateChanged();
     }
-
     private void ValidateModel()
     {
         var validator = GetValidatorForModel(EditContext.Model);
@@ -112,8 +111,6 @@ public class LzEditContext<T1,T2>
         CanCreate = EditContext.IsModified() && EditContext.Validate() && IsNew;
         EditContext.NotifyValidationStateChanged();
     }
-
-
     public void OnFieldChanged(object? sender, FieldChangedEventArgs args)
     {
         var valid = EditContext.Validate();
@@ -124,7 +121,6 @@ public class LzEditContext<T1,T2>
             Console.WriteLine(msg);
 
     }
-
     public async Task<(bool, string)> CreateAsync()
     {
         if(!IsNew)
@@ -143,7 +139,6 @@ public class LzEditContext<T1,T2>
         }
         return(false, msg);  
     }
-
     public async Task<(bool,string)> UpdateAsync()
     {
         if (IsNew)
@@ -161,7 +156,6 @@ public class LzEditContext<T1,T2>
         }
         return (false, msg);
     }
-
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
