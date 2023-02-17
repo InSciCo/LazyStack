@@ -206,27 +206,27 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
     // S3 access - requires authentication
     // Id is S3 bucket reference
-    protected Func<string, TDTO, Task<TDTO>>? S3SvcCreateIdAsync; 
-    protected Func<string, Task<TDTO>>? S3SvcReadIdAsync;
-    protected Func<string, TDTO, Task<TDTO>>? S3SvcUpdateIdAsync;
+    protected Func<string, string, Task>? S3SvcCreateIdAsync; 
+    protected Func<string, Task<string>>? S3SvcReadIdAsync;
+    protected Func<string, string, Task>? S3SvcUpdateIdAsync;
     protected Func<string, Task>? S3SvcDeleteIdAsync;
 
     // Local storage access
     // Id is full path reference
-    protected Func<string, TDTO, Task<TDTO>>? LocalSvcCreateIdAsync;
-    protected Func<string, Task<TDTO>>? LocalSvcReadIdAsync;
-    protected Func<string, TDTO, Task<TDTO>>? LocalSvcUpdateIdAsync;
+    protected Func<string, string, Task>? LocalSvcCreateIdAsync;
+    protected Func<string, Task<string>>? LocalSvcReadIdAsync;
+    protected Func<string, string, Task>? LocalSvcUpdateIdAsync;
     protected Func<string, Task>? LocalSvcDeleteIdAsync;
 
     // _content access 
     // Id is something like "_content/library/somefile"
     // WASM implements this using HttpClient - assumes resource is under wwwroot
     // MAUI implements this using FileSystem.OpenAppPackageFileAsync(id)
-    protected Func<string, Task<TDTO>>? ContentSvcReadIdAsync;
+    protected Func<string, Task<string>>? ContentSvcReadIdAsync;
 
     // Http access - general htpt calls
     // Id is URL
-    protected Func<string, Task<TDTO>>? HttpSvcReadIdAsync;
+    protected Func<string, Task<string>>? HttpSvcReadIdAsync;
 
     /// <summary>
     /// This method uses Reflection to look for a long value 
@@ -322,7 +322,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     if (S3SvcCreateIdAsync == null)
                         throw new Exception("S3SvcCreateIdAsync not assigned.");
                     CheckId(id);
-                    item = await S3SvcCreateIdAsync(id!, item!);
+                    var s3Text = JsonConvert.SerializeObject(item);
+                    await S3SvcCreateIdAsync(id!, s3Text!);
                     break;
                 case StorageAPI.Http:
                     throw new Exception("HttpSvcCreateIdAsync is not supported.");
@@ -332,7 +333,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     if (LocalSvcCreateIdAsync == null)
                         throw new Exception("LocalSvcCreateIdAsync not assigned.");
                     CheckId(id);
-                    item = await LocalSvcCreateIdAsync(id!,item!);
+                    var localText = JsonConvert.SerializeObject(item);
+                    await LocalSvcCreateIdAsync(id!,localText!);
                     break;   
             }
 
@@ -370,22 +372,30 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                 case StorageAPI.S3:
                     if (S3SvcReadIdAsync == null)
                         throw new Exception("S3SvcReadIdAsync not assigned.");
-                    UpdateData(await S3SvcReadIdAsync(id));
+                    var s3Text = await S3SvcReadIdAsync(id);
+                    var s3Item = JsonConvert.DeserializeObject<TDTO>(s3Text);
+                    UpdateData(s3Item!);
                     break;
                 case StorageAPI.Http:
                     if (HttpSvcReadIdAsync == null)
                         throw new Exception("HttpSvcReadIdAsync not assigned.");
-                    UpdateData(await HttpSvcReadIdAsync(id));
+                    var httpText = await HttpSvcReadIdAsync(id);
+                    var httpItem = JsonConvert.DeserializeObject<TDTO>(httpText);
+                    UpdateData(httpItem!);
                     break;
                 case StorageAPI.Content:
                     if (ContentSvcReadIdAsync == null)
                         throw new Exception("ContentSvcReadIdAsync not assigned.");
-                    UpdateData(await ContentSvcReadIdAsync(id));
+                    var contentText = await ContentSvcReadIdAsync(id);
+                    var contextItem = JsonConvert.DeserializeObject<TDTO>(contentText);
+                    UpdateData(contextItem!);
                     break;
                 case StorageAPI.Local:
                     if (LocalSvcReadIdAsync == null)
                         throw new Exception("LocalSvcReadIdAsync not assigned.");
-                    UpdateData(await LocalSvcReadIdAsync(id));
+                    var localText = await LocalSvcReadIdAsync(id);
+                    var localItem = JsonConvert.DeserializeObject<TDTO>(localText);
+                    UpdateData(localItem!);
                     break;
                 
             }
@@ -488,7 +498,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     if (S3SvcUpdateIdAsync == null)
                         throw new Exception("S3SvcUpdateIdAsync is not assigned.");
                     CheckId(id);
-                    UpdateData(await S3SvcUpdateIdAsync(id!, (TDTO)Data!));
+                    var s3Text = JsonConvert.SerializeObject(Data);
+                    await S3SvcUpdateIdAsync(id!, s3Text);
                     break;
                 case StorageAPI.Http:
                     throw new Exception("HttpSvcUpdateIdAsync is not supported.");
@@ -498,7 +509,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     if (LocalSvcUpdateIdAsync == null)
                         throw new Exception("LocalSvcUpdateIdAsync is not assigned.");
                     CheckId(id);
-                    UpdateData(await LocalSvcUpdateIdAsync(id!,(TDTO)Data!));
+                    var localText = JsonConvert.SerializeObject(Data);
+                    await LocalSvcUpdateIdAsync(id!,localText);
                     break;
             }
 
@@ -699,6 +711,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
     protected void UpdateData(TDTO item)
     {
+        if (Data is null)
+            Data = new();
+       
         item.DeepCloneTo(Data!);
         this.RaisePropertyChanged(nameof(Data));
         
