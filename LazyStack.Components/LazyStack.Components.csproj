@@ -44,4 +44,8 @@
     <ProjectReference Include="..\LazyStack.Utils\LazyStack.Utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
 </Project>
