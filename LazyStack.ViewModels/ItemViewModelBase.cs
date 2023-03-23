@@ -102,7 +102,8 @@ public enum StorageAPI
     S3,
     Http,
     Local,
-    Content // _content 
+    Content, // _content 
+    Internal // class implementation handles persistence. Use for updating data in place.
 }
 public interface IItemViewModelBase<TModel>
 {
@@ -335,7 +336,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     CheckId(id);
                     var localText = JsonConvert.SerializeObject(item);
                     await LocalSvcCreateIdAsync(id!,localText!);
-                    break;   
+                    break;
+                case StorageAPI.Internal:
+                    break;
             }
 
             UpdateData(item);
@@ -397,6 +400,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     var localItem = JsonConvert.DeserializeObject<TDTO>(localText);
                     UpdateData(localItem!);
                     break;
+                case StorageAPI.Internal:
+                    break;
                 
             }
             
@@ -443,6 +448,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     throw new Exception("ContentSvcReadAsync not supported. Use ContentSvcReadIdAsync instead.");
                 case StorageAPI.Local:
                     throw new Exception("LocalSvcReadAsync not supported. Use LocalSvcReadIdAsync instead.");
+                case StorageAPI.Internal:
+                    throw new Exception("LocalSvcReadAsync not supported.");
+
             }
             LastNotificationTick = ExtractUpdatedTick(Data);
             // Id = Data!.Id;
@@ -511,6 +519,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     CheckId(id);
                     var localText = JsonConvert.SerializeObject(Data);
                     await LocalSvcUpdateIdAsync(id!,localText);
+                    break;
+                case StorageAPI.Internal:
                     break;
             }
 
@@ -647,6 +657,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
                     if (LocalSvcDeleteIdAsync == null)
                         throw new Exception("LocalSvcDelete(id) is not assigned.");
                     await LocalSvcDeleteIdAsync(Id!);
+                    break;
+                case StorageAPI.Internal:
                     break;
             }
 
