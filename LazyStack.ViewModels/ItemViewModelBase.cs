@@ -127,6 +127,7 @@ public interface IItemViewModelBase<TModel>
     public bool IsEdit { get; }
     public bool IsCurrent { get; }
     public bool IsDeleted { get; }
+    public bool IsDirty { get; set; }
 
     public Task<(bool, string)> CreateAsync(string? id,StorageAPI storageAPI = StorageAPI.Default);
     public Task<(bool, string)> ReadAsync(string id, StorageAPI storageAPI = StorageAPI.Default);
@@ -194,6 +195,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     [ObservableAsProperty] public bool IsEdit { get; }
     [ObservableAsProperty] public bool IsCurrent { get; }
     [ObservableAsProperty] public bool IsDeleted { get; }
+    [Reactive] public bool IsDirty { get; set; }
     [Reactive] public StorageAPI StorageAPI { get; set; }   
 
     // API access - requires authentication
@@ -673,8 +675,11 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         }
     }
 
-    public virtual Task OpenEditAsync()
+    public virtual Task OpenEditAsync(bool forceCopy = false)
     {
+        if (!forceCopy && State == ItemViewModelBaseState.Edit)
+            return Task.CompletedTask;
+
         if(State != ItemViewModelBaseState.New)
             State = ItemViewModelBaseState.Edit;
         DataCopy ??= new();
@@ -725,9 +730,8 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     {
         if (Data is null)
             Data = new();
-       
+        IsDirty = false;
         item.DeepCloneTo(Data!);
         this.RaisePropertyChanged(nameof(Data));
-        
     }
 }
