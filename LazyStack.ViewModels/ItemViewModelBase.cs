@@ -80,7 +80,6 @@ In your constructor, add a subscription:
 
  */
 
-
 public enum ItemViewModelBaseState
 {
     New,
@@ -97,20 +96,20 @@ public enum INotificationEditOption
 
 public enum StorageAPI
 {
-    Default,
-    Rest, 
-    S3,
-    Http,
-    Local,
-    Content, // _content 
-    Internal // class implementation handles persistence. Use for updating data in place.
+    Default, // Usually Rest API
+    Rest, // API calls, generally requires auth
+    S3, // bucket access, generally requireds auth
+    Http, // limited to gets
+    Local, // local device storage
+    Content, // _content access
+    Internal // class implementation handles persistence (if any). Use for updating data in place.
 }
 public interface IItemViewModelBase<TModel>
 {
     public string UpdateTickField { get; set; }
     public string? Id { get; set; }
     public TModel? Data { get; set; }
-    public TModel? DataCopy { get; set; }
+    //public TModel? DataCopy { get; set; }
     public TModel? NotificationData { get; set; }
     public ItemViewModelBaseState State { get; set; }
     public INotificationEditOption NotificationEditOption { get; set; } 
@@ -137,10 +136,12 @@ public interface IItemViewModelBase<TModel>
     public Task<(bool, string)> SaveEditAsync(string? id, StorageAPI storageAPI = StorageAPI.Default);
     public Task<(bool, string)> DeleteAsync(string id, StorageAPI storageAPI = StorageAPI.Default); 
     public Task<(bool, string)> CancelEditAsync();
+    
 }
 
 /// <summary>
-/// ItemViewModelBase<T,TEdit> 
+/// ItemViewModelBase<T,TEdit>
+/// Remember to call base() constructor to get subscriptions and state set properly.
 /// </summary>
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
@@ -155,6 +156,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         CanUpdate = true;
         CanDelete = true;
         IsLoaded = false;
+        IsDirty = false;
         // ActiveEdit = false;
 
         this.WhenAnyValue(x => x.State, (x) => x == ItemViewModelBaseState.New)
@@ -177,8 +179,9 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     //    get { return (Data == null) ? string.Empty : Data.Id; }
     //    set { if (Data != null) Data.Id = value; }
     //}
+    public string dataCopyJson = string.Empty;
     [Reactive] public TModel? Data { get; set; }
-    [Reactive] public TModel? DataCopy { get; set; }
+    //[Reactive] public TModel? DataCopy { get; set; }
     [Reactive] public TModel? NotificationData { get; set; }
     [Reactive] public ItemViewModelBaseState State { get; set; }
     public INotificationEditOption NotificationEditOption {get; set; }
@@ -227,7 +230,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
     // MAUI implements this using FileSystem.OpenAppPackageFileAsync(id)
     protected Func<string, Task<string>>? ContentSvcReadIdAsync;
 
-    // Http access - general htpt calls
+    // Http access - general http calls
     // Id is URL
     protected Func<string, Task<string>>? HttpSvcReadIdAsync;
 
@@ -666,6 +669,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
             State = ItemViewModelBaseState.Deleted;
             Data = null;
+            IsDirty = false;
             return(true,String.Empty);
 
         }
@@ -674,7 +678,15 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
     }
+    public virtual void OpenEdit(bool forceCopy = false)
+    {
+        if (!forceCopy && State == ItemViewModelBaseState.Edit)
+            return;
 
+        if (State != ItemViewModelBaseState.New)
+            State = ItemViewModelBaseState.Edit;
+        MakeDataCopy();
+    }
     public virtual Task OpenEditAsync(bool forceCopy = false)
     {
         if (!forceCopy && State == ItemViewModelBaseState.Edit)
@@ -682,8 +694,7 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
 
         if(State != ItemViewModelBaseState.New)
             State = ItemViewModelBaseState.Edit;
-        DataCopy ??= new();
-        Data.DeepCloneTo(DataCopy);
+        MakeDataCopy();
         return Task.CompletedTask;
     }
     public virtual async Task<(bool,string)> SaveEditAsync(string? id, StorageAPI storageAPI = StorageAPI.Default)
@@ -698,13 +709,26 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
             State = ItemViewModelBaseState.Current;
             IsMerge = false;
             IsLoaded = true;
-
             return (success, msg);
         } 
         catch (Exception ex)
         {
             return (false, Log(MethodBase.GetCurrentMethod()!, ex.Message));
         }
+    }
+    public virtual (bool, string) CancelEdit()
+    {
+        if (State != ItemViewModelBaseState.Edit && State != ItemViewModelBaseState.New)
+            return (false, Log(MethodBase.GetCurrentMethod()!, "No Active Edit"));
+
+        State = (IsLoaded) ? ItemViewModelBaseState.Current : ItemViewModelBaseState.New;
+
+        if (IsMerge)
+            UpdateData(NotificationData);
+        else
+            RestoreFromDataCopy();
+        IsMerge = false;
+        return (true, String.Empty);
     }
     public virtual async Task<(bool,string)> CancelEditAsync()
     {
@@ -715,10 +739,10 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         State = (IsLoaded) ? ItemViewModelBaseState.Current : ItemViewModelBaseState.New;
 
         if (IsMerge)
-            NotificationData.DeepCloneTo(Data);
+            UpdateData(NotificationData);
         else
-            DataCopy.DeepCloneTo(Data);
-        IsMerge= false;
+            RestoreFromDataCopy();
+        IsMerge = false;
         return (true,String.Empty);
     }
     public virtual bool Validate()
@@ -726,12 +750,35 @@ public class ItemViewModelBase<TDTO, TModel> : LzViewModelBase, IItemViewModelBa
         return true;
     }
 
-    protected void UpdateData(TDTO item)
+    protected virtual void UpdateData(TDTO item)
     {
-        if (Data is null)
-            Data = new();
+        // Updating data from JSON is not fast. Using 
+        // Force.DeepCloner DeepCloneTo(Data) is not possible 
+        // because it overwrites any event subscriptions.
+        Data ??= new();
+        var json = JsonConvert.SerializeObject(item);
+        JsonConvert.PopulateObject(json, Data);
         IsDirty = false;
-        item.DeepCloneTo(Data!);
         this.RaisePropertyChanged(nameof(Data));
     }
+
+    protected virtual void MakeDataCopy()
+    {
+        // Saving data using JSON is not fast. Using Force.DeepCloner
+        // for DataCopy is not possible because the clone process 
+        // fails if the source data has event subscriptions.
+        Data ??= new();
+        dataCopyJson = JsonConvert.SerializeObject(Data);
+    }
+
+    protected virtual void RestoreFromDataCopy()
+    {
+        // Restoring data from JSON is not fast. Using Force.DeepCloner 
+        // DeepCloneTo(Data) is not possible because it overwrites any
+        // event subscriptions.
+        Data ??= new();
+        JsonConvert.PopulateObject(dataCopyJson, Data);
+    }
+
+
 }
