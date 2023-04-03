@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <PackageReference Include="DeepCloner" Version="0.10.4" />
 	  <PackageReference Include="DynamicData" Version="7.12.11" />
 	  <PackageReference Include="FluentValidation" Version="11.4.0" />
 	  <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
@@ -29,7 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BC.Clients\DeepCloner\DeepCloner.csproj" />
     <ProjectReference Include="..\..\LazyStack\LazyStackAuthV2\LazyStackAuthV2.csproj" />
     <ProjectReference Include="..\LazyStack.Utils\LazyStack.Utils.csproj" />
   </ItemGroup>
