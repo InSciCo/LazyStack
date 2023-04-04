@@ -19,9 +19,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="ReactiveUI" Version="18.4.1" />
-    <PackageReference Include="ReactiveUI.Fody" Version="18.4.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="ReactiveUI" Version="18.4.26" />
+    <PackageReference Include="ReactiveUI.Fody" Version="18.4.26" />
   </ItemGroup>
 
   <ItemGroup>

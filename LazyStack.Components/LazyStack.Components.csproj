@@ -30,13 +30,13 @@
 
   <ItemGroup>
 
-	  <PackageReference Include="Blazorise.Bootstrap5" Version="1.2.0" />
+	  <PackageReference Include="Blazorise.Bootstrap5" Version="1.2.2" />
 
-	  <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.0" />
+	  <PackageReference Include="Blazorise.Icons.FontAwesome" Version="1.2.2" />
 
-	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.2" />
-	  <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.2" />
-	  <PackageReference Include="ReactiveUI.Blazor" Version="18.4.20" />
+	  <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+	  <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.4" />
+	  <PackageReference Include="ReactiveUI.Blazor" Version="18.4.26" />
   </ItemGroup>
 
   <ItemGroup>
