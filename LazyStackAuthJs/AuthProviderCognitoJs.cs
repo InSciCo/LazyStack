@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using LazyStackAuthV2;
+using LazyStackAuth;
 using Amazon.CognitoIdentityProvider;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;

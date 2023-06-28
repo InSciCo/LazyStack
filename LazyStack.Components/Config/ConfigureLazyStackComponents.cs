@@ -1,6 +1,6 @@
 ﻿using LazyStack.Utils;
 using LazyStack.ViewModels;
-using LazyStackAuthV2;
+using LazyStackAuth;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;

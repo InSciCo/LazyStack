@@ -2,7 +2,7 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
-using LazyStackAuthV2;
+using LazyStackAuth;
 
 namespace LazyStack.ViewModels;
 

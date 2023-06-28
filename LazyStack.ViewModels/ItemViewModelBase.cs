@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using ReactiveUI.Fody.Helpers;
 using Force.DeepCloner;
-using LazyStackAuthV2;
+using LazyStackAuth;
 using ReactiveUI;
 using Newtonsoft.Json;
 

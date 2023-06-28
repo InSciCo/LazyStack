@@ -3,7 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-using LazyStackAuthV2;
+using LazyStackAuth;
 using LazyStack.Utils;
 
 namespace LazyStack.ViewModels;

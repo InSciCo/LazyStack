@@ -1,57 +1,64 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <UserSecretsId>76925471-91ff-459d-8f16-a8b8c691549b</UserSecretsId>
-    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-    <Description>Generalized authentication model with support for AWS Cognito.</Description>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Company>Insight Sciences Corporation</Company>
-    <Authors>Tim May, Thomas May</Authors>
-    <SignAssembly>false</SignAssembly>
-    <Version>3.0.0</Version>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<UserSecretsId>76925471-91ff-459d-8f16-a8b8c691549b</UserSecretsId>
+		<Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<Description>Generalized authentication model with support for AWS Cognito - V2.</Description>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Company>Insight Sciences Corporation</Company>
+		<Authors>Tim May, Thomas May</Authors>
+		<SignAssembly>false</SignAssembly>
+		<Version>3.0.0</Version>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="AuthMessages.json" />
-    <None Include="LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+	  <None Remove="Config\Messages.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="AuthMessages.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.2.3" />
-    <PackageReference Include="AwsSignatureVersion4" Version="4.0.0" />
-    <PackageReference Include="MailKit" Version="3.4.1" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
-    <PackageReference Include="JsonSubTypes" Version="2.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="6.0.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.24.0" />
-  </ItemGroup>
-  
-  <!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->
-  <Import Project="..\..\..\LazyStackCertificate\CertPassword.csproj" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate')" />
+	<ItemGroup>
+	  <EmbeddedResource Include="Config\Messages.json">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </EmbeddedResource>
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
-    <NugetSignCommand>$(MSBuildProjectDirectory)\..\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
-  </PropertyGroup>
+	<ItemGroup>
+		<None Include="LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
-  
-  <Target Name="SignPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
-    <Message Importance="High" Text="Signing Package" />
-    <Message Importance="High" Text="PackageVersion $(Version)" />
-    <Exec Command="$(NugetSignCommand) $(MSBuildProjectDirectory)\bin\Release\$(MSBuildProjectName).$(PackageVersion).nupkg" />
-  </Target>
+	<ItemGroup>
+		<PackageReference Include="Amazon.Extensions.CognitoAuthentication" Version="2.4.0" />
+		<PackageReference Include="AwsSignatureVersion4" Version="4.0.1" />
+		<PackageReference Include="MailKit" Version="3.6.0" />
+		<PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageReference Include="JsonSubTypes" Version="2.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\LazyStack.Utils\LazyStack.Utils.csproj" />
+	</ItemGroup>
+
+	<!-- Note: The signing step will not execute if the CertPassword.csproj file doesn't exist and contain a non-empty SIGN_CERT_HASH string -->
+	<Import Project="..\..\..\LazyStackCertificate\CertPassword.csproj" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate')" />
+
+	<PropertyGroup Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
+		<NugetSignCommand>$(MSBuildProjectDirectory)\..\..\..\LazyStackCertificate\nuget sign -CertificateFingerprint $(SIGN_CERT_HASH) -Timestamper http://timestamp.digicert.com</NugetSignCommand>
+	</PropertyGroup>
+
+
+	<Target Name="SignPackage" AfterTargets="Pack" Condition="'$(Configuration)' == 'Release' AND Exists('..\..\..\LazyStackCertificate') AND '$(SIGN_CERT_HASH)' != ''">
+		<Message Importance="High" Text="Signing Package" />
+		<Message Importance="High" Text="PackageVersion $(Version)" />
+		<Exec Command="$(NugetSignCommand) $(MSBuildProjectDirectory)\bin\Release\$(MSBuildProjectName).$(PackageVersion).nupkg" />
+	</Target>
 </Project>

@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\LazyStack\LazyStackAuthV2\LazyStackAuthV2.csproj" />
+    <ProjectReference Include="..\LazyStackAuth\LazyStackAuth.csproj" />
     <ProjectReference Include="..\LazyStack.Utils\LazyStack.Utils.csproj" />
   </ItemGroup>
 
