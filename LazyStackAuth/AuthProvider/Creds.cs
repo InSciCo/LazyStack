@@ -6,7 +6,7 @@ namespace LazyStackAuth;
 
 public class Creds
 {
-    public string AccessKey { get; set; }
-    public string SecretKey { get; set; }
-    public string Token { get; set; }
+    public string AccessKey { get; set; } = string.Empty;
+    public string SecretKey { get; set; } = string.Empty;
+    public string Token { get; set; } = string.Empty;
 }

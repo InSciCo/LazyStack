@@ -13,7 +13,10 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;
 using Amazon.Runtime;
+using Newtonsoft.Json.Linq;
 using System.Collections;
+using LazyStackBase;
+using LazyStackAuth;
 
 /// <summary> 
 /// AWS Authentication and Authorization Strategy
@@ -64,8 +67,8 @@ public class AuthProviderCognito : IAuthProviderCognito
         IPasswordFormat passwordFormat,
         IEmailFormat emailFormat,
         ICodeFormat codeFormat,
-        IPhoneFormat phoneFormat,
-        ICognitoConfig cognitoConfig = null
+        IPhoneFormat phoneFormat
+    //,ICognitoConfig cognitoConfig = null
     )
     {
         this.loginFormat = loginFormat;
@@ -74,52 +77,53 @@ public class AuthProviderCognito : IAuthProviderCognito
         this.codeFormat = codeFormat;
         this.phoneFormat = phoneFormat;
 
-        if(cognitoConfig != null) 
-            SetStack(cognitoConfig);
+        //if(cognitoConfig != null) 
+        //    SetStack(cognitoConfig);
     }
 
     #region AWS specific Fields
-    protected string clientId;
-    protected string userPoolId;
-    protected string identityPoolId;
-    protected RegionEndpoint regionEndpoint;
-    protected AmazonCognitoIdentityProviderClient providerClient;
-    protected CognitoUserPool userPool;
-    protected AuthFlowResponse authFlowResponse; // cleared after interim use
+    protected string? clientId;
+    protected string? userPoolId;
+    protected string? identityPoolId;
+    protected RegionEndpoint? regionEndpoint;
+    protected AmazonCognitoIdentityProviderClient? providerClient;
+    protected CognitoUserPool? userPool;
+    protected AuthFlowResponse? authFlowResponse; // cleared after interim use
     #endregion Fields
 
     #region AWS specific Properties
-    public string IpIdentity { get; set; } // Identity Pool Identity.
-    public string UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
-    public CognitoAWSCredentials Credentials { get; private set; }
+    public string? IpIdentity { get; set; } // Identity Pool Identity.
+    public string? UpIdentity { get; set; } // User Pool Identity. ie: JWT "sub" claim
+    public CognitoAWSCredentials? Credentials { get; private set; }
 
     // CognitoUser is part of Amazon.Extensions.CognitoAuthentication -- see the following resources
     // https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/cognito-authentication-extension.html -- very limited docs
     // https://github.com/aws/aws-sdk-net-extensions-cognito/ -- you really need to read this code to use the lib properly
-    public CognitoUser CognitoUser { get; private set; } // 
+    public CognitoUser? CognitoUser { get; private set; } // 
     #endregion
 
     #region Fields
-    protected ILoginFormat loginFormat;
-    protected IPasswordFormat passwordFormat;
-    protected IEmailFormat emailFormat;
-    protected ICodeFormat codeFormat;
-    protected IPhoneFormat phoneFormat;
-    protected IStacksConfig stacksConfig;
+    protected ILoginFormat? loginFormat;
+    protected IPasswordFormat? passwordFormat;
+    protected IEmailFormat? emailFormat;
+    protected ICodeFormat? codeFormat;
+    protected IPhoneFormat? phoneFormat;
+    //protected IStacksConfig stacksConfig;
 
-    private string login; // set by VerifyLogin
-    private string newLogin; // set by VerifyNewLogin
-    private string password; // set by VerifyPassword
-    private string newPassword; // set by VerifyNewPassword
-    private string email; // set by VerifyEmail
-    private string newEmail; // set by VerifyNewEmail
-    private string phone; // set by VerifyPhone
-    private string newPhone; // set by VerifyNewPhone
-    private string code; // set by VerifyCode 
+    private string? login; // set by VerifyLogin
+    private string? newLogin; // set by VerifyNewLogin
+    private string? password; // set by VerifyPassword
+    private string? newPassword; // set by VerifyNewPassword
+    private string? email; // set by VerifyEmail
+    private string? newEmail; // set by VerifyNewEmail
+    private string? phone; // set by VerifyPhone
+    private string? newPhone; // set by VerifyNewPhone
+    private string? code; // set by VerifyCode 
     #endregion
 
     #region Properties
     public AuthProcessEnum CurrentAuthProcess { get; private set; }
+    public bool AuthInitialized { get; set; }
     public List<AuthChallengeEnum> AuthChallengeList { get; } = new List<AuthChallengeEnum>();
     public AuthChallengeEnum CurrentChallenge
     {
@@ -130,17 +134,17 @@ public class AuthProviderCognito : IAuthProviderCognito
               : AuthChallengeEnum.None;
         }
     }
-    public async Task<string> GetJWTAsync()
+    public async Task<string?> GetJWTAsync()
     {
         await Task.Delay(0);
-        return CognitoUser.SessionTokens.IdToken;
+        return CognitoUser?.SessionTokens?.IdToken;
     }
-    public async Task<Creds> GetCredsAsync()
+    public async Task<Creds?> GetCredsAsync()
     {
-        ImmutableCredentials iCreds = null;
+        ImmutableCredentials? iCreds = null;
         try
         {
-            iCreds = await Credentials.GetCredentialsAsync();
+            iCreds = await Credentials!.GetCredentialsAsync();
             return new Creds()
             {
                 AccessKey = iCreds.AccessKey,
@@ -148,7 +152,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                 Token = iCreds.Token
             };
         }
-        catch (Exception e)
+        catch 
         {
             return new Creds();
         }
@@ -184,6 +188,17 @@ public class AuthProviderCognito : IAuthProviderCognito
     public bool CanUpdatePassword => IsSignedIn && CurrentAuthProcess == AuthProcessEnum.None;
     public bool CanUpdatePhone => false; // not currently implemented
     public bool CanCancel => CurrentAuthProcess != AuthProcessEnum.None;
+    public bool CanNext => (CurrentChallenge == AuthChallengeEnum.Login && IsLoginFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.Password && IsPasswordFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.NewLogin && IsNewLoginFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.NewPassword && IsNewPasswordFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.Email && IsEmailFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.NewEmail && IsNewEmailFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.Phone && IsPhoneFormatOk)
+        || (CurrentChallenge == AuthChallengeEnum.NewPhone && IsPhoneFormatOk) 
+        || (CurrentChallenge == AuthChallengeEnum.Code && IsCodeFormatOk)
+        ;
+       
     public bool CanResendCode => CurrentChallenge == AuthChallengeEnum.Code;
     public bool IsChallengeLongWait
     {
@@ -225,7 +240,7 @@ public class AuthProviderCognito : IAuthProviderCognito
             return false;
         }
     } // will the current challenge do a server roundtrip?
-    public string[] FormatMessages { get; private set; }
+    public string[]? FormatMessages { get; private set; }
     public string FormatMessage
     {
         get
@@ -234,34 +249,38 @@ public class AuthProviderCognito : IAuthProviderCognito
         }
     }
     #endregion Properties
-    /// <summary>
-    /// Call SetStack if you modify the IStacksConfig instance. This 
-    /// allows us to switch target stacks as necessary. Most apps won't 
-    /// need this but it's really handy when it is required. 
-    /// </summary>
-    /// <exception cref="Exception"></exception>
-    public void SetStack(ICognitoConfig cognitoConfig)
+
+    public void SetAuthenticator(JObject authenticator)
     {
-        if (cognitoConfig == null)
-            throw new Exception("CognitoConfig is null");
+        if (authenticator == null)
+            throw new Exception("Cognito Config is null");
 
-        if (string.IsNullOrEmpty(cognitoConfig.Region))
-            throw new Exception("CognitoConfig.Region is empty");
-        regionEndpoint = RegionEndpoint.GetBySystemName(cognitoConfig.Region);
+        var _type = (string?)authenticator["Type"];
+        if (_type != "Cognito")
+            throw new Exception("Cognito Config missing.");
 
-        if (string.IsNullOrEmpty(cognitoConfig.UserPoolClientId))
-            throw new Exception("CognitoConfig.UserPoolClientId is empty");
-        clientId = cognitoConfig.UserPoolClientId;
+        var _region = (string?)authenticator["Region"];
+        if (string.IsNullOrEmpty(_region))
+            throw new Exception("Cognito Config.Region is empty");
+        regionEndpoint = RegionEndpoint.GetBySystemName(_region);
 
-        if (string.IsNullOrEmpty(cognitoConfig.UserPoolId))
-            throw new Exception("CognitoConfig.UserPoolId is empty");
-        userPoolId = cognitoConfig.UserPoolId;
+        var _clientId = (string?)authenticator["UserPoolClientId"];
+        if (string.IsNullOrEmpty(_clientId))
+            throw new Exception("Cognito Config.UserPoolClientId is empty");
+        clientId = _clientId;
 
-        // IdentityPool is optional and null value is allowed
-        identityPoolId = cognitoConfig.IdentityPoolId;
+        var _userPoolId = (string?)authenticator["UserPoolId"];
+        if(string.IsNullOrEmpty(_userPoolId))
+            throw new Exception("Cognito Config.UserPoolId is empty");
+        userPoolId = _userPoolId;
+
+        var _identityPoolId = (string?)authenticator["IdentityPoolId"];
+        identityPoolId = _identityPoolId == null ? "" : _identityPoolId;
 
         providerClient = new AmazonCognitoIdentityProviderClient(new AnonymousAWSCredentials(), regionEndpoint);
         userPool = new CognitoUserPool(userPoolId, clientId, providerClient);
+
+        AuthInitialized = true;
     }
 
     #region Challenge Flow Methods -- affect AuthChallengeList or IsAuthorized
@@ -469,7 +488,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     // AWS exceptions for sign in are a bit hard to figure out in some cases.
                     // Depending on the UserPool setup, AWS may request an auth code. This would be 
                     // detected and handled in the NextChallenge() call. 
-                    authFlowResponse = await CognitoUser.StartWithSrpAuthAsync(
+                    authFlowResponse = await CognitoUser!.StartWithSrpAuthAsync(
                         new InitiateSrpAuthRequest()
                         {
                             Password = password
@@ -528,10 +547,10 @@ public class AuthProviderCognito : IAuthProviderCognito
             switch (CurrentAuthProcess)
             {
                 case AuthProcessEnum.SigningUp:
-                    authFlowResponse = await CognitoUser.RespondToNewPasswordRequiredAsync(
+                    authFlowResponse = await CognitoUser!.RespondToNewPasswordRequiredAsync(
                         new RespondToNewPasswordRequiredRequest()
                         {
-                            SessionID = authFlowResponse.SessionID,
+                            SessionID = authFlowResponse!.SessionID,
                             NewPassword = newPassword
                         }
                         ).ConfigureAwait(false);
@@ -625,7 +644,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                         return AuthEventEnum.Alert_CantRetrieveUserDetails;
 
                     // make sure the values are different
-                    if (email.Equals(newEmail)) //todo - check
+                    if (email!.Equals(newEmail)) //todo - check
                     {
                         return AuthEventEnum.Alert_EmailAddressIsTheSame;
                     }
@@ -634,7 +653,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     // This may throw an exception in the UpdateAttributesAsync call.
                     var attributes = new Dictionary<string, string>() { { "email", newEmail } };
                     // Cognito sends a auth code when the Email attribute is changed
-                    await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
+                    await CognitoUser!.UpdateAttributesAsync(attributes).ConfigureAwait(false);
 
                     AuthChallengeList.Remove(AuthChallengeEnum.NewEmail);
                     IsEmailVerified = true;
@@ -690,12 +709,12 @@ public class AuthProviderCognito : IAuthProviderCognito
                     return AuthEventEnum.Alert_InternalProcessError;
 
                 case AuthProcessEnum.ResettingPassword:
-                    await CognitoUser.ConfirmForgotPasswordAsync(code, newPassword).ConfigureAwait(false);
+                    await CognitoUser!.ConfirmForgotPasswordAsync(code, newPassword).ConfigureAwait(false);
                     AuthChallengeList.Remove(AuthChallengeEnum.Code);
                     return await NextChallenge();
 
                 case AuthProcessEnum.SigningUp:
-                    var result = await providerClient.ConfirmSignUpAsync(
+                    var result = await providerClient!.ConfirmSignUpAsync(
                         new ConfirmSignUpRequest
                         {
                             ClientId = clientId,
@@ -711,7 +730,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     if (authFlowResponse == null) // authFlowResponse set during VerifyPassword
                         return AuthEventEnum.Alert_InternalSignInError;
 
-                    authFlowResponse = await CognitoUser.RespondToSmsMfaAuthAsync(
+                    authFlowResponse = await CognitoUser!.RespondToSmsMfaAuthAsync(
                         new RespondToSmsMfaRequest()
                         {
                             SessionID = authFlowResponse.SessionID,
@@ -723,7 +742,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     return await NextChallenge();
 
                 case AuthProcessEnum.UpdatingEmail:
-                    await CognitoUser.VerifyAttributeAsync("email", code).ConfigureAwait(false);
+                    await CognitoUser!.VerifyAttributeAsync("email", code).ConfigureAwait(false);
                     IsCodeVerified = true;
                     AuthChallengeList.Remove(AuthChallengeEnum.Code);
                     return await NextChallenge();
@@ -785,7 +804,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     //// Cognito sends a auth code when the Email attribute is changed
                     //await CognitoUser.UpdateAttributesAsync(attributes).ConfigureAwait(false);
 
-                    await CognitoUser.GetAttributeVerificationCodeAsync("email").ConfigureAwait(false);
+                    await CognitoUser!.GetAttributeVerificationCodeAsync("email").ConfigureAwait(false);
 
                     return AuthEventEnum.VerificationCodeSent;
 
@@ -796,7 +815,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                     return AuthEventEnum.AuthChallenge;
 
                 case AuthProcessEnum.SigningUp:
-                    _ = await providerClient.ResendConfirmationCodeAsync(
+                    _ = await providerClient!.ResendConfirmationCodeAsync(
                         new ResendConfirmationCodeRequest
                         {
                             ClientId = clientId,
@@ -867,7 +886,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                                 });
 
                             // This call may throw an exception
-                            var result = await providerClient.SignUpAsync(signUpRequest).ConfigureAwait(false);
+                            var result = await providerClient!.SignUpAsync(signUpRequest).ConfigureAwait(false);
 
                             if (!AuthChallengeList.Contains(AuthChallengeEnum.Code))
                                 AuthChallengeList.Add(AuthChallengeEnum.Code);
@@ -893,7 +912,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                         //UpIdentity = token.Claims.First(c => c.Type == "sub").Value; // JWT sub cliam contains User Pool Identity
 
                         //// Note: creates Identity Pool identity if it doesn't exist
-                        Credentials = CognitoUser.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
+                        Credentials = CognitoUser!.GetCognitoAWSCredentials(identityPoolId, regionEndpoint);
 
                         IsSignedIn = true;
                         CurrentAuthProcess = AuthProcessEnum.None;
@@ -912,7 +931,7 @@ public class AuthProviderCognito : IAuthProviderCognito
                         return AuthEventEnum.EmailUpdateDone;
 
                     case AuthProcessEnum.UpdatingPassword:
-                        await CognitoUser.ChangePasswordAsync(password, newPassword).ConfigureAwait(false);
+                        await CognitoUser!.ChangePasswordAsync(password, newPassword).ConfigureAwait(false);
                         CurrentAuthProcess = AuthProcessEnum.None;
                         ClearSensitiveFields();
                         return AuthEventEnum.PasswordUpdateDone;
@@ -941,34 +960,58 @@ public class AuthProviderCognito : IAuthProviderCognito
     #endregion
 
     #region Non ChallengeFlow Methods - do not affect AuthChallengeList or IaAuthorized
-    public bool CheckLoginFormat(string login)
+    public bool CheckLoginFormat(string? login)
     {
-        FormatMessages = loginFormat.CheckLoginFormat(login).ToArray();
+        login ??= "";
+        FormatMessages = loginFormat!.CheckLoginFormat(login).ToArray();
         return IsLoginFormatOk = FormatMessages.Length == 0;
     }
-    public bool CheckEmailFormat(string email)
+    public bool CheckNewLoginFormat(string? newLogin)
     {
-        FormatMessages = emailFormat.CheckEmailFormat(email).ToArray();
+        newLogin ??= "";
+        FormatMessages = loginFormat!.CheckLoginFormat(newLogin).ToArray();
+        return IsLoginFormatOk = FormatMessages.Length == 0;
+    }
+    public bool CheckEmailFormat(string? email)
+    {
+        email ??= "";
+        FormatMessages = emailFormat!.CheckEmailFormat(email).ToArray();
         return IsEmailFormatOk = FormatMessages.Length == 0;
     }
-    public bool CheckPasswordFormat(string password)
+    public bool CheckNewEmailFormat(string? newEmail)
     {
-        FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
+        newEmail ??= "";
+        FormatMessages = emailFormat!.CheckEmailFormat(newEmail).ToArray();
+        return IsEmailFormatOk = FormatMessages.Length == 0;
+    }
+    public bool CheckPasswordFormat(string? password)
+    {
+        password ??= "";
+        FormatMessages = passwordFormat!.CheckPasswordFormat(password).ToArray();
         return IsPasswordFormatOk = FormatMessages.Length == 0;
     }
-    public bool CheckNewPasswordFormat(string password)
+    public bool CheckNewPasswordFormat(string? password)
     {
-        FormatMessages = passwordFormat.CheckPasswordFormat(password).ToArray();
+        password ??= "";
+        FormatMessages = passwordFormat!.CheckPasswordFormat(password).ToArray();
         return IsNewPasswordFormatOk = FormatMessages.Length == 0;
     }
-    public bool CheckCodeFormat(string code)
+    public bool CheckCodeFormat(string? code)
     {
-        FormatMessages = codeFormat.CheckCodeFormat(code).ToArray();
+        code ??= "";
+        FormatMessages = codeFormat!.CheckCodeFormat(code).ToArray();
         return IsCodeFormatOk = FormatMessages.Length == 0;
     }
-    public bool CheckPhoneFormat(string phone)
+    public bool CheckPhoneFormat(string? phone)
     {
-        FormatMessages = phoneFormat.CheckPhoneFormat(phone).ToArray();
+        phone ??= "";
+        FormatMessages = phoneFormat!.CheckPhoneFormat(phone).ToArray();
+        return IsPhoneFormatOk = FormatMessages.Length == 0;
+    }
+    public bool CheckNewPhoneFormat(string? newPhone)
+    {
+        newPhone ??= "";
+        FormatMessages = phoneFormat!.CheckPhoneFormat(newPhone).ToArray();
         return IsPhoneFormatOk = FormatMessages.Length == 0;
     }
     private Task NoOp()
@@ -978,17 +1021,17 @@ public class AuthProviderCognito : IAuthProviderCognito
     public virtual async Task<string> GetAccessToken()
     {
         if (CognitoUser == null)
-            return null;
+            return string.Empty;
         if (CognitoUser.SessionTokens.IsValid())
             return CognitoUser.SessionTokens.AccessToken;
         if (await RefreshTokenAsync())
             return CognitoUser.SessionTokens.AccessToken;
-        return null;
+        return string.Empty;
     }
-    public virtual async Task<string> GetIdentityToken()
+    public virtual async Task<string?> GetIdentityToken()
     {
         if (CognitoUser == null)
-            return null; // Need to authenticate user first!
+            return string.Empty; // Need to authenticate user first!
 
         if (!string.IsNullOrEmpty(identityPoolId))
         { // Using Identity Pools
@@ -1005,7 +1048,7 @@ public class AuthProviderCognito : IAuthProviderCognito
             catch (Exception e)
             {
                 Debug.WriteLine($"{e.Message}");
-                return null;
+                return string.Empty;
             }
         }
 

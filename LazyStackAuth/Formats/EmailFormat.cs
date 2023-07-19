@@ -9,10 +9,10 @@ namespace LazyStackAuth;
 
 public class EmailFormat : IEmailFormat
 {
-    public IEnumerable<string> CheckEmailFormat(string email)
+    public IEnumerable<string> CheckEmailFormat(string? email)
     {
-        string msg = null;
-
+        string? msg = null;
+        email = email ?? string.Empty;
         try
         {
             var result = new MailAddress(email);

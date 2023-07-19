@@ -9,7 +9,8 @@ public class PhoneFormat : IPhoneFormat
 {
     public IEnumerable<string> CheckPhoneFormat(string phone)
     {
-        if (false) // todo - create a ruleset for phone numbers
+        var ok = false;
+        if (ok) // todo - create a ruleset for phone numbers
             yield return "AuthFormatMessages_Phone01";
     }
 }

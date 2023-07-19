@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Amazon.CognitoIdentity;
-using Amazon.Extensions.CognitoAuthentication;
+﻿using LazyStackBase;
 
 namespace LazyStackAuth;
 
@@ -10,7 +6,7 @@ public interface IAuthProviderCognito : IAuthProvider
 {
     //public CognitoUser CognitoUser { get; }
     //public CognitoAWSCredentials Credentials { get; }
-    public void SetStack(ICognitoConfig cognitoConfig);
+    
 
 }
  

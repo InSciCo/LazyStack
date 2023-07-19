@@ -22,12 +22,12 @@ public class LzHost : ILzHost
 {
     public LzHost(string? url = null, bool isMAUI = true, bool isAndroid = false)
     {
-        Url = url;
+        Url = url ?? "";
         IsMAUI = isMAUI;
         IsAndroid = isAndroid;
     }
 
-    public string Url { get; set; } 
+    public string Url { get; set; } = string.Empty;
     public bool IsMAUI { get; set; }
     public bool IsWASM => !IsMAUI;
     public bool IsAndroid { get; set; }

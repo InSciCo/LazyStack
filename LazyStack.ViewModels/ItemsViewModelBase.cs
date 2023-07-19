@@ -1,11 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ReactiveUI.Fody.Helpers;
+﻿using ReactiveUI.Fody.Helpers;
 using ReactiveUI;
-using System.Reflection;
-using Amazon.Runtime.Internal.Transform;
-using System.Linq;
-using System;
-using Newtonsoft.Json;
 using System.Collections.Specialized;
 
 namespace LazyStack.ViewModels;

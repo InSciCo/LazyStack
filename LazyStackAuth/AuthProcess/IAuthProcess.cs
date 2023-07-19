@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using LazyStackBase;
 
 namespace LazyStackAuth;
 
@@ -33,9 +34,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool IsChatty { get; set; }
     public bool ClearAllFields { get; set; } 
     public bool AssignFieldOnCheck { get; set; }
-
     public IAuthProvider AuthProvider { get; } // 
-
     public string Login { get; set; } //
     public string NewLogin { get; set; } //
     public string Password { get; set; } //
@@ -47,23 +46,23 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public string Code { get; set; }
 
     // UI Messages
-    public string LoginFormatMessage { get; }
+    public string? LoginFormatMessage { get; }
 
-    public string NewLoginFormatMessage { get; }
+    public string? NewLoginFormatMessage { get; }
 
-    public string PasswordFormatMessage { get; }
+    public string? PasswordFormatMessage { get; }
 
-    public string NewPasswordFormatMessage { get; }
+    public string? NewPasswordFormatMessage { get; }
 
-    public string EmailFormatMessage { get; }
+    public string? EmailFormatMessage { get; }
 
-    public string NewEmailFormatMessage { get; }
+    public string? NewEmailFormatMessage { get; }
 
-    public string PhoneFormatMessage { get; }
+    public string? PhoneFormatMessage { get; }
 
-    public string NewPhoneFormatMessage { get; }
+    public string? NewPhoneFormatMessage { get; }
 
-    public string CodeFormatMessage { get; }
+    public string? CodeFormatMessage { get; }
 
 
     // Property States
@@ -81,7 +80,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool IsNotSignedIn { get; } //
 
     // CurrentAuthProcess
-    public string AuthProcessMessage { get; } //
+    public string? AuthProcessMessage { get; } //
     public bool HasActiveAuthProcess { get; } //
     public bool NoActiveAuthProcess { get; } //
     public bool IsSigningIn { get; } //
@@ -92,7 +91,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool IsUpdatingPhone { get; } //
     public bool IsUpdatingPassword { get; } //
 
-    public string AuthChallengeMessage { get; } //
+    public string? AuthChallengeMessage { get; } //
     public bool NoChallenge { get; } //
 
     public bool CurrentChallengeIsLogin { get; } //
@@ -123,7 +122,7 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool CollectCode { get; } //
 
     // Alert States
-    public string AlertMessage { get; } //
+    public string? AlertMessage { get; } //
     public bool HasAlert { get; } //
 
     // Outher states
@@ -156,15 +155,5 @@ public interface IAuthProcess: IAuthProvider, INotifyPropertyChanged
     public bool CheckPhoneFormat();
     public bool CheckNewPhoneFormat();
     public bool CheckCodeFormat();
-
-    public bool CheckLoginFormat(string? login);
-    public bool CheckNewLoginFormat(string? login);
-    public bool CheckEmailFormat(string? email);
-    public bool CheckNewEmailFormat(string? email);
-    public bool CheckPasswordFormat(string? password);
-    public bool CheckNewPasswordFormat(string? password);
-    public bool CheckPhoneFormat(string? phone);
-    public bool CheckNewPhoneFormat(string? phone);
-    public bool CheckCodeFormat(string? code);
-
+    
 }

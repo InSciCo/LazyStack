@@ -5,6 +5,11 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Amazon.Auth.AccessControlPolicy;
+using Amazon.Runtime;
+using LazyStackAwsSettings;
+using LazyStackBase;
+using Newtonsoft.Json.Linq;
 
 namespace LazyStackAuth;
 
@@ -17,32 +22,34 @@ namespace LazyStackAuth;
 /// Note that we do not support AwsSignatureVersion4 in this class. .NET doesn't have the required
 /// crypto libs necessary to implement this in WASM. We will add it back in when they fix this.
 /// If we need it sooner, we can use preprocessor directives to make it available in MAUI targets.
-/// TODO: Merge in AwsSignatureVeersion4 support now that .NET7 supports the Crypto libs.
+/// TODO: Merge in AwsSignatureVersion4 support now that .NET7 supports the Crypto libs.
 /// 
 /// </summary>
 public class LzHttpClient : NotifyBase, ILzHttpClient
 {
     public LzHttpClient(
-        IStackConfig stackConfig, // servcie connection info
+        ILzClientConfig clientConfig, // servcie connection info
         IMethodMapWrapper methodMap, // map of methods to api endpoints
         IAuthProvider authProvider, // Auth service. ex: AuthProviderCognito
         ILzHost lzHost // Runtime environment. IsMAUI, IsWASM, BaseURL etc.
         )
     {
-        this.stackConfig = stackConfig; 
+        this.clientConfig = clientConfig; 
         this.methodMap = methodMap; // map of methods to api endpoints
         this.authProvider = authProvider;
         this.lzHost= lzHost;
+
     }
-    private IStackConfig stackConfig;
-    private RunConfig runConfig { get { return stackConfig.RunConfig; } }
-    private ServiceConfig svcConfig { get { return stackConfig.ServiceConfig; } }
-    private ITenantConfig tentantConfig { get { return stackConfig.TenantConfig; } }
+    private ILzClientConfig clientConfig;
+    private LzRunConfig runConfig => clientConfig.RunConfig;
+    private LzService service => clientConfig.Services[runConfig.Service];
+    private JObject authenticator => clientConfig.Authenticators[service.Auth];
+
     private IMethodMapWrapper methodMap;
     private IAuthProvider authProvider;
     private ILzHost lzHost; 
     private Dictionary<string, HttpClient> httpClients = new();
-    private Dictionary<string, Api> Apis = new();
+    //private Dictionary<string, Api> Apis = new();
     private bool isServiceAvailable = false;
     public bool IsServiceAvailable
     {
@@ -58,49 +65,24 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
         HttpRequestMessage requestMessage,
         HttpCompletionOption httpCompletionOption,
         CancellationToken cancellationToken,
-        [CallerMemberName] string callerMemberName = null!)
+        [CallerMemberName] string? callerMemberName = null!)
     {
         // Lookup callerMemberName in methodMap to get api name, if not found then throw
-        if (!methodMap.MethodMap.TryGetValue(callerMemberName, out string api))
-            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. callerMemberName {callerMemberName} not found in methodMap");
+        if (!methodMap.MethodMap.TryGetValue(callerMemberName!, out string? api))
+            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. callerMemberName {callerMemberName} not found in MethodMap");
 
         // Find api endpoint data
-        if (!svcConfig.Apis.TryGetValue(api, out Api apiEndpoint))
-            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {api} not found in runConfig.");
+        JObject resource = service.Resources[api];
+        if (resource == null)
+            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {api} not found in ClientConfig.");
 
-        var securityLevel = apiEndpoint.SecurityLevel;
-
-        // Where do we make the API call?
-        // Config.Apis	    WASM				MAUI
-        // CloudFront       LzHost.URL          RunConfig.BaseURL
-        // ApiGateway       RunConfig.BaseURL   RunConfig.BaseURL
-        // Local            RunConfig.BaseURL   RunConfig.BaseURL
-        // LocalAndriod     RunConfig.BaseRUL   RunConfig.BaseURL
-
-        var apiskey = runConfig.Apis;
-        var isLocal = apiskey == "Local";
-
-       if(lzHost.IsAndroid && apiskey == "Local") 
-            apiskey = "LocalAndroid";
-
-        string baseUrl = "";
-        try
-        {
-            baseUrl = (apiskey == "CloudFront" && lzHost.IsWASM)
-                ? baseUrl = lzHost.Url
-                : apiEndpoint.ApiUris[apiskey];
-        } catch { 
-            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} value not supported.");
-        }
-
-        if (string.IsNullOrEmpty(baseUrl))
-            throw new Exception($"{nameof(LzHttpClient)}.{nameof(SendAsync)} failed. Apis {runConfig.Apis} uri value is null or empty.");
-
-        // Console.WriteLine($"baseUrl:{baseUrl} lzHost.Url:{lzHost.Url}");
-
+        var securityLevel = (int)resource["SecurityLevel"]!;
+        var resourceType = (string)resource["ResourceType"]!;
+        var isLocal = resourceType == "Local" || resourceType == "LocalAndriod";
+        var baseUrl = (string)resource["Url"]!;
 
         // Create new HttpClient for endpoint if one doesn't exist
-        if (!httpClients.TryGetValue(baseUrl, out HttpClient httpclient))
+        if (!httpClients.TryGetValue(baseUrl, out HttpClient? httpclient))
         {
 
             httpclient = isLocal && lzHost.IsMAUI
@@ -109,12 +91,10 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
             httpclient.BaseAddress = new Uri(baseUrl);
             httpClients.Add(baseUrl, httpclient);
         }
-        if (tentantConfig != null && !string.IsNullOrEmpty(runConfig.Tenant) && tentantConfig.Tenants.ContainsKey(runConfig.Tenant))
-            requestMessage.Headers.Add("TenantKey", tentantConfig.Tenants[runConfig.Tenant]);
 
         try
         {
-            HttpResponseMessage response = null;
+            HttpResponseMessage? response = null;
             switch (securityLevel)
             {
                 case 0: // No security 
@@ -144,12 +124,10 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
                 case 1: // Use JWT Token signing process
                     try
                     {
-                        string token = "";
+                        string? token = "";
                         try
                         {
-                            // TODO - we sometimes get an error perculating up to the Blazor component level 
-                            // when we make this call. Need to figure out what is going on.
-                            token = await authProvider.GetJWTAsync();
+                            token = await authProvider!.GetJWTAsync();
                             requestMessage.Headers.Add("Authorization", token);
                         }
                         catch
@@ -183,6 +161,33 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
                         return new HttpResponseMessage(System.Net.HttpStatusCode.BadRequest);
                     }
                 case 2:
+                    try
+                    {
+                        // Note: For this ApiGateway we need to add a copy of the JWT header 
+                        // to make it available to the Lambda. This type of ApiGateway will not
+                        // pass the authorization header through to the Lambda.
+                        var token = await authProvider.GetJWTAsync();
+                        requestMessage.Headers.Add("LzIdentity", token);
+
+                        var iCreds = await authProvider.GetCredsAsync();
+                        var awsCreds = new ImmutableCredentials(iCreds!.AccessKey, iCreds.SecretKey, iCreds.Token);
+
+                        // Note. Using named parameters to satisfy new version 3.x.x signature of 
+                        // AwsSignatureVersion4 SendAsync method.
+                        response = await httpclient.SendAsync(
+                        request: requestMessage,
+                        completionOption: httpCompletionOption,
+                        cancellationToken: cancellationToken,
+                        regionName: clientConfig.Region,
+                        serviceName: "execute-api",
+                        credentials: awsCreds);
+                        return response;
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.WriteLine($"Error: {e.Message}");
+                    }
+                    break;
                     throw new Exception($"Security Level {securityLevel} not supported.");
             }
         }

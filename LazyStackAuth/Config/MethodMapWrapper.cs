@@ -12,5 +12,5 @@ public interface IMethodMapWrapper
 
 public class MethodMapWrapper : IMethodMapWrapper
 {
-    public Dictionary<string, string> MethodMap { get; init; }
+    public Dictionary<string, string> MethodMap { get; init; } = new();
 }

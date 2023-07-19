@@ -37,6 +37,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStack.ViewModels", "Laz
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStack.Components", "LazyStack.Components\LazyStack.Components.csproj", "{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackBlazorise", "LazyStackBlazorise\LazyStackBlazorise.csproj", "{4EE2211F-1C74-4DEE-90CB-130E09944A4A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackBase", "LazyStackBase\LazyStackBase.csproj", "{47FBFA47-0567-4FC4-835C-7EB3288E3B86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -95,6 +99,14 @@ Global
 		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2D4CAC1-7B12-49C1-8960-B645DE1A9A3F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EE2211F-1C74-4DEE-90CB-130E09944A4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EE2211F-1C74-4DEE-90CB-130E09944A4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EE2211F-1C74-4DEE-90CB-130E09944A4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EE2211F-1C74-4DEE-90CB-130E09944A4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

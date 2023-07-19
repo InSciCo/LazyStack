@@ -1,6 +1,7 @@
+using LazyStackBase;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json.Linq;
 namespace LazyStackAuth;
 
 /// <summary>
@@ -9,6 +10,7 @@ namespace LazyStackAuth;
 public interface IAuthProvider
 {
     // Properties
+    public bool AuthInitialized { get; set; }   
     public List<AuthChallengeEnum> AuthChallengeList { get; }
     public AuthChallengeEnum CurrentChallenge { get; }
     public AuthProcessEnum CurrentAuthProcess { get; }
@@ -36,8 +38,8 @@ public interface IAuthProvider
     // Challenge states
     public bool HasChallenge { get; }
     // Format Messages
-    public string[] FormatMessages { get; }
-    public string FormatMessage { get; }
+    public string[]? FormatMessages { get; }
+    public string? FormatMessage { get; }
 
     // Currently Allows AuthProcess
     public bool CanSignOut { get; }
@@ -49,6 +51,7 @@ public interface IAuthProvider
     public bool CanUpdatePassword { get; }
     public bool CanUpdatePhone { get; }
     public bool CanCancel { get; }
+    public bool CanNext { get; }    
     public bool CanResendCode { get; }
 
     public bool IsChallengeLongWait { get; } //
@@ -78,14 +81,17 @@ public interface IAuthProvider
     public Task<AuthEventEnum> ResendCodeAsync();
     public Task<AuthEventEnum> RefreshUserDetailsAsync();
 
-    public bool CheckLoginFormat(string login);
-    public bool CheckEmailFormat(string email);
-    public bool CheckPasswordFormat(string password);
-    public bool CheckNewPasswordFormat(string password);
-    public bool CheckPhoneFormat(string phone);
-    public bool CheckCodeFormat(string code);
+    public bool CheckLoginFormat(string? login);
+    public bool CheckEmailFormat(string? email);
+    public bool CheckPasswordFormat(string? password);
+    public bool CheckNewLoginFormat(string? login);
+    public bool CheckNewEmailFormat(string? email);
+    public bool CheckNewPhoneFormat(string? phone);
+    public bool CheckNewPasswordFormat(string? password);
+    public bool CheckPhoneFormat(string? phone);
+    public bool CheckCodeFormat(string? code);
 
-    public Task<Creds> GetCredsAsync();
-    public Task<string> GetJWTAsync();
-
+    public Task<Creds?> GetCredsAsync();
+    public Task<string?> GetJWTAsync();
+    public void SetAuthenticator(JObject authenticator);
 }

@@ -8,6 +8,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Linq;
 using AwsSignatureVersion4.Private;
+using LazyStackAwsSettings;
+using LazyStackBase;
+using Newtonsoft.Json.Linq;
 
 // Code Naming Conventions
 // Property backing fields start with _ ex: _authProvider
@@ -54,6 +57,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
     readonly IAuthProvider _authProvider;
     public IAuthProvider AuthProvider { get { return _authProvider; } }
+    public bool AuthInitialized { get; set; }    
     public AuthChallengeEnum CurrentChallenge => _authProvider.CurrentChallenge;
     public AuthProcessEnum CurrentAuthProcess => _authProvider.CurrentAuthProcess;
 
@@ -63,7 +67,10 @@ public class AuthProcess : NotifyBase, IAuthProcess
         get { return _login; }
         set
         {
-            if (IsChatty) SetProperty(ref _login, value); else _login = value;
+            if (IsChatty) 
+                SetProperty(ref _login, value); 
+            else 
+                _login = value;
             CheckLoginFormat();
         }
     }
@@ -149,32 +156,32 @@ public class AuthProcess : NotifyBase, IAuthProcess
     }
 
     // UI Messages
-    private string _loginFormatMessage;
-    public string LoginFormatMessage { get { return _loginFormatMessage; } }
+    private string? _loginFormatMessage;
+    public string? LoginFormatMessage => _loginFormatMessage;
 
-    private string _newLoginFormatMessage;
-    public string NewLoginFormatMessage { get { return _newLoginFormatMessage; } }
+    private string? _newLoginFormatMessage;
+    public string? NewLoginFormatMessage => _newLoginFormatMessage;
 
-    private string _passwordFormatMessage;
-    public string PasswordFormatMessage { get { return _passwordFormatMessage; } }
+    private string? _passwordFormatMessage;
+    public string? PasswordFormatMessage => _passwordFormatMessage;
 
-    private string _newPasswordFormatMessage;
-    public string NewPasswordFormatMessage { get { return _newPasswordFormatMessage; } }
+    private string? _newPasswordFormatMessage;
+    public string? NewPasswordFormatMessage => _newPasswordFormatMessage; 
 
-    private string _emailFormatMessage;
-    public string EmailFormatMessage { get { return _emailFormatMessage; } }
+    private string? _emailFormatMessage;
+    public string? EmailFormatMessage => _emailFormatMessage;
 
-    private string _newEmailFormatMessage;
-    public string NewEmailFormatMessage { get { return _newEmailFormatMessage; } }
+    private string? _newEmailFormatMessage;
+    public string? NewEmailFormatMessage => _newEmailFormatMessage;
 
-    private string _phoneFormatMessage;
-    public string PhoneFormatMessage { get { return _phoneFormatMessage; } }
+    private string? _phoneFormatMessage;
+    public string? PhoneFormatMessage => _phoneFormatMessage;
 
-    private string _newPhoneFormatMessage;
-    public string NewPhoneFormatMessage { get { return _newPhoneFormatMessage; } }
+    private string? _newPhoneFormatMessage;
+    public string? NewPhoneFormatMessage => _newPhoneFormatMessage;
 
-    private string _codeFormatMessage;
-    public string CodeFormatMessage { get { return _codeFormatMessage; } }
+    private string? _codeFormatMessage;
+    public string? CodeFormatMessage => _codeFormatMessage;
 
 
     // Entry Properties states
@@ -221,12 +228,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool IsNotSignedIn => !_authProvider.IsSignedIn;
 
     // Format Messages
-    public string[] FormatMessages { get { return _authProvider?.FormatMessages; } }
-    public string FormatMessage { get { return _authProvider.FormatMessage; } }
+    public string[]? FormatMessages { get { return _authProvider.FormatMessages; } }
+    public string? FormatMessage { get { return _authProvider.FormatMessage; } }
 
     // CurrentAuthProcess
-    private string _authProcessMessage = string.Empty;
-    public string AuthProcessMessage { get { return _authProcessMessage; } }
+    private string? _authProcessMessage = string.Empty;
+    public string? AuthProcessMessage => _authProcessMessage;
     public bool HasActiveAuthProcess => CurrentAuthProcess != AuthProcessEnum.None;
     public bool NoActiveAuthProcess => CurrentAuthProcess == AuthProcessEnum.None;
     public bool IsSigningIn => CurrentAuthProcess == AuthProcessEnum.SigningIn;
@@ -241,8 +248,8 @@ public class AuthProcess : NotifyBase, IAuthProcess
 
 
     // Challenge states
-    private string _authChallengeMessage = string.Empty;
-    public string AuthChallengeMessage { get { return _authChallengeMessage; } }
+    private string? _authChallengeMessage = string.Empty;
+    public string? AuthChallengeMessage => _authChallengeMessage;
 
     public bool HasChallenge => _authProvider.CurrentChallenge != AuthChallengeEnum.None;
     public bool NoChallenge => _authProvider.CurrentChallenge == AuthChallengeEnum.None;
@@ -275,9 +282,9 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool CollectCode => _authProvider.AuthChallengeList.Contains(AuthChallengeEnum.Code);
 
     // Alert states
-    private string _alertMessage = string.Empty;
-    public string AlertMessage { get { return _alertMessage; } }
-    public bool HasAlert { get { return _alertMessage.Length > 0; } }
+    private string? _alertMessage = string.Empty;
+    public string? AlertMessage => _alertMessage;
+    public bool HasAlert => _alertMessage != null && _alertMessage.Length > 0; 
 
     // Currently Allowed AuthProcess
     public bool CanSignOut => _authProvider.CanSignOut;
@@ -289,6 +296,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool CanUpdatePassword => _authProvider.CanUpdatePassword;
     public bool CanUpdatePhone => _authProvider.CanUpdatePhone;
     public bool CanCancel => _authProvider.CanCancel;
+    public bool CanNext => _authProvider.CanNext;
     public bool CanResendCode => _authProvider.CanResendCode;
 
     public bool _IsBusy = false;
@@ -484,7 +492,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public async Task<AuthEventEnum> StartUpdatePasswordAsync() { ClearSensitiveFields(); return await Execute(_authProvider.StartUpdatePasswordAsync); }
     public async Task<AuthEventEnum> Verify()
     {
-        var verifyResult = AuthEventEnum.Alert;
         switch(CurrentChallenge)
         {
             case AuthChallengeEnum.None:
@@ -499,7 +506,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
                 if (!CheckNewLoginFormat(NewLogin))
                     return AuthEventEnum.Alert_NotConfirmed;
                 return await Execute(_authProvider.VerifyNewLoginAsync, NewLogin);
-                return verifyResult;
 
             case AuthChallengeEnum.Email:
                 if (!CheckEmailFormat(Email))
@@ -677,8 +683,9 @@ public class AuthProcess : NotifyBase, IAuthProcess
         }
     }
 
-    public bool CheckFormat(string val)
+    public bool CheckFormat(string? val)
     {
+        val ??= "";
         switch(CurrentChallenge)
         {
             case AuthChallengeEnum.None:
@@ -727,31 +734,32 @@ public class AuthProcess : NotifyBase, IAuthProcess
     public bool CheckNewPhoneFormat() => CheckNewPhoneFormat(null);
     public bool CheckCodeFormat() => CheckCodeFormat(null);
 
-    public bool CheckLoginFormat(string login)
+    public bool CheckLoginFormat(string? login)
     {
         if (AssignFieldOnCheck && login != null)
             Login = login;
         else
             login = Login;
         var result = _authProvider.CheckLoginFormat(login);
-        _loginFormatMessage = FormatMessages.FirstOrDefault();
+        _loginFormatMessage = FormatMessages?.FirstOrDefault();
+        Console.WriteLine("CheckLoginFormat:" + login);
         if (IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
         return result;
     }
 
-    public bool CheckNewLoginFormat(string login)
+    public bool CheckNewLoginFormat(string? login)
     {
         if (AssignFieldOnCheck && login != null)
             NewLogin = login;
         else
             login = NewLogin;
         var result = _authProvider.CheckLoginFormat(login);
-        _newLoginFormatMessage = FormatMessages.FirstOrDefault();
+        _newLoginFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
         return result;
     }
 
-    public bool CheckPasswordFormat(string password)
+    public bool CheckPasswordFormat(string? password)
     {
         if (AssignFieldOnCheck && password != null)
             Password = password;
@@ -759,12 +767,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
             password = Password;
         var result = _authProvider.CheckPasswordFormat(password);
         //_passwordFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _passwordFormatMessage = FormatMessages.FirstOrDefault();
+        _passwordFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsPasswordFormatOk));
         return result;
     }
 
-    public bool CheckNewPasswordFormat(string password)
+    public bool CheckNewPasswordFormat(string? password)
     {
         if (AssignFieldOnCheck && password != null)
             NewPassword = password;
@@ -772,12 +780,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
             password = NewPassword;
         var result = _authProvider.CheckNewPasswordFormat(password);
         //_newPasswordFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _newPasswordFormatMessage = FormatMessages.FirstOrDefault();
+        _newPasswordFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsNewPasswordFormatOk));
         return result;
     }
 
-    public bool CheckEmailFormat(string email)
+    public bool CheckEmailFormat(string? email)
     {
         if (AssignFieldOnCheck && email != null)
             Email = email;
@@ -785,12 +793,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
             email = Email;
         var result = _authProvider.CheckEmailFormat(email);
         // _emailFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _emailFormatMessage = FormatMessages.FirstOrDefault();
+        _emailFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsEmailFormatOk));
         return result;
     }
 
-    public bool CheckNewEmailFormat(string email)
+    public bool CheckNewEmailFormat(string? email)
     {
         if (AssignFieldOnCheck && email != null)
             NewEmail = email;
@@ -798,12 +806,12 @@ public class AuthProcess : NotifyBase, IAuthProcess
             email = NewEmail;
         var result = _authProvider.CheckEmailFormat(email);
         // _newEmailFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _newEmailFormatMessage = FormatMessages.FirstOrDefault();
+        _newEmailFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsEmailFormatOk));
         return result;
     }
 
-    public bool CheckPhoneFormat(string phone)
+    public bool CheckPhoneFormat(string? phone)
     {
         if (AssignFieldOnCheck && phone != null)
             Phone = phone;
@@ -811,13 +819,13 @@ public class AuthProcess : NotifyBase, IAuthProcess
             phone = Phone;
         var result = _authProvider.CheckPhoneFormat(phone);
         // _phoneFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _phoneFormatMessage = FormatMessages.FirstOrDefault();
+        _phoneFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsPhoneFormatOk));
         return result;
 
     }
 
-    public bool CheckNewPhoneFormat(string phone)
+    public bool CheckNewPhoneFormat(string? phone)
     {
         if (AssignFieldOnCheck && phone != null)
             NewPhone = phone;
@@ -825,13 +833,13 @@ public class AuthProcess : NotifyBase, IAuthProcess
             phone = NewPhone;
         var result = _authProvider.CheckPhoneFormat(phone);
         // _newPhoneFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _newPhoneFormatMessage = FormatMessages.FirstOrDefault();
+        _newPhoneFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsPhoneFormatOk));
         return result;
 
     }
 
-    public bool CheckCodeFormat(string code)
+    public bool CheckCodeFormat(string? code)
     {
         if (AssignFieldOnCheck && code != null)
             Code = code;
@@ -839,18 +847,18 @@ public class AuthProcess : NotifyBase, IAuthProcess
             code = Code;
         var result = _authProvider.CheckCodeFormat(code);
         // _codeFormatMessage = Array.Find<string>(FormatMessages, p => true);
-        _codeFormatMessage = FormatMessages.FirstOrDefault();
+        _codeFormatMessage = FormatMessages?.FirstOrDefault();
         if (IsChatty) RaisePropertyChanged(nameof(IsCodeFormatOk));
         return result;
 
     }
 
-    public async Task<Creds> GetCredsAsync()
+    public async Task<Creds?> GetCredsAsync()
     {
-        return await _authProvider.GetCredsAsync();
+        return await _authProvider!.GetCredsAsync();
     }
 
-    public async Task<string> GetJWTAsync()
+    public async Task<string?> GetJWTAsync()
     {
         return await _authProvider.GetJWTAsync();
     }
@@ -883,7 +891,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
     #endregion
 
     #region AuthProcessEvents
-    public static event EventHandler<AuthModuleEventArgs> AuthModuleEventFired;
+    public static event EventHandler<AuthModuleEventArgs>? AuthModuleEventFired;
 
     // Wrap event invocations inside a protected virtual method
     // to allow derived classes to override the event invocation behavior
@@ -953,6 +961,11 @@ public class AuthProcess : NotifyBase, IAuthProcess
     void RaiseAuthModuleEvent(AuthEventEnum r)
     {
         OnAuthModuleEvent(new AuthModuleEventArgs(r));
+    }
+
+    public virtual void SetAuthenticator(JObject authenticator)
+    {
+        _authProvider.SetAuthenticator(authenticator);
     }
 
     #endregion
