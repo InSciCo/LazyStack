@@ -16,6 +16,7 @@ namespace LazyStackBase
         public LzRunConfig RunConfig { get; set; }
         public Dictionary<string, string> RelatedResources { get; set; }
         public JObject Resources { get; set; }
+        public JObject VARS { get; set; }   
     }
     public class LzClientConfig  : ILzClientConfig
     {
@@ -29,6 +30,7 @@ namespace LazyStackBase
         public LzRunConfig RunConfig { get; set; } = new();
         public Dictionary<string,string> RelatedResources { get; set; } = new();
         public JObject Resources { get; set; } = new();
+        public JObject VARS { get; set; } = new(); 
     }
     public class LzService
     {

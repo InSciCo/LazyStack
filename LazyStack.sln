@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackBlazorise", "LazyS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackBase", "LazyStackBase\LazyStackBase.csproj", "{47FBFA47-0567-4FC4-835C-7EB3288E3B86}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LazyStackConfig", "LazyStackConfig\LazyStackConfig.csproj", "{324DA0EC-11D3-4F38-9B8B-3C49FC23119F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -107,6 +109,10 @@ Global
 		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47FBFA47-0567-4FC4-835C-7EB3288E3B86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{324DA0EC-11D3-4F38-9B8B-3C49FC23119F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{324DA0EC-11D3-4F38-9B8B-3C49FC23119F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{324DA0EC-11D3-4F38-9B8B-3C49FC23119F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{324DA0EC-11D3-4F38-9B8B-3C49FC23119F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

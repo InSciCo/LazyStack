@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
@@ -18,12 +18,6 @@ namespace LazyStackAuth;
 /// It is not an HttClient, instead it services SendAsync() calls made from the *SvcClientSDK and 
 /// dispatches these calls to cached HttpClient(s) configured for each API. This allows each 
 /// endpoint to be separately configured for security etc.
-/// 
-/// Note that we do not support AwsSignatureVersion4 in this class. .NET doesn't have the required
-/// crypto libs necessary to implement this in WASM. We will add it back in when they fix this.
-/// If we need it sooner, we can use preprocessor directives to make it available in MAUI targets.
-/// TODO: Merge in AwsSignatureVersion4 support now that .NET7 supports the Crypto libs.
-/// 
 /// </summary>
 public class LzHttpClient : NotifyBase, ILzHttpClient
 {
@@ -172,7 +166,7 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
                         var iCreds = await authProvider.GetCredsAsync();
                         var awsCreds = new ImmutableCredentials(iCreds!.AccessKey, iCreds.SecretKey, iCreds.Token);
 
-                        // Note. Using named parameters to satisfy new version 3.x.x signature of 
+                        // Note. Using named parameters to satisfy version >= 3.x.x  signature of 
                         // AwsSignatureVersion4 SendAsync method.
                         response = await httpclient.SendAsync(
                         request: requestMessage,

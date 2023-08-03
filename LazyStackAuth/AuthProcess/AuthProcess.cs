@@ -466,7 +466,7 @@ public class AuthProcess : NotifyBase, IAuthProcess
         Code = string.Empty;
         if (ClearAllFields)
         {
-            Login = string.Empty;
+            //Login = string.Empty;
             NewLogin = string.Empty;
             Email = string.Empty;
             NewEmail = string.Empty;

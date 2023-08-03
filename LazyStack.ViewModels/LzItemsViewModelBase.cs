@@ -39,19 +39,12 @@ In your constructor, add a subscription:
 /// <summary>
 /// This class manages a list of ViewModels
 /// TVM is the ViewModel Class in the list
-/// TDTO is the data transfer object that the TVM model uses
-/// TModel is the data model derived from the TDTO that the TVM presents to views
-/// TModel 
 /// </summary>
 /// <typeparam name="TVM"></typeparam>
-/// <typeparam name="TDTO"></typeparam>
-/// <typeparam name="TModel"></typeparam>
-public class ItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCollectionChanged
-    where TDTO : class, new()
-    where TModel : class, TDTO, IId, new() 
-    where TVM : class, IItemViewModelBaseData<TModel>, IItemViewModelBase
+public class LzItemsViewModelBase<TVM> : LzViewModelBase, INotifyCollectionChanged
+    where TVM : class, IItemViewModelBase
 {
-    public ItemsViewModelBase()
+    public LzItemsViewModelBase()
     {
         CanList = true;
         CanAdd = true;

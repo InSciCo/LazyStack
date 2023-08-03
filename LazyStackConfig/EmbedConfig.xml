@@ -1,0 +1,66 @@
+﻿<Project>
+	<!-- This project snippet reads configuration xml files from the $(SourceEmbedConfigFolder) and embeds specified configuration
+        json files into the project assembly with a resource name prefix of "$(MSBuildProjectName).Config.EmbeddedByBuild.".
+		We have default behaviors to keep simple systems simple:
+		- if no env.*.xml file exists we look for and use env.default.xml
+		- if no env.*.xml file and no env.default.xml we just load all *.json files
+		- Note: if you want guarantee json config files load order, you need to use an env.*.xml, or env.default.xml file
+		
+		NOTE: MSBuild has no way of clearing an item in an ItemGroup. So, You can't use this import project 
+		twice in a the same parent project file. If you get really stuck and need that you can copy this import project 
+		and change the ResourceEmbedItems name to something like ResourceEmbedItems2. 		
+		-->
+	<Target Name="EmbedConfigScript" BeforeTargets="PrepareForBuild">
+		<PropertyGroup>
+			<!-- Use directory folder hierarcy to set default env file. -->
+			<EnvFile>env.default.xml</EnvFile>
+			<EnvFile Condition="$(MSBuildProjectDirectory.Contains('_Dev'))">env.dev.xml</EnvFile>
+			<EnvFile Condition="$(MSBuildProjectDirectory.Contains('_Test'))">env.test.xml</EnvFile>
+			<EnvFile Condition="$(MSBuildProjectDirectory.Contains('_Prod'))">env.prod.xml</EnvFile>
+		</PropertyGroup>
+
+		<!-- The currentenv.xml file is optional. If it exists, it will specify which EnvFile
+                to use; overriding the default EnvFile set above. Note that currentenv.xml is an untracked
+                file, so you won't ever get one when checking out the AppName.Config repo. It is good 
+                practice to write the currentenv.xml file in your CI pipelines in case someone checks in 
+                a currentenv.xml file by mistake (this is hard to do as the file is in the .gitignore file
+                but better safe than sorry).  -->
+		<XmlPeek Condition="Exists('$(SourceEmbedConfigFolder)\currentenv.xml')" XmlInputPath="$(CurrentEnvFilePath)" Query="/Environment/EnvFile/text()">
+			<Output TaskParameter="Result" PropertyName="EnvFile" />
+		</XmlPeek>
+		
+		<PropertyGroup>
+			<EnvFilePath>$(SourceEmbedConfigFolder)\$(EnvFile)</EnvFilePath>
+		</PropertyGroup>
+
+		<Message Importance="high" Text="EnvFilePath: $(EnvFilePath)" />
+
+		<Message Condition="Exists('$(EnvFilePath)')" Importance="High" Text="Config Info: Using $(EnvFile)" />
+		<XmlPeek Condition="Exists('$(EnvFilePath)')" XmlInputPath="$(EnvFilePath)" Query="/Resources/Resource/text()">
+			<Output TaskParameter="Result" ItemName="SpecifiedResourceEmbedItems" />
+		</XmlPeek>
+		
+		<!-- Read list of config files from Env file if it exists -->
+		<ItemGroup Condition="Exists('$(EnvFilePath)')">
+			<ResourceEmbedItems Include="@(SpecifiedResourceEmbedItems -> '$(SourceEmbedConfigFolder)\%(Identity)')" />
+		</ItemGroup>
+
+		<!-- Get list of all json config files from source folder if Env file doesn't exist -->
+		<Message Condition="!Exists('$(EnvFilePath)')" Importance="High" Text="Config Info: No env file specified, loading all available json config files." />
+		<ItemGroup Condition="!Exists('$(EnvFilePath)')">
+			<ResourceEmbedItems Include="$(SourceEmbedConfigFolder)\*.json" />
+		</ItemGroup>
+	
+		<Message Importance="High" Text="Resource items embedded:" />
+		<Message Importance="High" Text="  @(ResourceEmbedItems)" />
+
+		<ItemGroup>
+			<EmbeddedResource Condition="Exists('$(EnvFilePath)')" Include="$(EnvFilePath)">
+				<LogicalName>$(MSBuildProjectName).Config.EmbeddedByBuild.config.xml</LogicalName>
+			</EmbeddedResource>
+			<EmbeddedResource Include="@(ResourceEmbedItems)">
+				<LogicalName>$(MSBuildProjectName).Config.EmbeddedByBuild.%(Filename)%(Extension)</LogicalName>
+			</EmbeddedResource>
+		</ItemGroup>
+	</Target>
+</Project>
