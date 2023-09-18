@@ -742,7 +742,6 @@ public class AuthProcess : NotifyBase, IAuthProcess
             login = Login;
         var result = _authProvider.CheckLoginFormat(login);
         _loginFormatMessage = FormatMessages?.FirstOrDefault();
-        Console.WriteLine("CheckLoginFormat:" + login);
         if (IsChatty) RaisePropertyChanged(nameof(IsLoginFormatOk));
         return result;
     }

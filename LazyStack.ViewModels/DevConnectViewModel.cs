@@ -1,9 +1,4 @@
-﻿using System.Reactive;
-using ReactiveUI;
-using LazyStackBase;
-
-
-namespace LazyStack.ViewModels;
+﻿namespace LazyStack.ViewModels;
 public class DevConnectViewModel : ReactiveObject
 {
     //public DevConnectViewModel(IStacksConfig stacksConfig)

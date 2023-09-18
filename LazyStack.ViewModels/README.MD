@@ -32,4 +32,8 @@ These notes are evolving as we better understand the Reactive Programming Model
 - Changes to Model with side effects 
     - Form submission
 
+## Notifications
+We use a WebSocket connection to receive notifications from the service. 
+The WebSocket is created wen you subscribe to one or more topics. 
+
 

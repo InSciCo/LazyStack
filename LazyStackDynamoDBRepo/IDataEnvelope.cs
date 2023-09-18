@@ -20,7 +20,7 @@ namespace LazyStackDynamoDBRepo;
 /// </summary>
 public interface IDataEnvelope<T>
 {
-
+    static string DefaultPK { get; }
     string CurrentTypeName { get; set; }
 
     // Data Entity stored/retrieved in DynamoDB record
@@ -102,6 +102,28 @@ public interface IDataEnvelope<T>
     /// Projection attribute - kitchen sink
     /// </summary>
     string General { get; set; }
-
+    /// <summary>
+    /// Add a TTL attribute to the record so DynamoDB can remove the record.
+    /// </summary>
+    bool UseTTL { get; set; }
+    /// <summary>
+    ///  Number of seconds to add to current time for "deletion" of records with a TTL attribute
+    /// </summary>
+    long TTLPeriod { get; set; }
+    /// <summary>
+    /// Boolean flag indicating record is marked for deletion. Generally, when we mark a record 
+    /// for deletion, we also set the TTL so DynamoDB will remove the record. We us the IsDeleted
+    /// approach to allow for Notification records created from the stream to contain a 
+    /// SessionId value of the client session that delted the record.
+    /// </summary>
+    bool IsDeleted { get; set; }
+    /// <summary>
+    /// The client sessionId that performed the latest operation on the record. This is used 
+    /// by the Notifications process to avoid sending a notification to the client that 
+    /// made the change. 
+    /// </summary>
+    string SessionId { get; set; }
+    int JsonSize { get; }
     void SealEnvelope();
+
 }

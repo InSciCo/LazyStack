@@ -1,12 +1,4 @@
-﻿using System.Reflection;
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
-using LazyStackAuth;
-using LazyStack.Utils;
-
-namespace LazyStack.ViewModels;
+﻿namespace LazyStack.ViewModels;
 
 public static class ConfigureLazyStackViewModels
 {

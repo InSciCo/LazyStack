@@ -1,12 +1,9 @@
-﻿using Amazon.DynamoDBv2.Model;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-
-namespace LazyStackDynamoDBRepo;
+﻿namespace LazyStackDynamoDBRepo;
 
 public abstract class DataEnvelope<T> : IDataEnvelope<T>
     where T : class, new()
 {
+
     private Dictionary<string, AttributeValue> _dbRecord;
     public Dictionary<string, AttributeValue> DbRecord
     {
@@ -17,7 +14,6 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
             OpenEnvelope();
         }
     }
-
     public virtual string CurrentTypeName { get; set; }
 
     /// <summary>
@@ -75,7 +71,12 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
     public string GSI1SK { get; set; } = null;
 
     public string Status { get; set; } = null; // Projection attribute
+    public bool UseTTL { get; set; } = false;
+    public long TTLPeriod { get; set; } = 172800; // 48 hours default. 
 
+    public int JsonSize { get; private set; }
+    public bool IsDeleted { get; set; }
+    public string SessionId { get; set; }
     public long CreateUtcTick
     {
         get { return GetCreateUtcTick(); }
@@ -102,7 +103,7 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
 
     /// <summary>
     /// Gets the CreateUtcTick value from the data entity
-    /// If you don't want to suffer the impact of reflection you can override the 
+    /// If you don't want to suffer the impact of reflection you can override the  
     /// GetCreateUtcTick method (don't call the base method if you do)
     /// and get the CreateUtcTick (or similar) field directly.
     /// </summary>
@@ -206,6 +207,16 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
         if (!string.IsNullOrEmpty(General))
             _dbRecord.Add("General", new AttributeValue() { S = General });
 
+        // We always add the IsDelete attribute because we use it in filter expressions and 
+        // the queries would fail with an exception if we included an attribute in a filter 
+        // expression that did not exist.
+        _dbRecord.Add("IsDeleted", new AttributeValue() { BOOL = IsDeleted });
+
+        if(!string.IsNullOrEmpty(SessionId))
+            _dbRecord.Add("SessionID", new AttributeValue() { S = SessionId });
+
+        if (UseTTL)
+            _dbRecord.Add("TTL", new AttributeValue { N = (long)DateTime.UtcNow.Subtract(DateTime.UnixEpoch).TotalSeconds + (TTLPeriod).ToString() });
     }
 
     /// <summary>
@@ -250,9 +261,16 @@ public abstract class DataEnvelope<T> : IDataEnvelope<T>
         if (_dbRecord.TryGetValue("General", out AttributeValue general))
             General = general.S;
 
+        if (_dbRecord.TryGetValue("IsDeleted", out AttributeValue isDeleted))
+            IsDeleted = isDeleted.BOOL;    
+
+        if (_dbRecord.TryGetValue("SessionId", out AttributeValue sessionId))
+            SessionId = sessionId.S;
+
         // serialize the json data to the EntityInstance
         if (_dbRecord.TryGetValue("Data", out AttributeValue data))
         {
+            JsonSize = data.S.Length;
             DeserializeData(data.S, typeName.S);
         }
 

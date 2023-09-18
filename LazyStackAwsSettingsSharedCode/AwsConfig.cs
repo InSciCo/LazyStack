@@ -122,6 +122,7 @@ namespace LazyStackAwsSettings
                         case "AWS::ApiGatewayV2::Api":
                         case "AWS::ApiGateway::RestApi":
                         case "AWS::ApiGatewayV2::Stage":
+                        case "AWS::ApiGatewayV2::Authorizer":
                         case "AWS::ApiGateway::Stage":
                             var jobj = JObject.FromObject(resource);
                             jobj.Remove("DriftInformation");
@@ -202,19 +203,42 @@ namespace LazyStackAwsSettings
                         var httpApi = new JObject();
                         httpApi["ResourceType"] = resourceType;
                         httpApi["Id"] = resourceId;
-                        try
-                        {
-                            var HttpApiSecureAuthType = (string)template["Resources"][resourceName]["Properties"]["Body"]["components"]["securitySchemes"]["OpenIdAuthorizer"]["type"];
-                            if (HttpApiSecureAuthType.Equals("oauth2"))
-                                httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.JWT;
-                            else
-                                httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.None;
-                        }
-                        catch
+
+                        var protocolType = string.Empty;
+                        var protocolTypeToken = template["Resources"]?[resourceName]?["Properties"]?["ProtocolType"];
+                        if (protocolTypeToken != null)
+                            protocolType = protocolTypeToken.Value<string>();
+                        if (protocolType.Equals("WEBSOCKET"))
                         {
                             httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.None;
+                            httpApi["Url"] = $"wss://{httpApi["Id"]}.execute-api.{regionName}.amazonaws.com/{stageName}";
                         }
-                        httpApi["Url"] = $"https://{httpApi["Id"]}.execute-api.{regionName}.amazonaws.com/{stageName}";
+                        else
+                        {
+                            try
+                            {
+                                var type = template["Resources"]?[resourceName]?["Properties"]?["Body"]?["components"]?["securitySchemes"]?["OpenIdAuthorizer"]?["type"];
+
+                                if (type != null)
+                                {
+                                    var HttpApiSecureAuthType = (string)type;
+                                    if (HttpApiSecureAuthType.Equals("oauth2"))
+                                        httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.JWT;
+                                    else
+                                        httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.None;
+                                }
+                                else
+                                {
+                                    httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.None;
+                                }
+                            }
+                            catch
+                            {
+                                httpApi["SecurityLevel"] = (int)AwsSettings.SecurityLevel.None;
+                            }
+                            httpApi["Url"] = $"https://{httpApi["Id"]}.execute-api.{regionName}.amazonaws.com/{stageName}";
+                        }
+
                         service.Resources.Add(resourceName, httpApi);
                         break;
                     case "AWS::ApiGateway::RestApi":
@@ -237,6 +261,19 @@ namespace LazyStackAwsSettings
                         restApi["Url"] = $"https://{restApi["Id"]}.execute-api.{regionName}.amazonaws.com/{stageName}";
                         service.Resources.Add(resourceName, restApi);
                         break;
+                    case "AWS::ApiGatewayV2::Authorizer":
+                        // TODO: Futher investigation required to see if we can find out which API Gateway this 
+                        // authorizer relates to. When we create the item we assign ApiID but this property 
+                        // doesn't seem to be avialable here. We currently only use an Authorizer for WebSockets 
+                        // and we can just assume, on the client side, that we need to attach an Authorization header
+                        // to calls to the api. However, in some advanced scenarios we may want to use an Authorizer 
+                        // with HttpApi apis - then we would have an issue with the LzHttpClient class. 
+                        ;
+                        break;
+                    default:
+                        ;
+                        break;
+                   
                 }
             }
 

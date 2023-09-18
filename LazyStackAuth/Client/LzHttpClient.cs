@@ -74,11 +74,12 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
         var resourceType = (string)resource["ResourceType"]!;
         var isLocal = resourceType == "Local" || resourceType == "LocalAndriod";
         var baseUrl = (string)resource["Url"]!;
+        if(!baseUrl.EndsWith("/"))
+            baseUrl += "/"; // baseUrl must end with a / or contcat with relative path may fail
 
         // Create new HttpClient for endpoint if one doesn't exist
         if (!httpClients.TryGetValue(baseUrl, out HttpClient? httpclient))
         {
-
             httpclient = isLocal && lzHost.IsMAUI
                 ? new HttpClient(GetInsecureHandler())
                 : new HttpClient();

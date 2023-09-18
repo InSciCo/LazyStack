@@ -30,7 +30,7 @@
                 {
                     <div class="form-group">
                         <label for="password">@Msg("AuthComponent_PasswordLabel")</label>
-                        <InputText id="password" type="password" class="form-control" @bind-Value="ViewModel.Password" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
+                        <InputText  id="password" type="password" class="form-control" @bind-Value="ViewModel.Password" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
                         <small id="loginHelp" class="form-text text-muted">@Msg(@ViewModel.PasswordFormatMessage!)</small>
                     </div>
 
@@ -39,7 +39,7 @@
                 {
                     <div class="form-group">
                         <label for="newpassword">@Msg("AuthComponent_NewPasswordLabel")</label>
-                        <InputText id="newpassword" type="password" class="form-control" @bind-Value="ViewModel.NewPassword" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
+                        <InputText  id="newpassword" type="password" class="form-control" @bind-Value="ViewModel.NewPassword" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
                         <small id="loginHelp" class="form-text text-muted">@Msg(@ViewModel.NewPasswordFormatMessage!)</small>
                     </div>
 
@@ -48,7 +48,7 @@
                 {
                     <div class="form-group">
                         <label for="email">@Msg("AuthComponent_EmailLabel")</label>
-                        <InputText id="email" class="form-control" @bind-Value="ViewModel.Email" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
+                        <InputText  id="email" class="form-control" @bind-Value="ViewModel.Email" @oninput="OnInput" @onkeydown="VerifyKey" @onfocus="CheckFormatOnFocus" />
                         <small id="loginHelp" class="form-text text-muted">@Msg(@ViewModel.EmailFormatMessage!)</small>
                     </div>
 
@@ -90,7 +90,7 @@
             <div>
                 @if (ViewModel.CanSignIn)
                 {
-                    <button  type="button" style="@btnstyle" class="lz-btn btn btn-secondary" @onclick="@(async() => await ViewModel.StartSignInAsync())">@Msg("AuthComponent_SignIn")</button>
+                    <button type="button" style="@btnstyle" class="lz-btn btn btn-secondary" @onclick="@(async() => await ViewModel.StartSignInAsync())">@Msg("AuthComponent_SignIn")</button>
                 }
                 @if (ViewModel.CanSignUp)
                 {
@@ -174,7 +174,6 @@
         bool isActiveElementTabStop = await IsActiveElementTabStop();
         if(!isActiveElementTabStop) 
         {
-            Console.WriteLine("no active tab stop");
             switch(ViewModel!.CurrentChallenge)
             {
                 case AuthChallengeEnum.Login:
@@ -204,9 +203,6 @@
     protected async Task VerifyKey(KeyboardEventArgs e)
     {
 
-        if (e.Key == "Enter")
-            Console.WriteLine("Enter preseed");
-
         if (e == null || e.Key == "Enter" || e.Key == "Tab")
         {
             await ViewModel!.Verify();
@@ -214,7 +210,6 @@
     }
     protected void CheckFormatOnFocus(FocusEventArgs e)
     {
-        //await ViewModel!.Verify();
         ViewModel!.CheckFormat();
     }
 
@@ -241,7 +236,6 @@
     {
         if (lzauth is null) return false;
         var result = await lzauth!.InvokeAsync<bool>("isActiveElementTabStop");
-        Console.WriteLine("active:" + result);
         return result;
     }
 }
