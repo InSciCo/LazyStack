@@ -52,7 +52,7 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
     //[Reactive] public TModel? DataCopy { get; set; }
     [Reactive] public TModel? NotificationData { get; set; }
     [Reactive] public LzItemViewModelBaseState State { get; set; }
-    public INotificationEditOption NotificationEditOption {get; set; }
+
     [Reactive] public bool NotificationReceived { get; set; }
     [Reactive] public bool CanCreate { get; set; }
     [Reactive] public bool CanRead { get; set; }
@@ -98,7 +98,6 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
     public Func<string, Task<string>>? ContentSvcReadIdAsync { get; init; }    // Http access - general http calls
     // Id is URL
     public Func<string, Task<string>>? HttpSvcReadIdAsync { get; init; }
-    private ILzNotificationSvc? notificationsSvc { get; set; }
 
     private void CheckAuth(StorageAPI storageAPI)
     {

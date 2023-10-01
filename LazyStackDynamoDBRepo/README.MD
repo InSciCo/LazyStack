@@ -100,3 +100,16 @@ where Client apps can subscribe to topics and then receive notifications when re
 are written to the database. See that project for more information. 
 
 
+### ListAsync 
+
+ListAsync(callerInfo) -- list all items for PK
+ListAsync(callerInfo, indexName, indexValue) -- list all items with indexName = SK, SK1 .. SK5
+ListLessThanAsync(callerInfo, indexName, indexValue)
+ListLessThanOrEqualAsync(callerInfo, indexName, indexValue) 
+ListGreaterThanAsync(callerInfo, indexName, indexValue)
+ListGreaterThanOrEqualAsync(callerInfo, indexName, indexValue)  
+ListBetweenAsync(callerInfo, indexName, indexValue, indexValue2) - list items between indexValue and indexValue2
+ListBeginsWithAsync(callerInfo, indexName, indexValue) - list items where indexValue is a prefix of the SK, SK1 .. SK5
+
+
+

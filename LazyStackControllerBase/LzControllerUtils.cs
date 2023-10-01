@@ -48,7 +48,7 @@ public abstract class LzControllerUtils : IControllerUtils
     /// </summary>
     /// <param name="request"></param>
     /// <returns>CallerInfo</returns>
-    public virtual async Task<ICallerInfo> GetCallerInfoAsync(HttpRequest request, string endpointName)
+    public virtual async Task<ICallerInfo> GetCallerInfoAsync(HttpRequest request, [CallerMemberName] string endpointName = "")
     {
         try
         {

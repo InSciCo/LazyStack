@@ -1,4 +1,6 @@
-﻿namespace LazyStack.ViewModels;
+﻿using LazyStackNotificationsSchema;
+
+namespace LazyStackNotifications.ViewModels;
 
 /// <summary>
 /// ItemViewModelBase<T,TEdit>
@@ -14,13 +16,14 @@ public abstract class LzItemViewModelNotificationsBase<TDTO, TModel> : LzItemVie
     {
         if(NotificationsSvc != null)
         {
-            this.WhenAnyValue(x => x.NotificationsSvc!.Notification!)
-                .WhereNotNull()
-                .Where(x => x.PayloadId.Equals(Id))
-                .Subscribe(async (x) => await UpdateFromNotification(x.Payload, x.PayloadAction, x.CreatedAt));
+            //this.WhenAnyValue(x => x.NotificationsSvc!.Notification!)
+            //    .WhereNotNull()
+            //    .Where(x => x.PayloadId.Equals(Id))
+            //    .Subscribe(async (x) => await UpdateFromNotification(x.Payload, x.PayloadAction, x.CreatedAt));
         }
     }
     public abstract ILzNotificationSvc NotificationsSvc { get; init; }
+    public INotificationEditOption NotificationEditOption { get; set; }
 
     public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long payloadCreatedAt)
     {

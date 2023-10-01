@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LazyStackBase\LazyStackBase.csproj" />
     <ProjectReference Include="..\LazyStackControllerBase\LazyStackControllerBase.csproj" />
     <ProjectReference Include="..\LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj" />
     <ProjectReference Include="..\LazyStackNotificationsSchema\LazyStackNotificationsSchema.csproj" />

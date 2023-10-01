@@ -1,9 +1,9 @@
 ﻿
+using System.Collections.ObjectModel;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
-
-namespace LazyStack.ViewModels;
+namespace LzNotificationsClientSDK;
 /// <summary>
 /// Derive this class and 
 /// - Implement ReadNotifications() // even if you are using WebSockets

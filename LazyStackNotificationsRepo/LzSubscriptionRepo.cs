@@ -1,4 +1,4 @@
-﻿namespace LazyStackLzNotificationsRepo.Models;
+﻿namespace LazyStackNotificationsRepo;
 
 public class LzSubscriptionEnvelope : DataEnvelope<LzSubscription>
 {
@@ -18,7 +18,7 @@ public class LzSubscriptionEnvelope : DataEnvelope<LzSubscription>
 /// </summary>
 public interface ILzSubscriptionRepo : IDYDBRepository<LzSubscriptionEnvelope, LzSubscription>
 {
-    Task<ActionResult<ICollection<LzSubscription>>> List_DateTimeTicks_Async(ICallerInfo callerInfo, long dateTimeTicks, bool? useCache = null);
+    Task<ObjectResult> List_DateTimeTicks_Async(ICallerInfo callerInfo, long dateTimeTicks, bool? useCache = null);
 }
 public class LzSubscriptionRepo : DYDBRepository<LzSubscriptionEnvelope, LzSubscription>, ILzSubscriptionRepo
 {
@@ -28,10 +28,9 @@ public class LzSubscriptionRepo : DYDBRepository<LzSubscriptionEnvelope, LzSubsc
         UpdateReturnsOkResult = false; // just return value
         TTL = 48 * 60 * 60; // 48 hours 
     }
-    public async Task<ActionResult<ICollection<LzSubscription>>> List_DateTimeTicks_Async(ICallerInfo callerInfo, long dateTimeTicks, bool? useCache = null)
+    public async Task<ObjectResult> List_DateTimeTicks_Async(ICallerInfo callerInfo, long dateTimeTicks, bool? useCache = null)
     {
-        var result = await ListAsync(QueryRange(PK, "SK1", $"{dateTimeTicks:X16}:", $"{long.MaxValue:X16}:", table: callerInfo.Table), useCache: useCache);
-        var value = result.Value ?? new List<LzSubscription>();
-        return new ActionResult<ICollection<LzSubscription>>(value);
+        return await ListAsync(QueryRange(PK, "SK1", $"{dateTimeTicks:X16}:", $"{long.MaxValue:X16}:", table: callerInfo.Table), useCache: useCache);
+
     }
 }

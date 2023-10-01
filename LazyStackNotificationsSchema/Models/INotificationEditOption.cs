@@ -1,4 +1,4 @@
-﻿namespace LazyStack.ViewModels;
+﻿namespace LazyStackNotificationsSchema;
 
 public enum INotificationEditOption
 {

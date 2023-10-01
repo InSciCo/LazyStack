@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace LazyStackDynamoDBRepo;
 
@@ -103,8 +105,9 @@ public abstract
         await Task.Delay(0);
         cache = new Dictionary<string, (TEnv, long)>();
     }
-    public virtual async Task<ActionResult<TEnv>> CreateEAsync(T data, string table = null, bool? useCache = null) => await CreateEAsync(data, new CallerInfo() { Table = table}, useCache);
-    public virtual async Task<ActionResult<TEnv>> CreateEAsync(T data, ICallerInfo callerInfo = null,  bool? useCache = null)
+    public virtual async Task<ActionResult<TEnv>> CreateEAsync(string table, T data, bool? useCache = null)
+        => await CreateEAsync(new CallerInfo() { Table = table }, data, useCache);
+    public virtual async Task<ActionResult<TEnv>> CreateEAsync(ICallerInfo callerInfo, T data, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -128,7 +131,7 @@ public abstract
             // Wait until just before write to serialize EntityInstance (captures updates to UtcTick fields)
             envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance) });
 
-            AddOptionalAttributes(envelope, callerInfo); // Adds TTL, Topics when specified
+            AddOptionalAttributes(callerInfo, envelope); // Adds TTL, Topics when specified
 
             var request = new PutItemRequest()
             {
@@ -152,19 +155,24 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(500); }
         catch { return new StatusCodeResult(500); }
     }
-    public virtual async Task<ActionResult<T>> CreateAsync(T data, string table = null, bool? useCache = null) => await CreateAsync(data, new CallerInfo() { Table = table }, useCache);    
-    public virtual async Task<ActionResult<T>> CreateAsync(T data, ICallerInfo callerInfo = null, bool? useCache = null)
+    public virtual async Task<ActionResult<T>> CreateAsync(string table, T data, bool? useCache = null)
+        => await CreateAsync(new CallerInfo() { Table = table }, data, useCache);
+    public virtual async Task<ActionResult<T>> CreateAsync(ICallerInfo callerInfo, T data, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
-        var result = await CreateEAsync(data, callerInfo, useCache);
+        var result = await CreateEAsync(callerInfo, data, useCache);
         if (result.Result is not null)
             return result.Result;
         return result.Value.EntityInstance;
     }
 
-    public virtual async Task<ActionResult<T>> ReadAsync(string id, ICallerInfo callerInfo, bool? useCache = null) => await ReadAsync(this.PK, id, callerInfo, useCache);
-    public virtual async Task<ActionResult<T>> ReadAsync(string pK, string sK = null, string table = null, bool? useCache = null) => await ReadAsync(pK, sK, new CallerInfo() { Table = table }, useCache); 
-    public virtual async Task<ActionResult<T>> ReadAsync(string pK, string sK = null, ICallerInfo callerInfo = null, bool? useCache = null)
+    public virtual async Task<ActionResult<T>> ReadAsync(string table, string id, bool? useCache = null)
+        => await ReadAsync(new CallerInfo() { Table = table }, id, useCache);
+    public virtual async Task<ActionResult<T>> ReadAsync(ICallerInfo callerInfo, string id, bool? useCache = null) 
+        => await ReadAsync(callerInfo, this.PK, $"{id}:", useCache);
+    public virtual async Task<ActionResult<T>> ReadAsync(string table, string pK, string sK, bool? useCache = null)
+        => await ReadAsync(new CallerInfo() { Table = table }, pK, sK, useCache);   
+    public virtual async Task<ActionResult<T>> ReadAsync(ICallerInfo callerInfo, string pK, string sK, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -173,7 +181,7 @@ public abstract
 
         try
         {
-            var response = await ReadEAsync(pK, sK, callerInfo, useCache: useCache);
+            var response = await ReadEAsync(callerInfo, pK, sK, useCache: useCache);
             if (response.Value == null)
                 return response.Result;
 
@@ -184,9 +192,13 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(406); }
     }
-    public virtual async Task<ActionResult<TEnv>> ReadEAsync(string id, ICallerInfo callerInfo = null, bool? useCache = null) => await ReadEAsync(this.PK, id, callerInfo, useCache);
-    public virtual async Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null, string table = null, bool? useCache = null) => await ReadEAsync(pK, sK, new CallerInfo() { Table = table }, useCache);
-    public virtual async Task<ActionResult<TEnv>> ReadEAsync(string pK, string sK = null, ICallerInfo callerInfo = null, bool? useCache = null)
+    public virtual async Task<ActionResult<TEnv>> ReadEAsync(string table, string id, bool? useCache = null)
+        => await ReadEAsync(new CallerInfo() { Table = table }, id, useCache);
+    public virtual async Task<ActionResult<TEnv>> ReadEAsync(ICallerInfo callerInfo, string id, bool? useCache = null) 
+        => await ReadEAsync(callerInfo, this.PK, $"{id}:", useCache);
+    public virtual async Task<ActionResult<TEnv>> ReadEAsync(string table, string pK, string sK, bool? useCache = null)
+        => await ReadEAsync(new CallerInfo() { Table = table }, pK, sK, useCache);  
+    public virtual async Task<ActionResult<TEnv>> ReadEAsync(ICallerInfo callerInfo, string pK, string sK, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -236,7 +248,7 @@ public abstract
     /// This routine currently handels the optional attributes TTL and Topics.
     /// </summary>
     /// <param name="envelope"></param>
-    public virtual void AddOptionalAttributes(TEnv envelope, ICallerInfo callerInfo, bool isDeleted = false)
+    public virtual void AddOptionalAttributes(ICallerInfo callerInfo, TEnv envelope, bool isDeleted = false)
     {
         // Add TTL attribute when GetTTL() is not 0
         var ttl = GetTTL();
@@ -248,8 +260,9 @@ public abstract
         if (!string.IsNullOrEmpty(topics))
             envelope.DbRecord.Add("Topics", new AttributeValue() { S = topics });
     }
-    public virtual async Task<ActionResult<TEnv>> UpdateEAsync(T data, string table = null) => await UpdateEAsync(data, new CallerInfo() { Table = table });
-    public virtual async Task<ActionResult<TEnv>> UpdateEAsync(T data, ICallerInfo callerInfo = null)
+    public virtual async Task<ActionResult<TEnv>> UpdateEAsync(string table, T data)
+        => await UpdateEAsync(new CallerInfo() { Table = table }, data);
+    public virtual async Task<ActionResult<TEnv>> UpdateEAsync(ICallerInfo callerInfo, T data)
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -273,7 +286,7 @@ public abstract
             // Waiting until just before write to serialize EntityInstance (captures updates to UtcTick fields)
             envelope.DbRecord.Add("Data", new AttributeValue() { S = JsonConvert.SerializeObject(envelope.EntityInstance) });
 
-            AddOptionalAttributes(envelope, callerInfo); // Adds TTL, Topics when specified
+            AddOptionalAttributes(callerInfo, envelope); // Adds TTL, Topics when specified
 
             // Write data to database - use conditional put to avoid overwriting newer data
             var request = new PutItemRequest()
@@ -305,19 +318,22 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(500); }
     }
-
-    public virtual async Task<ActionResult<T>> UpdateAsync(T data, string table = null) => await UpdateAsync(data, new CallerInfo() { Table = table });
-    public virtual async Task<ActionResult<T>> UpdateAsync(T data, ICallerInfo callerInfo = null)
+    public virtual async Task<ActionResult<T>> UpdateAsync(string table, T data)
+        => await UpdateAsync(new CallerInfo() { Table = table }, data);
+    public virtual async Task<ActionResult<T>> UpdateAsync(ICallerInfo callerInfo, T data)
     {
         callerInfo ??= new CallerInfo();    
-        var result = await UpdateEAsync(data, callerInfo);
+        var result = await UpdateEAsync(callerInfo, data);
         if (result.Result is not null)
             return result.Result;
         return result.Value.EntityInstance;
     }
-    public virtual async Task<StatusCodeResult> DeleteAsync(string id, ICallerInfo callerInfo = null) => await DeleteAsync(this.PK, id, callerInfo);
-    public virtual async Task<StatusCodeResult> DeleteAsync(string pK, string sK = null, string table = null) => await DeleteAsync(pK, sK, new CallerInfo() { Table = table});
-    public virtual async Task<StatusCodeResult> DeleteAsync(string pK, string sK = null, ICallerInfo callerInfo = null)
+    public virtual async Task<StatusCodeResult> DeleteAsync(string table, string id)
+        => await DeleteAsync(new CallerInfo() { Table = table }, id);
+    public virtual async Task<StatusCodeResult> DeleteAsync(ICallerInfo callerInfo, string id) => await DeleteAsync(callerInfo, this.PK, $"{id}:");
+    public virtual async Task<StatusCodeResult> DeleteAsync(string table, string pK, string sK = null)
+        => await DeleteAsync(new CallerInfo() { Table = table }, pK, sK);
+    public virtual async Task<StatusCodeResult> DeleteAsync(ICallerInfo callerInfo, string pK, string sK = null )
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -334,13 +350,13 @@ public abstract
                 // the SessionId of the client that deleted the record. This 
                 // in turn allows us to avoid sending that notification back
                 // to the originating client. 
-                var readResult = await ReadEAsync(pK, sK, callerInfo);
+                var readResult = await ReadEAsync(callerInfo, pK, sK);
                 var envelope = readResult.Value;
                 if (envelope is null)
                     return new StatusCodeResult(200);
                 envelope.IsDeleted = true;
                 envelope.UseTTL = UseSoftDelete; // DynamoDB will delete records after TTL reached
-                var updateResult = await UpdateEAsync(envelope.EntityInstance, callerInfo);
+                var updateResult = await UpdateEAsync(callerInfo, envelope.EntityInstance);
                 if (updateResult.Result is not null)
                     return (StatusCodeResult)updateResult.Result;
             }
@@ -369,7 +385,7 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(406); }
     }
-    public virtual async Task<(ActionResult<ICollection<TEnv>> actionResult, long responseSize)> ListEAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
+    public virtual async Task<(ObjectResult objResult, long responseSize)> ListEAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
     {
         var table = queryRequest.TableName;
         bool useCache2 = (useCache != null) ? (bool)useCache : AlwaysCache;
@@ -401,13 +417,15 @@ public abstract
             } while (responseSize <= 5120 && lastEvaluatedKey != null && list.Count < limit);
             var statusCode = lastEvaluatedKey == null ? 200 : 206;
             PruneCache();
-            return (new ObjectResult(list) { StatusCode = statusCode }, responseSize);
+
+            var objResult = new ObjectResult(list) { StatusCode = statusCode };
+            return (objResult, responseSize);
         }
-        catch (AmazonDynamoDBException) { return (new StatusCodeResult(500), 0); } 
-        catch (AmazonServiceException) { return (new StatusCodeResult(503), 0); }
-        catch { return (new StatusCodeResult(500), 0); }
+        catch (AmazonDynamoDBException) { return (new ObjectResult(null) { StatusCode = 500 }, 0); }
+        catch (AmazonServiceException) { return (new ObjectResult(null) { StatusCode = 503 }, 0); }
+        catch { return (new ObjectResult(null) { StatusCode = 500 }, 0); }
     }
-    public virtual async Task<ActionResult<ICollection<TEnv>>> ListEAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
+    public virtual async Task<ObjectResult> ListEAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
     {
         var (actionResult, _) = await ListEAndSizeAsync(queryRequest, useCache, limit);
         return actionResult;
@@ -437,30 +455,94 @@ public abstract
     /// <param name="queryRequest"></param>
     /// <param name="useCache"></param>
     /// <returns>Task&lt;(ActionResult&lt;ICollection<T>> actionResult,long responseSize)&gt;</returns>
-    public virtual async Task<(ActionResult<ICollection<T>> actionResult,long responseSize)> ListAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
+    public virtual async Task<(ObjectResult objResult,long responseSize)> ListAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
     {
         try
         {
             var list = new List<T>();
-            var envelopesResult = await ListEAndSizeAsync(queryRequest, useCache, limit);
-            IActionResult queryResult = envelopesResult.actionResult.Result as StatusCodeResult;
+            var (actionResult, size) = await ListEAndSizeAsync(queryRequest, useCache, limit);
 
-            if(!IsResultOk(queryResult))
-                return (new ObjectResult(list) { StatusCode = GetStatusCode(queryResult) }, envelopesResult.responseSize);    
-             
-            foreach (var envelope in envelopesResult.actionResult.Value)
+            var statusCode = actionResult.StatusCode;
+            if(statusCode < 200 || statusCode > 299)
+                return (new ObjectResult(null) { StatusCode = statusCode }, size);
+            var envList = actionResult.Value as List<TEnv>; 
+            foreach (var envelope in envList)
                 list.Add(envelope.EntityInstance);
-
-            return (new ObjectResult(list) { StatusCode = GetStatusCode(queryResult) }, envelopesResult.responseSize);
+            var objResult = new ObjectResult(list) { StatusCode = statusCode };
+            return (objResult, size);
         }
-        catch (AmazonDynamoDBException) { return (new StatusCodeResult(500), 0); }
-        catch (AmazonServiceException) { return (new StatusCodeResult(503), 0); }
-        catch { return (new StatusCodeResult(500), 0); }
+        catch (AmazonDynamoDBException) { return (new ObjectResult(null) { StatusCode = 500 }, 0); }
+        catch (AmazonServiceException) { return (new ObjectResult(null) { StatusCode = 503 }, 0); }
+        catch { return (new ObjectResult(null) { StatusCode = 500 }, 0); }
     }
-    public virtual async Task<ActionResult<ICollection<T>>> ListAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
+    public virtual async Task<ObjectResult> ListAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
     {
         var (actionResult, _) = await ListAndSizeAsync(queryRequest, useCache, limit);
         return actionResult;
+    }
+    public virtual async Task<ObjectResult> ListAsync(string table)
+        => await ListAsync(new CallerInfo() { Table = table });
+    public virtual async Task<ObjectResult> ListAsync(ICallerInfo callerInfo)
+    {
+        var queryRequest = QueryEquals(PK, callerInfo:callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListAsync(string table, string indexName, string indexValue)
+        => await ListAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryEquals(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListBeginsWithAsync(string table, string indexName, string indexValue)
+        => await ListBeginsWithAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListBeginsWithAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryBeginsWith(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListLessThanAsync(string table, string indexName, string indexValue)
+        => await ListLessThanAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListLessThanAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryLessThan(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListLessThanOrEqualAsync(string table, string indexName, string indexValue)
+        => await ListLessThanOrEqualAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListLessThanOrEqualAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryLessThanOrEqual(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListGreaterThanAsync(string  table, string indexName, string indexValue)
+        => await ListGreaterThanAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListGreaterThanAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryGreaterThan(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListGreaterThanOrEqualAsync(string table, string indexName, string indexValue)
+        => await ListGreaterThanOrEqualAsync(new CallerInfo() { Table = table }, indexName, indexValue);
+    public virtual async Task<ObjectResult> ListGreaterThanOrEqualAsync(ICallerInfo callerInfo, string indexName, string indexValue)
+    {
+        var queryRequest = QueryGreaterThanOrEqual(PK, indexName, indexValue, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
+    }
+    public virtual async Task<ObjectResult> ListBetweenAsync(string table, string indexName, string indexValue1, string indexValue2)
+        => await ListBetweenAsync(new CallerInfo() { Table = table }, indexName, indexValue1, indexValue2);
+    public virtual async Task<ObjectResult> ListBetweenAsync(ICallerInfo callerInfo, string indexName, string indexValue1, string indexValue2)
+    {
+        var queryRequest = QueryRange(PK, indexName, indexValue1, indexValue2, callerInfo: callerInfo);
+        var (objResult, _) = await ListAndSizeAsync(queryRequest);
+        return objResult;
     }
     protected Dictionary<string, string> GetExpressionAttributeNames(Dictionary<string, string> value)
     {
@@ -480,8 +562,6 @@ public abstract
         return value;
     }
 
-    public virtual QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null) 
-        => QueryEquals(pK, expressionAttributeNames, projectionExpression, new CallerInfo() { Table = table});
     public virtual QueryRequest QueryEquals(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
     {
         callerInfo ??= new CallerInfo();
@@ -498,20 +578,21 @@ public abstract
             KeyConditionExpression = $"PK = :PKval",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
-                {":PKval", new AttributeValue() {S = pK} },
-                {":IsDeleted", new AttributeValue() {BOOL = false } } 
+                {":PKval", new AttributeValue() {S = pK} }
             },
             ExpressionAttributeNames = expressionAttributeNames,
             ProjectionExpression = projectionExpression
         };
-        if(UseIsDeleted)
+
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
             query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
 
         return query;
 
     }
-    public virtual QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
-        => QueryEquals(pK, keyField, key, expressionAttributeNames, projectionExpression, new CallerInfo() { Table = table });
     public virtual QueryRequest QueryEquals(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
     {
         callerInfo ??= new CallerInfo();
@@ -532,19 +613,18 @@ public abstract
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
                 {":PKval", new AttributeValue() {S = pK} },
-                {":SKval", new AttributeValue() {S =  key } },
-                {":IsDeleted", new AttributeValue() {BOOL = false } }
+                {":SKval", new AttributeValue() {S =  key } }
             },
             ExpressionAttributeNames = expressionAttributeNames,
             ProjectionExpression = projectionExpression
         };
         if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
             query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
         return query;
     }
-
-    public virtual QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
-        => QueryBeginsWith(pK, keyField, key, expressionAttributeNames, projectionExpression, new CallerInfo() { Table = table });
     public virtual QueryRequest QueryBeginsWith(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
     {
         callerInfo ??= new CallerInfo();
@@ -565,19 +645,146 @@ public abstract
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
                 {":PKval", new AttributeValue() {S = pK} },
-                {":SKval", new AttributeValue() {S =  key } },
-                {":IsDeleted", new AttributeValue() {BOOL = false } }
+                {":SKval", new AttributeValue() {S =  key } }
             },
             ExpressionAttributeNames = expressionAttributeNames,
             ProjectionExpression = projectionExpression
         };
         if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
             query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
         return query;
     }
+    public virtual QueryRequest QueryLessThan(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
+    {
+        callerInfo ??= new CallerInfo();
+        var table = callerInfo.Table;
+        if (string.IsNullOrEmpty(table))
+            table = tablename;
 
-    public virtual QueryRequest QueryBeginsWith(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, string table = null)
-        => QueryBeginsWith(pK, expressionAttributeNames, projectionExpression, new CallerInfo() { Table = table });
+        expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+        projectionExpression = GetProjectionExpression(projectionExpression);
+
+        var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+        var query = new QueryRequest()
+        {
+            TableName = table,
+            KeyConditionExpression = $"PK = :PKval and SK < :SKval",
+            IndexName = indexName,
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                {":PKval", new AttributeValue() {S = pK} },
+                {":SKval", new AttributeValue() {S =  key } }
+            },
+            ExpressionAttributeNames = expressionAttributeNames,
+            ProjectionExpression = projectionExpression
+        };
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
+            query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
+        return query;
+    }
+    public virtual QueryRequest QueryLessThanOrEqual(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
+    {
+        callerInfo ??= new CallerInfo();
+        var table = callerInfo.Table;
+        if (string.IsNullOrEmpty(table))
+            table = tablename;
+
+        expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+        projectionExpression = GetProjectionExpression(projectionExpression);
+
+        var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+        var query = new QueryRequest()
+        {
+            TableName = table,
+            KeyConditionExpression = $"PK = :PKval and SK <= :SKval",
+            IndexName = indexName,
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                {":PKval", new AttributeValue() {S = pK} },
+                {":SKval", new AttributeValue() {S =  key } }
+            },
+            ExpressionAttributeNames = expressionAttributeNames,
+            ProjectionExpression = projectionExpression
+        };
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
+            query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
+        return query;
+    }
+    public virtual QueryRequest QueryGreaterThan(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
+    {
+        callerInfo ??= new CallerInfo();
+        var table = callerInfo.Table;
+        if (string.IsNullOrEmpty(table))
+            table = tablename;
+
+        expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+        projectionExpression = GetProjectionExpression(projectionExpression);
+
+        var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+        var query = new QueryRequest()
+        {
+            TableName = table,
+            KeyConditionExpression = $"PK = :PKval and SK > :SKval",
+            IndexName = indexName,
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                {":PKval", new AttributeValue() {S = pK} },
+                {":SKval", new AttributeValue() {S =  key } }
+            },
+            ExpressionAttributeNames = expressionAttributeNames,
+            ProjectionExpression = projectionExpression
+        };
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
+            query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
+        return query;
+    }
+    public virtual QueryRequest QueryGreaterThanOrEqual(string pK, string keyField, string key, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
+    {
+        callerInfo ??= new CallerInfo();
+        var table = callerInfo.Table;
+        if (string.IsNullOrEmpty(table))
+            table = tablename;
+
+        expressionAttributeNames = GetExpressionAttributeNames(expressionAttributeNames);
+        projectionExpression = GetProjectionExpression(projectionExpression);
+
+        var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
+
+        var query = new QueryRequest()
+        {
+            TableName = table,
+            KeyConditionExpression = $"PK = :PKval and SK >= :SKval",
+            IndexName = indexName,
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                {":PKval", new AttributeValue() {S = pK} },
+                {":SKval", new AttributeValue() {S =  key } }
+            },
+            ExpressionAttributeNames = expressionAttributeNames,
+            ProjectionExpression = projectionExpression
+        };
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
+            query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
+        return query;
+    }
     public virtual QueryRequest QueryBeginsWith(string pK, Dictionary<string, string> expressionAttributeNames = null, string projectionExpression = null, ICallerInfo callerInfo = null)
     {
         callerInfo ??= new CallerInfo();
@@ -594,14 +801,16 @@ public abstract
             KeyConditionExpression = $"PK = :PKval",
             ExpressionAttributeValues = new Dictionary<string, AttributeValue>
             {
-                {":PKval", new AttributeValue() {S = pK} },
-                {":IsDeleted", new AttributeValue() {BOOL = false } }
+                {":PKval", new AttributeValue() {S = pK} }
             },
             ExpressionAttributeNames = expressionAttributeNames,
             ProjectionExpression = projectionExpression
         };
         if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
             query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
         return query;
     }
 
@@ -648,6 +857,11 @@ public abstract
             ExpressionAttributeNames = expressionAttributeNames,
             ProjectionExpression = projectionExpression
         };
+        if (UseIsDeleted)
+        {
+            query.ExpressionAttributeValues.Add(":IsDeleted", new AttributeValue() { BOOL = false });
+            query.FilterExpression = "IsDeleted = :IsDeleted";
+        }
         return query;
     }
     protected bool IsResultOk(IActionResult actionResult)
@@ -658,12 +872,12 @@ public abstract
             if (statusCode >= 200 && statusCode < 300)
                 return true;
         }
-        return false;
+        return true;
     }
     protected int GetStatusCode(IActionResult actionResult)
     {
         if (actionResult is StatusCodeResult statusCodeResult)
             return statusCodeResult.StatusCode;
-        return 500;
+        return 200;
     }
 }

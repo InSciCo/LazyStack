@@ -6,7 +6,6 @@ public interface ILzItemViewModelBase
     public string? Id { get; }
     public long UpdatedAt { get; }
     public LzItemViewModelBaseState State { get; set; }
-    public INotificationEditOption NotificationEditOption { get; set; } 
     public bool NotificationReceived { get; set; }
     public bool CanCreate { get; set; }
     public bool CanRead { get; set; }

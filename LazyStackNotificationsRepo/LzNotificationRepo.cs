@@ -1,5 +1,9 @@
 ﻿
-namespace LazyStackLzNotificationsRepo.Models;
+using Microsoft.AspNetCore.Mvc;
+using System.Drawing;
+using System.Security.Policy;
+
+namespace LazyStackNotificationsRepo;
 
 public class LzNotificationEnvelope : DataEnvelope<LzNotification>
 {
@@ -85,11 +89,6 @@ public class LzNotificationRepo : DYDBRepository<LzNotificationEnvelope, LzNotif
 
     private readonly ILzSubscriptionRepo subscriptionRepo;
 
-    public async Task<ActionResult<LzNotification>> LzNotification_Create_Async(ICallerInfo callerInfo, LzNotification data, bool? useCache = null)
-        => await CreateAsync(data, callerInfo.Table + "-LzNotifications", useCache: useCache);
-    public async Task<ActionResult<LzNotification>> LzNotification_Read_Id_Async(ICallerInfo callerInfo, string id, bool? useCache = null)
-        => await ReadAsync(pK: PK, sK: $"{id}", callerInfo.Table + "-LzNotifications", useCache: useCache);
-
     /// <summary>
     /// Read LzNotifications for topics associated with a connectionId. 
     /// We read the subscription record and then aggregate all the subscribed topics into a list ordered by CreatedAt. 
@@ -107,32 +106,24 @@ public class LzNotificationRepo : DYDBRepository<LzNotificationEnvelope, LzNotif
             return new StatusCodeResult(410); // Gone
 
         // Get subscription record for connectionId
-        var subscriptionTask = await subscriptionRepo.ReadAsync(subscriptionId, callerInfo);
+        var subscriptionTask = await subscriptionRepo.ReadAsync(callerInfo, subscriptionId);
         var subscription = subscriptionTask.Value;
         if (subscription is null || subscription.UserId != callerInfo.LzUserId || subscription.TopicIds.Count == 0)
             return new LzNotificationsPage() { LzNotifications = notifications, More = false }; // return empty list if no subscription or incorrect userId
 
-        var resultSize = 0;
         var statusCode = 0;
         // Filter by subscription topic(s) 
         var topicIds = subscription.TopicIds;
         do
         {
-            var notificationsResult = await ReadLatestLzNotifications(callerInfo, dateTimeTicks);
-            if (notificationsResult.Result is ObjectResult innerActionResult)
-                statusCode = (int)innerActionResult.StatusCode!; // 200 means we have read all available results
-            if (statusCode < 200 || statusCode >= 300)
-                return new ObjectResult(notifications) { StatusCode = statusCode }; // bail on error
+            var objResult = await ReadLatestLzNotifications(callerInfo, dateTimeTicks);
+            if (objResult is null) return new ObjectResult(null) { StatusCode = 500 };
+            statusCode = (int)objResult.StatusCode!;
+            if (statusCode < 200 || statusCode > 299)
+                return new ObjectResult(null) { StatusCode = statusCode };
 
-            foreach (var notification in notificationsResult.Value)
-                if (topicIds.Contains(notification.TopicId))
-                {
-                    resultSize += notification.Payload.Length;
-                    if (resultSize > MaxResultSize)
-                        return new ObjectResult(new LzNotificationsPage() { LzNotifications = notifications, More = true }); 
-                    notifications.Add(notification);
-                }
         } while (statusCode == 206); // partial result
+
         return new ObjectResult(new LzNotificationsPage() { LzNotifications = notifications, More = false }); ;
     }
 
@@ -147,7 +138,7 @@ public class LzNotificationRepo : DYDBRepository<LzNotificationEnvelope, LzNotif
     /// <param name="callerInfo"></param>
     /// <param name="fromTick"></param>
     /// <returns></returns>
-    protected async Task<ActionResult<ICollection<LzNotification>>> ReadLatestLzNotifications(ICallerInfo callerInfo, long earliestTick, int limit = 0)
+    protected async Task<ObjectResult> ReadLatestLzNotifications(ICallerInfo callerInfo, long earliestTick, int limit = 0)
     {
         // The notificationsCache may contain some of the required records. We do queries to retrieve requested records not in the
         // notificationsCache and add records to the notificationsCache within the constraints of MaxCacheRecords. The cache always 
@@ -158,33 +149,33 @@ public class LzNotificationRepo : DYDBRepository<LzNotificationEnvelope, LzNotif
         // earliestTick argument or the latestTick value in notificationsCache.
         // Note: Using SK3 which is the descending order index on CreatedAt. 
         // Note: This step can grow the cache beyound MaxLzNotificationsCacheSize. We prune the cache before we exit this method.
-        var statusCode = 0;
+        int statusCode = 0;
         do
         {
             var startOfRange = -nowTick;
             var endOfRange = notificationsCache.Count > 0 ? notificationsCache.First().Value.CreateUtcTick : -earliestTick;
 
-            var result = await ListAndSizeAsync(QueryRange(PK, "SK3", $"{startOfRange:D19}:", $"{endOfRange:D19}:", table: callerInfo.Table + "-LzNotifications"), useCache: false);
-            var actionResult = result.actionResult.Result;
-            if(actionResult is ObjectResult innerActionResult)
-                statusCode = (int)innerActionResult.StatusCode!;
+            var (objResult, size) = await ListAndSizeAsync(QueryRange(PK, "SK3", $"{startOfRange:D19}:", $"{endOfRange:D19}:", table: callerInfo.Table + "-LzNotifications"), useCache: false);
+            statusCode = (int)objResult!.StatusCode!;
 
-            if (statusCode < 200 && statusCode >= 300)
+            if (statusCode < 200 && statusCode > 299)
             {
                 // Clear the cache if anything screwy has happened.
                 // TODO: Experiment with less draconian recovery options.
                 Console.WriteLine($"ReadLatestLzNotifications failed in phase 1. Clearing Cache");
                 notificationsCache.Clear();
                 currentLzNotificationsCacheSize = 0;
-                return actionResult; // bail!
+                    return new ObjectResult(null) { StatusCode = statusCode };
             }
 
             // Add retreived items to cache
-            foreach(var item in result.actionResult.Value)
-            {
-                notificationsCache.Add(item.CreateUtcTick, item);
-                currentLzNotificationsCacheSize += item.Payload.Length + 200; // rough estimate is sufficient
-            }
+            var list = objResult.Value as List<LzNotification>;
+            if(list != null)
+                foreach(var item in list)
+                {
+                    notificationsCache.Add(item.CreateUtcTick, item);
+                    currentLzNotificationsCacheSize += item.Payload.Length + 150; // rough estimate is sufficient
+                }
 
         } while (statusCode == 206);
 
@@ -197,26 +188,27 @@ public class LzNotificationRepo : DYDBRepository<LzNotificationEnvelope, LzNotif
                 var startOfRange = earliestTick;
                 var endOfRange = notificationsCache.Keys.First() + 1;
 
-                var result = await ListAndSizeAsync(QueryRange(PK, "SK2", $"{startOfRange:X16}:", $"{endOfRange:X16}:", table: callerInfo.Table + "-LzNotifications"), useCache: false);
-                var actionResult = result.actionResult.Result;
-                if (actionResult is ObjectResult innerActionResult)
-                    statusCode = (int)innerActionResult.StatusCode!;
+                var (objResult, size) = await ListAndSizeAsync(QueryRange(PK, "SK2", $"{startOfRange:X16}:", $"{endOfRange:X16}:", table: callerInfo.Table + "-LzNotifications"), useCache: false);
+                statusCode = (int)objResult!.StatusCode!;
 
-                if (statusCode < 200 && statusCode >= 300)
+                if (statusCode < 200 && statusCode > 299)
                 {
                     // Clear the cache if anything screwy has happened.
                     // TODO: Experiment with less draconian recovery options.
-                    Console.WriteLine($"ReadLatestLzNotifications failed in phase 2. Clearing Cache");
+                    Console.WriteLine($"ReadLatestLzNotifications failed in phase 1. Clearing Cache");
                     notificationsCache.Clear();
                     currentLzNotificationsCacheSize = 0;
-                    return actionResult; // bail!
+                    return new ObjectResult(null) { StatusCode = statusCode };
                 }
+
                 // Add retreived items to cache
-                foreach (var item in result.actionResult.Value)
-                {
-                    notificationsCache.Add(item.CreateUtcTick, item);
-                    currentLzNotificationsCacheSize += item.Payload.Length + 200; // rough estimate is sufficient
-                }
+                var list = objResult.Value as List<LzNotification>;
+                if (list != null)
+                    foreach (var item in list)
+                    {
+                        notificationsCache.Add(item.CreateUtcTick, item);
+                        currentLzNotificationsCacheSize += item.Payload.Length + 150; // rough estimate is sufficient
+                    }
             } while (statusCode == 206);
 
         List<LzNotification> returnList = new();
