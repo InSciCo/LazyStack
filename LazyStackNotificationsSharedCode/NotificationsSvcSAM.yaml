@@ -23,8 +23,6 @@ Resources:
               Fn::Sub: arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${NotificationsWebSocketAPI}/*/*
       Environment:
         Variables:
-          COGNITO_POOL_ID: 
-            Ref: UserPoolPetStoreApp
           COGNITO_REGION:
             Ref: AWS::Region
   
