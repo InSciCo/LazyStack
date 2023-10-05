@@ -4,6 +4,8 @@ global using System.Linq;
 global using System.Text;
 global using System.Threading.Tasks;
 global using System.Collections.ObjectModel;
+global using System.Collections.Specialized;
+
 global using LazyStackNotificationsSchema.Models;
 global using LazyStack.ViewModels;
 global using LazyStackAuth;
@@ -21,4 +23,5 @@ global using System.Reflection;
 
 global using Newtonsoft.Json.Linq;
 global using Newtonsoft.Json;
+
 

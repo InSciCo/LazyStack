@@ -13,8 +13,7 @@ namespace LazyStackDynamoDBRepo;
 /// <typeparam name="TEnv"></typeparam>
 /// <typeparam name="T"></typeparam>
 public abstract
-    class DYDBRepository<TEnv, T> : IDYDBRepository<TEnv, T>
-          where TEnv : class, IDataEnvelope<T>, new()
+    class DYDBRepository<TEnv, T> : IDYDBRepository<TEnv, T> where TEnv : class, IDataEnvelope<T>, new()
           where T : class, new()
 {
     public DYDBRepository(IAmazonDynamoDB client)
@@ -51,7 +50,7 @@ public abstract
     /// Override GetTTL() for custom behavior.
     /// </summary>
     public long TTL { get; set; } = 0;
-    public bool UseIsDeleted { get; set; } 
+    public bool UseIsDeleted { get; set; }
     public bool UseSoftDelete { get; set; }
     public string PK { get; set; }
     #endregion
@@ -165,13 +164,12 @@ public abstract
             return result.Result;
         return result.Value.EntityInstance;
     }
-
     public virtual async Task<ActionResult<T>> ReadAsync(string table, string id, bool? useCache = null)
         => await ReadAsync(new CallerInfo() { Table = table }, id, useCache);
-    public virtual async Task<ActionResult<T>> ReadAsync(ICallerInfo callerInfo, string id, bool? useCache = null) 
+    public virtual async Task<ActionResult<T>> ReadAsync(ICallerInfo callerInfo, string id, bool? useCache = null)
         => await ReadAsync(callerInfo, this.PK, $"{id}:", useCache);
     public virtual async Task<ActionResult<T>> ReadAsync(string table, string pK, string sK, bool? useCache = null)
-        => await ReadAsync(new CallerInfo() { Table = table }, pK, sK, useCache);   
+        => await ReadAsync(new CallerInfo() { Table = table }, pK, sK, useCache);
     public virtual async Task<ActionResult<T>> ReadAsync(ICallerInfo callerInfo, string pK, string sK, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
@@ -192,12 +190,38 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(406); }
     }
+    public virtual async Task<ActionResult<T>> ReadSkAsync(string table, string indexName, string id, bool? useCache = null)
+        => await ReadSkAsync(new CallerInfo() { Table = table }, indexName, id, useCache);
+    public virtual async Task<ActionResult<T>> ReadSkAsync(ICallerInfo callerInfo, string indexName, string id, bool? useCache = null)
+        => await ReadSkAsync(callerInfo, this.PK, indexName, $"{id}:", useCache);
+    public virtual async Task<ActionResult<T>> ReadSKAsync(string table, string pK, string indexName, string sK, bool? useCache = null)
+        => await ReadSkAsync(new CallerInfo() { Table = table }, pK, indexName, sK, useCache);
+    public virtual async Task<ActionResult<T>> ReadSkAsync(ICallerInfo callerInfo, string pK, string indexName, string sK, bool? useCache = null)
+    {
+        callerInfo ??= new CallerInfo();
+        var table = callerInfo.Table;
+        if (string.IsNullOrEmpty(table))
+            table = tablename;
+
+        try
+        {
+            var response = await ReadSkEAsync(callerInfo, pK, indexName, sK, useCache: useCache);
+            if (response.Value == null)
+                return response.Result;
+
+            return response.Value.EntityInstance;
+        }
+
+        catch (AmazonDynamoDBException) { return new StatusCodeResult(500); }
+        catch (AmazonServiceException) { return new StatusCodeResult(503); }
+        catch { return new StatusCodeResult(406); }
+    }
     public virtual async Task<ActionResult<TEnv>> ReadEAsync(string table, string id, bool? useCache = null)
         => await ReadEAsync(new CallerInfo() { Table = table }, id, useCache);
-    public virtual async Task<ActionResult<TEnv>> ReadEAsync(ICallerInfo callerInfo, string id, bool? useCache = null) 
+    public virtual async Task<ActionResult<TEnv>> ReadEAsync(ICallerInfo callerInfo, string id, bool? useCache = null)
         => await ReadEAsync(callerInfo, this.PK, $"{id}:", useCache);
     public virtual async Task<ActionResult<TEnv>> ReadEAsync(string table, string pK, string sK, bool? useCache = null)
-        => await ReadEAsync(new CallerInfo() { Table = table }, pK, sK, useCache);  
+        => await ReadEAsync(new CallerInfo() { Table = table }, pK, sK, useCache);
     public virtual async Task<ActionResult<TEnv>> ReadEAsync(ICallerInfo callerInfo, string pK, string sK, bool? useCache = null)
     {
         callerInfo ??= new CallerInfo();
@@ -243,6 +267,28 @@ public abstract
         catch (AmazonServiceException) { return new StatusCodeResult(503); }
         catch { return new StatusCodeResult(406); }
     }
+    public virtual async Task<ActionResult<TEnv>> ReadSkEAsync(string table, string indexName, string id, bool? useCache = null)
+        => await ReadSkEAsync(new CallerInfo() { Table = table }, indexName, id, useCache);
+    public virtual async Task<ActionResult<TEnv>> ReadSkEAsync(ICallerInfo callerInfo, string indexName, string id, bool? useCache = null)
+        => await ReadSkEAsync(callerInfo, this.PK, indexName, $"{id}:", useCache);
+    public virtual async Task<ActionResult<TEnv>> ReadSKEAsync(string table, string pK, string indexName, string sK, bool? useCache = null)
+        => await ReadSkEAsync(new CallerInfo() { Table = table }, pK, indexName, sK, useCache);
+    public virtual async Task<ActionResult<TEnv>> ReadSkEAsync(ICallerInfo callerInfo, string pK, string indexName, string sK, bool? useCache = null)
+    {
+        callerInfo ??= new CallerInfo();
+
+        var objResult = await ListAsync(callerInfo, indexName, sK);
+        var statusCode = objResult.StatusCode;
+        if (statusCode < 200 || statusCode > 299)
+            return new StatusCodeResult((int)statusCode);
+
+        var list = objResult.Value as List<TEnv>;
+        if (list.Count == 0 || list.Count > 1)
+            return new StatusCodeResult(404);
+
+        return list[0];
+    }
+
     /// <summary>
     /// Add optional attributes to envelope prior to create or update. 
     /// This routine currently handels the optional attributes TTL and Topics.
@@ -322,7 +368,7 @@ public abstract
         => await UpdateAsync(new CallerInfo() { Table = table }, data);
     public virtual async Task<ActionResult<T>> UpdateAsync(ICallerInfo callerInfo, T data)
     {
-        callerInfo ??= new CallerInfo();    
+        callerInfo ??= new CallerInfo();
         var result = await UpdateEAsync(callerInfo, data);
         if (result.Result is not null)
             return result.Result;
@@ -333,7 +379,7 @@ public abstract
     public virtual async Task<StatusCodeResult> DeleteAsync(ICallerInfo callerInfo, string id) => await DeleteAsync(callerInfo, this.PK, $"{id}:");
     public virtual async Task<StatusCodeResult> DeleteAsync(string table, string pK, string sK = null)
         => await DeleteAsync(new CallerInfo() { Table = table }, pK, sK);
-    public virtual async Task<StatusCodeResult> DeleteAsync(ICallerInfo callerInfo, string pK, string sK = null )
+    public virtual async Task<StatusCodeResult> DeleteAsync(ICallerInfo callerInfo, string pK, string sK = null)
     {
         callerInfo ??= new CallerInfo();
         var table = callerInfo.Table;
@@ -344,7 +390,7 @@ public abstract
             if (string.IsNullOrEmpty(pK))
                 return new StatusCodeResult(406); // bad key
 
-            if(UseIsDeleted)
+            if (UseIsDeleted)
             {
                 // UseIsDeleted allows our Notifications process will receive
                 // the SessionId of the client that deleted the record. This 
@@ -361,8 +407,8 @@ public abstract
                     return (StatusCodeResult)updateResult.Result;
             }
 
-            if(!UseSoftDelete)
-            {            
+            if (!UseSoftDelete)
+            {
                 var request = new DeleteItemRequest()
                 {
                     TableName = table,
@@ -393,7 +439,7 @@ public abstract
         try
         {
             var list = new List<TEnv>();
-            var responseSize = 0; 
+            var responseSize = 0;
             do
             {
                 if (lastEvaluatedKey is not null)
@@ -455,7 +501,7 @@ public abstract
     /// <param name="queryRequest"></param>
     /// <param name="useCache"></param>
     /// <returns>Task&lt;(ActionResult&lt;ICollection<T>> actionResult,long responseSize)&gt;</returns>
-    public virtual async Task<(ObjectResult objResult,long responseSize)> ListAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
+    public virtual async Task<(ObjectResult objResult, long responseSize)> ListAndSizeAsync(QueryRequest queryRequest, bool? useCache = null, int limit = 0)
     {
         try
         {
@@ -463,9 +509,9 @@ public abstract
             var (actionResult, size) = await ListEAndSizeAsync(queryRequest, useCache, limit);
 
             var statusCode = actionResult.StatusCode;
-            if(statusCode < 200 || statusCode > 299)
+            if (statusCode < 200 || statusCode > 299)
                 return (new ObjectResult(null) { StatusCode = statusCode }, size);
-            var envList = actionResult.Value as List<TEnv>; 
+            var envList = actionResult.Value as List<TEnv>;
             foreach (var envelope in envList)
                 list.Add(envelope.EntityInstance);
             var objResult = new ObjectResult(list) { StatusCode = statusCode };
@@ -484,7 +530,7 @@ public abstract
         => await ListAsync(new CallerInfo() { Table = table });
     public virtual async Task<ObjectResult> ListAsync(ICallerInfo callerInfo)
     {
-        var queryRequest = QueryEquals(PK, callerInfo:callerInfo);
+        var queryRequest = QueryEquals(PK, callerInfo: callerInfo);
         var (objResult, _) = await ListAndSizeAsync(queryRequest);
         return objResult;
     }
@@ -520,7 +566,7 @@ public abstract
         var (objResult, _) = await ListAndSizeAsync(queryRequest);
         return objResult;
     }
-    public virtual async Task<ObjectResult> ListGreaterThanAsync(string  table, string indexName, string indexValue)
+    public virtual async Task<ObjectResult> ListGreaterThanAsync(string table, string indexName, string indexValue)
         => await ListGreaterThanAsync(new CallerInfo() { Table = table }, indexName, indexValue);
     public virtual async Task<ObjectResult> ListGreaterThanAsync(ICallerInfo callerInfo, string indexName, string indexValue)
     {
@@ -605,7 +651,7 @@ public abstract
 
         var indexName = (string.IsNullOrEmpty(keyField) || keyField.Equals("SK")) ? null : $"PK-{keyField}-Index";
 
-        var query =  new QueryRequest()
+        var query = new QueryRequest()
         {
             TableName = table,
             KeyConditionExpression = $"PK = :PKval and {keyField} = :SKval",
@@ -866,7 +912,7 @@ public abstract
     }
     protected bool IsResultOk(IActionResult actionResult)
     {
-        if(actionResult is StatusCodeResult statusCodeResult)
+        if (actionResult is StatusCodeResult statusCodeResult)
         {
             int statusCode = statusCodeResult.StatusCode;
             if (statusCode >= 200 && statusCode < 300)

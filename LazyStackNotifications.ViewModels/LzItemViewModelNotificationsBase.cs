@@ -3,29 +3,30 @@
 namespace LazyStackNotifications.ViewModels;
 
 /// <summary>
-/// ItemViewModelBase<T,TEdit>
-/// Remember to call base() constructor to get subscriptions and state set properly.
+/// ItemViewModelNotificationsBase<T,TEdit>
+/// This class is the base class for all ItemViewModels that will use Notifications.
 /// </summary>
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
-public abstract class LzItemViewModelNotificationsBase<TDTO, TModel> : LzItemViewModelBase<TDTO,TModel>, IItemViewModelNotificationsBase
+public abstract class LzItemViewModelNotificationsBase<TDTO, TModel> : LzItemViewModelBase<TDTO,TModel>, ILzItemViewModelNotificationsBase<TModel>
     where TDTO : class, new()
     where TModel : class, TDTO, IRegisterObservables, new()
 {
     public LzItemViewModelNotificationsBase(TDTO item, bool? isLoaded = null) : base(item, isLoaded)
     {
-        if(NotificationsSvc != null)
-        {
-            //this.WhenAnyValue(x => x.NotificationsSvc!.Notification!)
-            //    .WhereNotNull()
-            //    .Where(x => x.PayloadId.Equals(Id))
-            //    .Subscribe(async (x) => await UpdateFromNotification(x.Payload, x.PayloadAction, x.CreatedAt));
-        }
+        this.WhenAnyValue(x => x.NotificationsSvc!.Notification!)
+            .WhereNotNull()
+            .Where(x => x.PayloadId.Equals(Id))
+            .Subscribe(async (x) => await UpdateFromNotification(x.Payload, x.PayloadAction, x.CreateUtcTick));
     }
-    public abstract ILzNotificationSvc NotificationsSvc { get; init; }
+    public ILzNotificationSvc? NotificationsSvc { get; set; }
     public INotificationEditOption NotificationEditOption { get; set; }
+    [Reactive] public TModel? NotificationData { get; set; }
+    [Reactive] public bool NotificationReceived { get; set; }
+    [Reactive] public long LastNotificationTick { get; set; }
+    [Reactive] public bool IsMerge { get; set; }
 
-    public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long payloadCreatedAt)
+    public virtual async Task UpdateFromNotification(string payloadData, string payloadAction, long createdUtcTick)
     {
         /*
             LastNotificationTick holds the datetime of the last read or notification processed 
@@ -36,13 +37,13 @@ public abstract class LzItemViewModelNotificationsBase<TDTO, TModel> : LzItemVie
         if (State != LzItemViewModelBaseState.Edit && State != LzItemViewModelBaseState.Current)
             return;
 
-        if (payloadCreatedAt <= LastNotificationTick)
+        if (createdUtcTick <= LastNotificationTick)
         {
-            Console.WriteLine("skipping: payLoadCreatedAt <= LastNotificationsTick");
+            Console.WriteLine("skipping: createdUtcTick <= LastNotificationsTick");
             return;
         }
 
-        LastNotificationTick = payloadCreatedAt;
+        LastNotificationTick = createdUtcTick;
 
         try
         {
@@ -106,5 +107,41 @@ public abstract class LzItemViewModelNotificationsBase<TDTO, TModel> : LzItemVie
             UpdateCount++;
         }
     }
+    
+    public override async Task<(bool, string)> ReadAsync(string id, StorageAPI storageAPI = StorageAPI.Default)
+    {
+        var (success, msg) = await base.ReadAsync(id, storageAPI);
+        if(success)
+            LastNotificationTick = UpdatedAt;
+        return (success, msg);
+    }
+    public override async Task<(bool, string)> UpdateAsync(string? id, StorageAPI storageAPI = StorageAPI.Default)
+    {
+        var (success, msg) = await base.UpdateAsync(id, storageAPI);
+        if (success)
+            LastNotificationTick = UpdatedAt;
+        return (success, msg);
+    }
+    public override async Task<(bool, string)> SaveEditAsync(string? id, StorageAPI storageAPI = StorageAPI.Default)
+    {
+        var (success, msg) = await base.SaveEditAsync(id, storageAPI);
+        if (success)
+            IsMerge = false;
+        return (success, msg);
+    }
+    public override (bool, string) CancelEdit()
+    {
 
+        if (State != LzItemViewModelBaseState.Edit && State != LzItemViewModelBaseState.New)
+            return (false, Log(MethodBase.GetCurrentMethod()!, "No Active Edit"));
+
+        State = (IsLoaded) ? LzItemViewModelBaseState.Current : LzItemViewModelBaseState.New;
+
+        if (IsMerge)
+            UpdateData(NotificationData!);
+        else
+            RestoreFromDataCopy();
+        IsMerge = false;
+        return (true, String.Empty);
+    }
 }

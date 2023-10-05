@@ -45,9 +45,7 @@ public abstract class LzNotificationSvc : LzViewModelBase, ILzNotificationSvc, I
             .DistinctUntilChanged()
             .Subscribe(async x =>
             {
-                _ = EnsureConnectedAsync();
-
-
+                await EnsureConnectedAsync();
             });
 
     }
@@ -134,6 +132,8 @@ public abstract class LzNotificationSvc : LzViewModelBase, ILzNotificationSvc, I
     {
         Console.WriteLine("Listening for web socket messages");
         var buffer = new byte[1024];
+        if (ws is null)
+            return;
         while (ws.State == WebSocketState.Open)
         {
             var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);

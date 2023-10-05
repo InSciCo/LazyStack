@@ -33,4 +33,8 @@
 		<ProjectReference Include="..\LazyStackAuth\LazyStackAuth.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="ClientConfig\" />
+	</ItemGroup>
+
 </Project>

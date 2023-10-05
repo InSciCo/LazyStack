@@ -32,7 +32,6 @@ public class LzHttpClient : NotifyBase, ILzHttpClient
         this.methodMap = methodMap; // map of methods to api endpoints
         this.authProvider = authProvider;
         this.lzHost= lzHost;
-
     }
     private ILzClientConfig clientConfig;
     private LzRunConfig runConfig => clientConfig.RunConfig;

@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LazyStack.ViewModels;
+﻿namespace LazyStack.ViewModels;
 
 public static class LzViewModelFactory
 {
-    public static void RegisterAllLzFactories(IServiceCollection services, Assembly assembly)
+    public static void RegisterLz(IServiceCollection services, Assembly assembly)
     {
         Type[] iTypes = { typeof(ILzSingleton), typeof(ILzTransient), typeof(ILzScoped) };
 
@@ -23,17 +17,27 @@ public static class LzViewModelFactory
             var interfaces = type.GetInterfaces();
             foreach (var iface in interfaces)
                 if (iface.Name.Equals(iTypeName))
-                {
+                { 
+                    string scope = "";  
                     var registered = true;
-                    if (typeof(ILzSingleton).IsAssignableFrom(type)) services.AddSingleton(iface, type);
-                    else 
-                    if (typeof(ILzTransient).IsAssignableFrom(type)) services.AddTransient(iface, type);
+                    if (typeof(ILzSingleton).IsAssignableFrom(type))
+                    {
+                        scope = "Singleton";
+                        services.TryAddSingleton(iface, type);
+                    }
                     else
-                    if (typeof(ILzScoped).IsAssignableFrom(type)) services.AddScoped(iface, type);
+                    if (typeof(ILzTransient).IsAssignableFrom(type)) {
+                        scope = "Transient";
+                        services.TryAddTransient(iface, type);
+                    }
+                    else
+                    if (typeof(ILzScoped).IsAssignableFrom(type)) {
+                        scope = "Scoped";   
+                        services.TryAddScoped(iface, type);
+                    }
                     else registered = false;
                     if (registered)
-                        Console.WriteLine($"Registered {type.Name}");
-
+                        Console.WriteLine($"Registered {type.Name} as {scope}");
                 }
         }
     }

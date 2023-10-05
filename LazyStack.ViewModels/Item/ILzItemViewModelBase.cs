@@ -1,19 +1,18 @@
 ﻿namespace LazyStack.ViewModels;
 
-public interface ILzItemViewModelBase
+public interface ILzItemViewModelBase<TModel>
 {
-    public string UpdateTickField { get; set; }
+    public TModel? Data { get; set; }
+    //public string UpdateTickField { get; set; }
     public string? Id { get; }
     public long UpdatedAt { get; }
     public LzItemViewModelBaseState State { get; set; }
-    public bool NotificationReceived { get; set; }
     public bool CanCreate { get; set; }
     public bool CanRead { get; set; }
     public bool CanUpdate { get; set; }
     public bool CanDelete { get; set; }
     public bool IsLoaded { get; set; }
-    public long LastNotificationTick { get; set; }
-    public bool IsMerge { get; set; }
+
     public long UpdateCount { get; set; }
     public bool IsNew { get; }
     public bool IsEdit { get; }

@@ -2,11 +2,10 @@
 
 /// <summary>
 /// ItemViewModelBase<T,TEdit>
-/// Remember to call base() constructor to get subscriptions and state set properly.
 /// </summary>
 /// <typeparam name="TDTO">DTO Type</typeparam>
 /// <typeparam name="TModel">Model Type (extended model off of TDTO)</typeparam>
-public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzItemViewModelBase, ILzItemViewModelBaseData<TModel>
+public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzItemViewModelBase<TModel>
     where TDTO : class, new()
     where TModel : class, TDTO, IRegisterObservables, new()
 {
@@ -42,25 +41,21 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
     }
     protected string entityName = string.Empty; 
     public IAuthProcess? AuthProcess { get; set; }
-    public string UpdateTickField { get; set; } = "UpdatedAt";
+    //public string UpdateTickField { get; set; } = "UpdatedAt";
     public bool AutoLoadChildren { get; set; } = true;
     public abstract string? Id { get; }
     public abstract long UpdatedAt { get; }
 
     public string dataCopyJson = string.Empty;
     [Reactive] public TModel? Data { get; set; }
-    //[Reactive] public TModel? DataCopy { get; set; }
-    [Reactive] public TModel? NotificationData { get; set; }
-    [Reactive] public LzItemViewModelBaseState State { get; set; }
 
-    [Reactive] public bool NotificationReceived { get; set; }
+    [Reactive] public LzItemViewModelBaseState State { get; set; }
+   
     [Reactive] public bool CanCreate { get; set; }
     [Reactive] public bool CanRead { get; set; }
     [Reactive] public bool CanUpdate { get; set; }
     [Reactive] public bool CanDelete { get; set; }
     [Reactive] public bool IsLoaded { get; set; }
-    [Reactive] public long LastNotificationTick { get; set; }
-    [Reactive] public bool IsMerge { get; set; }
     [Reactive] public virtual long UpdateCount { get; set; }
     [ObservableAsProperty] public bool IsNew { get; }
     [ObservableAsProperty] public bool IsEdit { get; }
@@ -251,7 +246,6 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
                 
             }
             
-            LastNotificationTick = UpdatedAt;
             State = LzItemViewModelBaseState.Current;
 
             if (AutoLoadChildren)
@@ -303,7 +297,6 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
                     throw new Exception("LocalSvcReadAsync not supported.");
 
             }
-            LastNotificationTick = UpdatedAt;
             // Id = Data!.Id;
             State = LzItemViewModelBaseState.Current;
             IsLoaded = true;
@@ -375,8 +368,6 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
                 case StorageAPI.Internal:
                     break;
             }
-
-            LastNotificationTick = UpdatedAt;
             State = LzItemViewModelBaseState.Current;
             return (true, string.Empty);
         }
@@ -467,7 +458,6 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
                 : await UpdateAsync(id, storageAPI);
 
             State = LzItemViewModelBaseState.Current;
-            IsMerge = false;
             IsLoaded = true;
             return (success, msg);
         } 
@@ -483,11 +473,7 @@ public abstract class LzItemViewModelBase<TDTO, TModel> : LzViewModelBase, ILzIt
 
         State = (IsLoaded) ? LzItemViewModelBaseState.Current : LzItemViewModelBaseState.New;
 
-        if (IsMerge)
-            UpdateData(NotificationData!);
-        else
-            RestoreFromDataCopy();
-        IsMerge = false;
+        RestoreFromDataCopy();
         return (true, String.Empty);
     }
     public virtual async Task<(bool,string)> CancelEditAsync()

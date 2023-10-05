@@ -13,13 +13,14 @@
 /// <typeparam name="TModel"></typeparam>
 public class LzItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyCollectionChanged, ILzItemsViewModelBase<TVM, TDTO, TModel> where TDTO : class, new()
     where TModel : class, TDTO, IRegisterObservables, new()
-    where TVM : class, ILzItemViewModelBaseData<TModel>, ILzItemViewModelBase
+    where TVM : class,  ILzItemViewModelBase<TModel>
 {
     public LzItemsViewModelBase()
     {
         CanList = true;
         CanAdd = true;
     }
+    protected IAuthProcess? authProcess;
     public string? Id { get; set; }
     public Dictionary<string, TVM> ViewModels { get; set; } = new();
     private TVM? currentViewModel;
@@ -47,7 +48,7 @@ public class LzItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyC
     [Reactive] public long LastLoadTick { get; set; }
     [Reactive] public bool CanList { get; set; }
     [Reactive] public bool CanAdd { get; set; }
-    [Reactive] public long NotificationLastTick { get; set; }
+    
     [Reactive] public virtual long UpdateCount { get; set; }
     public Func<string, Task<ICollection<TDTO>>>? SvcReadListId { get; init; }
     public Func<Task<ICollection<TDTO>>>? SvcReadList { get; init; }
@@ -58,12 +59,20 @@ public class LzItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyC
         => await ReadAsync(string.Empty, forceload, storageAPI);
     public virtual async Task<(bool, string)> ReadAsync(string parentId, bool forceload = false, StorageAPI storageAPI = StorageAPI.Rest)
     {
+        if (storageAPI == StorageAPI.Default)
+            storageAPI = (storageAPI == StorageAPI.Default)
+                ? StorageAPI.Rest
+                : storageAPI;
+
         var userMsg = "Can't read " + entityName + " id:" + parentId;
         (bool success, string msg) result;
         try
         {
             if (storageAPI != StorageAPI.Rest)
                 throw new Exception("Unsupported StorageAPI:" + storageAPI);
+
+            CheckAuth(storageAPI);  
+
             if (SvcReadList == null && SvcReadListId == null)
                 throw new Exception("SvcReadList function not assigned");
             IsLoading = true;
@@ -134,20 +143,21 @@ public class LzItemsViewModelBase<TVM, TDTO, TModel> : LzViewModelBase, INotifyC
         }
         return (success, msg);
     }
-    public virtual async Task DeleteFromNotification(string payloadId)
+    private void CheckAuth(StorageAPI storageAPI)
     {
-        if (ViewModels.TryGetValue(payloadId, out var vm))
+        // Check for Auth
+        switch (storageAPI)
         {
-            await vm.DeleteAsync(payloadId); // Gives the ItemViewModel a chance to inform the UI that a delete is taking place
-            ViewModels.Remove(payloadId);
-        }
-        await Task.Delay(0);
-    }
-    public virtual async Task CreateFromNotification(TVM vm)
-    {
-        if (!ViewModels.ContainsKey(vm.Id!))
-            ViewModels.Add(vm.Id!, vm);
-        await Task.Delay(0);
-    }
+            case StorageAPI.Rest:
+            case StorageAPI.S3:
+                if (authProcess == null)
+                    throw new Exception("AuthProcess not assigned");
 
+                if (authProcess.IsNotSignedIn)
+                    throw new Exception("Not signed in.");
+                break;
+            default:
+                break;
+        }
+    }
 }
