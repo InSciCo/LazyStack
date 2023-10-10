@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.AspNetCore.SpaServices.Extensions</id>
+    <version>7.0.8</version>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://asp.net/</projectUrl>
+    <description>Helpers for building single-page applications on ASP.NET MVC Core.
+
+This package was built from the source code at https://github.com/dotnet/aspnetcore/tree/3c37ef8f5358abb303c05d299f029fca7d867d56</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <serviceable>true</serviceable>
+    <repository type="git" url="https://github.com/dotnet/aspnetcore" commit="3c37ef8f5358abb303c05d299f029fca7d867d56" />
+    <dependencies>
+      <group targetFramework="net7.0">
+        <dependency id="Microsoft.Extensions.FileProviders.Physical" version="7.0.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  <frameworkReferences><group targetFramework="net7.0"><frameworkReference name="Microsoft.AspNetCore.App" /></group></frameworkReferences></metadata>
+</package>

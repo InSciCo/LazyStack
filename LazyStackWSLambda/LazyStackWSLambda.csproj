@@ -1,17 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+<Import Project="..\LazyStack.PackageVersions.props"/>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.6.0" />
-		<PackageReference Include="Amazon.Lambda.Core" Version="2.1.0" />
-		<PackageReference Include="Amazon.Lambda.Serialization.Json" Version="2.1.1" />
-		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.3.1" />
-		<PackageReference Include="Microsoft.IdentityModel.Logging" Version="6.32.1" />
-		<PackageReference Include="NLog" Version="5.2.3" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.1" />
+		<PackageReference Include="Amazon.Lambda.APIGatewayEvents"/>
+		<PackageReference Include="Amazon.Lambda.Core"/>
+		<PackageReference Include="Amazon.Lambda.Serialization.Json"/>
+		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
+		<PackageReference Include="Microsoft.IdentityModel.Logging"/>
+		<PackageReference Include="NLog"/>
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
 	</ItemGroup>
 </Project>

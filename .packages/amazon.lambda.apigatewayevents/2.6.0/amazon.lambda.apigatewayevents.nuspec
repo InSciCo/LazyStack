@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Amazon.Lambda.APIGatewayEvents</id>
+    <version>2.6.0</version>
+    <authors>Amazon Web Services</authors>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/aws/aws-lambda-dotnet</projectUrl>
+    <iconUrl>https://sdk-for-net.amazonwebservices.com/images/AWSLogo128x128.png</iconUrl>
+    <description>Amazon Lambda .NET Core support - API Gateway package.</description>
+    <tags>AWS Amazon Lambda</tags>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.1" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Newtonsoft.Json" version="13.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

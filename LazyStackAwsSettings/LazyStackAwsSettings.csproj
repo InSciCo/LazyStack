@@ -1,28 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\LazyStack.PackageVersions.props"/>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
+		<Description>Utility library - used by LazyStackAuth and LazyStackGetAwsSettings projects</Description>
+		<Authors>Tim May, Thomas May</Authors>
+		<Company>Insight Sciences Corporation</Company>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+		<RepositoryType>GitHub</RepositoryType>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
-    <Description>Utility library - used by LazyStackAuth and LazyStackGetAwsSettings projects</Description>
-    <Authors>Tim May, Thomas May</Authors>
-    <Company>Insight Sciences Corporation</Company>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
-    <RepositoryType>GitHub</RepositoryType>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="AWSSDK.CloudFormation"/>
+		<PackageReference Include="AWSSDK.SecurityToken"/>
+		<PackageReference Include="Newtonsoft.Json"/>
+		<PackageReference Include="YamlDotNet"/>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AWSSDK.CloudFormation" Version="3.7.108.1" />
-    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.103.21" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="YamlDotNet" Version="13.1.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LazyStackBase\LazyStackBase.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LazyStackBase\LazyStackBase.csproj" />
-  </ItemGroup>
-
-  <Import Project="..\LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems" Label="Shared" />
+	<Import Project="..\LazyStackAwsSettingsSharedCode\LazyStackAwsSettingsSharedCode.projitems" Label="Shared" />
 
 </Project>

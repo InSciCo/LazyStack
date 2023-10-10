@@ -1,6 +1,5 @@
 using Microsoft.JSInterop;
 using LazyStackBase;
-using Microsoft.JSInterop.Infrastructure;
 
 namespace LazyStackBlazorNetworkConnectivitySvc;
 

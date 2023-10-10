@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Amazon.Lambda.ApplicationLoadBalancerEvents</id>
+    <version>2.1.0</version>
+    <authors>Amazon Web Services</authors>
+    <owners>Amazon Web Services</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <projectUrl>https://aws.amazon.com/lambda/</projectUrl>
+    <iconUrl>https://sdk-for-net.amazonwebservices.com/images/AWSLogo128x128.png</iconUrl>
+    <description>Amazon Lambda .NET Core support - Application Load Balancer package.</description>
+    <tags>AWS Amazon Lambda</tags>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.1" />
+      <group targetFramework=".NETStandard2.0" />
+    </dependencies>
+  </metadata>
+</package>

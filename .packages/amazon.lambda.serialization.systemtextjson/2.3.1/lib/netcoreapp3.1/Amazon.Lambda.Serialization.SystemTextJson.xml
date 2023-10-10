@@ -1,0 +1,307 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Amazon.Lambda.Serialization.SystemTextJson</name>
+    </assembly>
+    <members>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer">
+            <summary>
+            Base class of serializers using System.Text.Json
+            </summary>
+        </member>
+        <member name="P:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.WriterOptions">
+            <summary>
+            Options settings used for the JSON writer
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.#ctor(System.Action{System.Text.Json.JsonWriterOptions})">
+            <summary>
+            Create instance
+            </summary>
+            <param name="jsonWriterCustomizer"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.Serialize``1(``0,System.IO.Stream)">
+            <summary>
+            Serializes a particular object to a stream.
+            </summary>
+            <typeparam name="T">Type of object to serialize.</typeparam>
+            <param name="response">Object to serialize.</param>
+            <param name="responseStream">Output stream.</param>        
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.Deserialize``1(System.IO.Stream)">
+            <summary>
+            Deserializes a stream to a particular type.
+            </summary>
+            <typeparam name="T">Type of object to deserialize to.</typeparam>
+            <param name="requestStream">Stream to serialize.</param>
+            <returns>Deserialized object from stream.</returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.CreateDefaultJsonSerializationOptions">
+            <summary>
+            Create the default instance of JsonSerializerOptions used in serializer
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.InternalSerialize``1(System.Text.Json.Utf8JsonWriter,``0)">
+            <summary>
+            Perform the actual serialization after the public method had done the safety checks.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="writer"></param>
+            <param name="response"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AbstractLambdaJsonSerializer.InternalDeserialize``1(System.Byte[])">
+            <summary>
+            Perform the actual deserialization after the public method had done the safety checks.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="utf8Json"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.AwsNamingPolicy">
+            <summary>
+            Custom AWS naming policy
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AwsNamingPolicy.#ctor">
+            <summary>
+            Creates the AWS Naming policy. If the name matches one of the reserved AWS words it will return the
+            appropriate mapping for it. Otherwise the name will be returned as is like the JsonDefaultNamingPolicy.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AwsNamingPolicy.#ctor(System.Text.Json.JsonNamingPolicy)">
+            <summary>
+            Creates the AWS Naming policy. If the name matches one of the reserved AWS words it will return the
+            appropriate mapping for it. Otherwise the JsonNamingPolicy passed in will be used to map the name.
+            </summary>
+            <param name="fallbackNamingPolicy"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.AwsNamingPolicy.ConvertName(System.String)">
+            <summary>
+            Map names that don't camel case.
+            </summary>
+            <param name="name"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.CamelCaseLambdaJsonSerializer">
+             <summary>
+             Custom ILambdaSerializer implementation which uses System.Text.Json
+             for serialization.
+            
+             <para>
+             When serializing objects to JSON camel casing will be used for JSON property names.
+             </para>
+             <para>
+             If the environment variable LAMBDA_NET_SERIALIZER_DEBUG is set to true the JSON coming
+             in from Lambda and being sent back to Lambda will be logged.
+             </para>
+             </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.CamelCaseLambdaJsonSerializer.#ctor">
+            <summary>
+            Constructs instance of serializer.
+            </summary>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.Converters.ByteArrayConverter">
+            <summary>
+            ByteArrayConverter for converting an JSON array of number from and to byte[].
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.ByteArrayConverter.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.ByteArrayConverter.Write(System.Text.Json.Utf8JsonWriter,System.Byte[],System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc />
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.Converters.ConstantClassConverter">
+            <summary>
+            JsonConvert to handle the AWS SDK for .NET custom enum classes that derive from the class called ConstantClass.
+            </summary>
+            <remarks>
+            Because this package can not take a dependency on AWSSDK.Core we need to use name heuristics and reflection to determine if the type 
+            extends from ConstantClass.
+            </remarks>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.ConstantClassConverter.CanConvert(System.Type)">
+            <summary>
+            Check to see if the type is derived from ConstantClass.
+            </summary>
+            <param name="typeToConvert"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.ConstantClassConverter.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Called when a JSON document is being reading and a property is being converted to a ConstantClass type.
+            </summary>
+            <param name="reader"></param>
+            <param name="typeToConvert"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.ConstantClassConverter.Write(System.Text.Json.Utf8JsonWriter,System.Object,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Called when writing the ConstantClass out to the JSON document.
+            </summary>
+            <param name="writer"></param>
+            <param name="value"></param>
+            <param name="options"></param>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.Converters.DateTimeConverter">
+            <summary>
+            DateTime converter that handles the JSON read for deserialization might use an epoch time.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.DateTimeConverter.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Converts the value to a DateTime. If the JSON type is a number then it assumes the time is represented as 
+            an epoch time.
+            </summary>
+            <param name="reader"></param>
+            <param name="typeToConvert"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.DateTimeConverter.Write(System.Text.Json.Utf8JsonWriter,System.DateTime,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Uses System.Text.Json's default functionality to write dates to the Serialization document.
+            </summary>
+            <param name="writer"></param>
+            <param name="value"></param>
+            <param name="options"></param>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.Converters.MemoryStreamConverter">
+            <summary>
+            Handles converting MemoryStreams from and to base 64 strings.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.MemoryStreamConverter.Read(System.Text.Json.Utf8JsonReader@,System.Type,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Reads the value as a string assuming it is a base 64 string and converts the string to a MemoryStream.
+            </summary>
+            <param name="reader"></param>
+            <param name="typeToConvert"></param>
+            <param name="options"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.Converters.MemoryStreamConverter.Write(System.Text.Json.Utf8JsonWriter,System.IO.MemoryStream,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Writes the MemoryStream as a base 64 string.
+            </summary>
+            <param name="writer"></param>
+            <param name="value"></param>
+            <param name="options"></param>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer">
+            <summary>
+            Custom ILambdaSerializer implementation which uses System.Text.Json
+            for serialization.
+            
+            <para>
+            If the environment variable LAMBDA_NET_SERIALIZER_DEBUG is set to true the JSON coming
+            in from Lambda and being sent back to Lambda will be logged.
+            </para>
+            </summary>    
+        </member>
+        <member name="P:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.SerializerOptions">
+            <summary>
+            The options used to serialize JSON object.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.#ctor">
+            <summary>
+            Constructs instance of serializer.
+            </summary>        
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.#ctor(System.Action{System.Text.Json.JsonSerializerOptions})">
+            <summary>
+            Constructs instance of serializer with the option to customize the JsonSerializerOptions after the 
+            Amazon.Lambda.Serialization.SystemTextJson's default settings have been applied.
+            </summary>
+            <param name="customizer"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.#ctor(System.Action{System.Text.Json.JsonSerializerOptions},System.Action{System.Text.Json.JsonWriterOptions})">
+            <summary>
+            Constructs instance of serializer with the option to customize the JsonSerializerOptions after the 
+            Amazon.Lambda.Serialization.SystemTextJson's default settings have been applied.
+            </summary>
+            <param name="customizer"></param>
+            <param name="jsonWriterCustomizer"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.InternalSerialize``1(System.Text.Json.Utf8JsonWriter,``0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer.InternalDeserialize``1(System.Byte[])">
+            <inheritdoc/>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.JsonSerializerException">
+            <summary>
+            Exception thrown when errors occur serializing and deserializng JSON documents from the Lambda service
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.JsonSerializerException.#ctor(System.String)">
+            <summary>
+            Constructs instances of JsonSerializerException
+            </summary>
+            <param name="message">Exception message</param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.JsonSerializerException.#ctor(System.String,System.Exception)">
+            <summary>
+            Constructs instances of JsonSerializerException
+            </summary>
+            <param name="message">Exception message</param>
+            <param name="exception">Inner exception for the JsonSerializerException</param>
+        </member>
+        <member name="T:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer">
+            <summary>
+            Custom ILambdaSerializer implementation which uses System.Text.Json
+            for serialization.
+            
+            <para>
+            If the environment variable LAMBDA_NET_SERIALIZER_DEBUG is set to true the JSON coming
+            in from Lambda and being sent back to Lambda will be logged.
+            </para>
+            <para>
+            This serializer is obsolete because it uses inconsistent name casing when serializing to JSON. Fixing the
+            inconsistent casing issues would cause runtime breaking changes so the new type DefaultLambdaJsonSerializer was created.
+            https://github.com/aws/aws-lambda-dotnet/issues/624
+            </para>
+            </summary>    
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer.#ctor">
+            <summary>
+            Constructs instance of serializer.
+            </summary>        
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer.#ctor(System.Action{System.Text.Json.JsonSerializerOptions})">
+            <summary>
+            Constructs instance of serializer with the option to customize the JsonSerializerOptions after the 
+            Amazon.Lambda.Serialization.SystemTextJson's default settings have been applied.
+            </summary>
+            <param name="customizer"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer.#ctor(System.Action{System.Text.Json.JsonSerializerOptions},System.Action{System.Text.Json.JsonWriterOptions})">
+            <summary>
+            Constructs instance of serializer with the option to customize the JsonSerializerOptions after the 
+            Amazon.Lambda.Serialization.SystemTextJson's default settings have been applied.
+            </summary>
+            <param name="customizer"></param>
+            <param name="jsonWriterCustomizer"></param>
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer.Serialize``1(``0,System.IO.Stream)">
+            <summary>
+            Serializes a particular object to a stream.
+            </summary>
+            <typeparam name="T">Type of object to serialize.</typeparam>
+            <param name="response">Object to serialize.</param>
+            <param name="responseStream">Output stream.</param>        
+        </member>
+        <member name="M:Amazon.Lambda.Serialization.SystemTextJson.LambdaJsonSerializer.Deserialize``1(System.IO.Stream)">
+            <summary>
+            Deserializes a stream to a particular type.
+            </summary>
+            <typeparam name="T">Type of object to deserialize to.</typeparam>
+            <param name="requestStream">Stream to serialize.</param>
+            <returns>Deserialized object from stream.</returns>
+        </member>
+    </members>
+</doc>

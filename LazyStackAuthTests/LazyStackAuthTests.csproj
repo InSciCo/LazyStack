@@ -1,61 +1,62 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
 
-    <IsPackable>false</IsPackable>
+		<IsPackable>false</IsPackable>
 
-    <UserSecretsId>65c9d090-81bb-444b-b68f-62baa382a22e</UserSecretsId>
+		<UserSecretsId>65c9d090-81bb-444b-b68f-62baa382a22e</UserSecretsId>
 
-    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
+		<Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
 
-    <Authors>Tim May, Thomas May</Authors>
+		<Authors>Tim May, Thomas May</Authors>
 
-    <Company>Insight Sciences Corporation</Company>
+		<Company>Insight Sciences Corporation</Company>
 
-    <Description>Test suite for LazyStackAuth library.</Description>
+		<Description>Test suite for LazyStackAuth library.</Description>
 
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 
-    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+		<PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
 
-    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+		<RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
 
-    <RepositoryType>GitHub</RepositoryType>
-  </PropertyGroup>
+		<RepositoryType>GitHub</RepositoryType>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="MethodMap.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="MethodMap.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="MethodMap.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<EmbeddedResource Include="MethodMap.json" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AWSSDK.CloudFormation" Version="3.7.108.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
-    <PackageReference Include="coverlet.collector" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AWSSDK.CloudFormation"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets"/>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+		<PackageReference Include="Microsoft.NET.Test.Sdk"/>
+		<PackageReference Include="MSTest.TestAdapter"/>
+		<PackageReference Include="MSTest.TestFramework"/>
+		<PackageReference Include="coverlet.collector">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Newtonsoft.Json"/>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LazyStackAuth\LazyStackAuth.csproj" />
-    <ProjectReference Include="..\LazyStackAwsSettings\LazyStackAwsSettings.csproj" />
-	    </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LazyStackAuth\LazyStackAuth.csproj" />
+		<ProjectReference Include="..\LazyStackAwsSettings\LazyStackAwsSettings.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
 </Project>

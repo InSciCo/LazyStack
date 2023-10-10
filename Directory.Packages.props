@@ -1,0 +1,65 @@
+<Project>
+	<!-- LazyStack Solution Dependencies
+		Notes: We are currently blocked from updating to the latest Microsoft libraries because of 
+		dependencies in .NET MAUI. This will probably be the case until .NET 8 is released, so we 
+		will just update everything then.
+	-->
+	<ItemGroup>
+		<PackageVersion Include="Amazon.Extensions.CognitoAuthentication" Version="2.5.2" />
+		<PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.6.0" />
+		<PackageVersion Include="Amazon.Lambda.AspNetCoreServer" Version="8.1.0" />
+		<PackageVersion Include="Amazon.Lambda.Core" Version="2.1.0" />
+		<PackageVersion Include="Amazon.Lambda.Serialization.Json" Version="2.1.1" />
+		<PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.3.1" />
+		<PackageVersion Include="AWSSDK.ApiGatewayManagementApi" Version="3.7.200.53" />
+		<PackageVersion Include="AWSSDK.CloudFormation" Version="3.7.108.1" />
+		<PackageVersion Include="AWSSDK.Core" Version="3.7.204" />
+		<PackageVersion Include="AWSSDK.DynamoDBv2" Version="3.7.203.1" />
+		<PackageVersion Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
+		<PackageVersion Include="AWSSDK.SecurityToken" Version="3.7.202.4" />
+		<PackageVersion Include="AWSSDK.SSO" Version="3.7.201.4" />
+		<PackageVersion Include="AWSSDK.SSOOIDC" Version="3.7.201.10" />
+		<PackageVersion Include="AwsSignatureVersion4" Version="4.0.1" />
+		<PackageVersion Include="Blazorise.Bootstrap5" Version="1.2.3" /> 
+		<PackageVersion Include="CommandLineParser" Version="2.9.1" />
+		<PackageVersion Include="coverlet.collector" Version="6.0.0" />
+		<PackageVersion Include="DeepCloner" Version="0.10.4" />
+		<PackageVersion Include="DynamicData" Version="7.14.2" />
+		<PackageVersion Include="FluentValidation" Version="11.5.2" />
+		<PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.5.2" />
+		<PackageVersion Include="JsonSubTypes" Version="2.0.1" />
+		<PackageVersion Include="MailKit" Version="4.2.0" />
+		
+		<PackageVersion Include="Microsoft.AspNetCore.Components.Forms" Version="7.0.5" />
+		<!--<PackageVersion Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />-->
+		<PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="7.0.5" />
+
+
+		<PackageVersion Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="7.0.8" />
+		
+		
+		<PackageVersion Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+		<!--<PackageVersion Include="Microsoft.Extensions.Configuration.UserSecrets" Version="7.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />-->
+
+		<PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+
+		
+		<PackageVersion Include="Microsoft.Identity.Client" Version="4.56.0" />
+		<PackageVersion Include="Microsoft.IdentityModel.Logging" Version="7.0.0" />
+		
+		<PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+		<PackageVersion Include="MSTest.TestAdapter" Version="3.0.4" />
+		<PackageVersion Include="MSTest.TestFramework" Version="3.0.4" />
+		<PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageVersion Include="NLog" Version="5.2.4" />
+		<PackageVersion Include="ReactiveUI" Version="19.4.1" />
+		<PackageVersion Include="ReactiveUI.Blazor" Version="19.2.1" />
+		<PackageVersion Include="ReactiveUI.Fody" Version="19.4.1" />
+		<!--<PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />-->
+		<PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
+		<PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="7.0.0" />
+		<PackageVersion Include="YamlDotNet" Version="13.1.1" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AwsSignatureVersion4</id>
+    <version>4.0.1</version>
+    <authors>Mattias Kindborg</authors>
+    <license type="expression">Apache-2.0</license>
+    <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+    <icon>aws-signature-version-4.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/FantasticFiasco/aws-signature-version-4</projectUrl>
+    <description>The buttoned-up and boring, but deeply analyzed, implementation of Signature Version 4 (SigV4) in .NET.</description>
+    <releaseNotes>For release notes, please see the change log on GitHub.</releaseNotes>
+    <copyright>Copyright 2019-2022 Mattias Kindborg</copyright>
+    <tags>aws sign http request sigv4 aws-sigv4 aws-signature-v4 aws-signature aws-signer amazon-web-services</tags>
+    <repository type="git" url="https://github.com/FantasticFiasco/aws-signature-version-4.git" commit="abc51142c7bf1abae118479fb69e96d42ff6a47f" />
+    <dependencies>
+      <group targetFramework="net6.0">
+        <dependency id="AWSSDK.Core" version="3.7.101.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="AWSSDK.Core" version="3.7.101.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

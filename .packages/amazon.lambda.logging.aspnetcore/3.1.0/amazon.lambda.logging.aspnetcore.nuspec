@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Amazon.Lambda.Logging.AspNetCore</id>
+    <version>3.1.0</version>
+    <authors>Amazon Web Services</authors>
+    <owners>Amazon Web Services</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <projectUrl>https://aws.amazon.com/lambda/</projectUrl>
+    <iconUrl>https://sdk-for-net.amazonwebservices.com/images/AWSLogo128x128.png</iconUrl>
+    <description>Amazon Lambda .NET Core support - Logging ASP.NET Core package.</description>
+    <tags>AWS Amazon Lambda Logging</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Amazon.Lambda.Core" version="1.2.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Configuration.Abstractions" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Abstractions" version="2.1.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Amazon.Lambda.AspNetCoreServer</id>
+    <version>8.1.0</version>
+    <authors>Amazon Web Services</authors>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/aws/aws-lambda-dotnet</projectUrl>
+    <iconUrl>https://sdk-for-net.amazonwebservices.com/images/AWSLogo128x128.png</iconUrl>
+    <description>Amazon.Lambda.AspNetCoreServer makes it easy to run ASP.NET Core Web API applications as AWS Lambda functions.</description>
+    <tags>AWS Amazon Lambda aspnetcore</tags>
+    <dependencies>
+      <group targetFramework=".NETCoreApp3.1">
+        <dependency id="Amazon.Lambda.APIGatewayEvents" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.ApplicationLoadBalancerEvents" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Core" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Logging.AspNetCore" version="3.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Serialization.SystemTextJson" version="2.3.1" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net6.0">
+        <dependency id="Amazon.Lambda.APIGatewayEvents" version="2.6.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.ApplicationLoadBalancerEvents" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Core" version="2.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Logging.AspNetCore" version="3.1.0" exclude="Build,Analyzers" />
+        <dependency id="Amazon.Lambda.Serialization.SystemTextJson" version="2.3.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkReferences>
+      <group targetFramework=".NETCoreApp3.1">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+      <group targetFramework="net6.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+  </metadata>
+</package>

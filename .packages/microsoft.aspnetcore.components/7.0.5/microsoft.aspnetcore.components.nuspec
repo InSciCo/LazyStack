@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.AspNetCore.Components</id>
+    <version>7.0.5</version>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Icon.png</icon>
+    <projectUrl>https://asp.net/</projectUrl>
+    <description>Components feature for ASP.NET Core.
+
+This package was built from the source code at https://github.com/dotnet/aspnetcore/tree/d47e49e9c1e173ac90821f7e89cc38e710274241</description>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>aspnetcore components</tags>
+    <serviceable>true</serviceable>
+    <repository type="git" url="https://github.com/dotnet/aspnetcore" commit="d47e49e9c1e173ac90821f7e89cc38e710274241" />
+    <dependencies>
+      <group targetFramework="net7.0">
+        <dependency id="Microsoft.AspNetCore.Components.Analyzers" version="7.0.5" />
+        <dependency id="Microsoft.AspNetCore.Authorization" version="7.0.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

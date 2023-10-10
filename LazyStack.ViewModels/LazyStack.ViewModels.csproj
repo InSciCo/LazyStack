@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+	<Import Project="..\LazyStack.PackageVersions.props"/>
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,16 +18,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="DeepCloner" Version="0.10.4" />
-		<PackageReference Include="DynamicData" Version="7.14.2" />
-		<PackageReference Include="FluentValidation" Version="11.5.2" />
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.Forms" Version="7.0.5" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+		<!--<FrameworkReference Include="Microsoft.AspNetCore.App" />-->
+		<PackageReference Include="DeepCloner"/>
+		<PackageReference Include="DynamicData"/>
+	
+		<PackageReference Include="FluentValidation"/>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Forms"/>
+		<!--<PackageReference Include="Microsoft.Extensions.Configuration"/>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+		
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions"/>-->
 
-		<PackageReference Include="ReactiveUI" Version="19.4.1" />
-		<PackageReference Include="ReactiveUI.Fody" Version="19.4.1" />
+		<PackageReference Include="ReactiveUI"/>
+		<PackageReference Include="ReactiveUI.Fody"/>
 	</ItemGroup>
 
 	<ItemGroup>

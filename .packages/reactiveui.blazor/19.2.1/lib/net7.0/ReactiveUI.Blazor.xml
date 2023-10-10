@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ReactiveUI.Blazor</name>
+    </assembly>
+    <members>
+        <member name="T:ReactiveUI.Blazor.PlatformOperations">
+            <summary>
+            Returns the current orientation of the device on Windows.
+            </summary>
+        </member>
+        <member name="M:ReactiveUI.Blazor.PlatformOperations.GetOrientation">
+            <inheritdoc/>
+        </member>
+        <member name="T:ReactiveUI.Blazor.ReactiveComponentBase`1">
+            <summary>
+            A base component for handling property changes and updating the blazer view appropriately.
+            </summary>
+            <typeparam name="T">The type of view model. Must support INotifyPropertyChanged.</typeparam>
+        </member>
+        <member name="E:ReactiveUI.Blazor.ReactiveComponentBase`1.PropertyChanged">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveComponentBase`1.ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveComponentBase`1.ReactiveUI#IViewFor#ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveComponentBase`1.Activated">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveComponentBase`1.Deactivated">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveComponentBase`1.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveComponentBase`1.OnInitialized">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveComponentBase`1.OnAfterRender(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveComponentBase`1.OnPropertyChanged(System.String)">
+            <summary>
+            Invokes the property changed event.
+            </summary>
+            <param name="propertyName">The name of the property.</param>
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveComponentBase`1.Dispose(System.Boolean)">
+            <summary>
+            Cleans up the managed resources of the object.
+            </summary>
+            <param name="disposing">If it is getting called by the Dispose() method rather than a finalizer.</param>
+        </member>
+        <member name="T:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1">
+            <summary>
+            A base component for handling property changes and updating the blazer view appropriately.
+            </summary>
+            <typeparam name="T">The type of view model. Must support INotifyPropertyChanged.</typeparam>
+        </member>
+        <member name="E:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.PropertyChanged">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.ReactiveUI#IViewFor#ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.Activated">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.Deactivated">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.OnInitialized">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.OnAfterRender(System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.OnPropertyChanged(System.String)">
+            <summary>
+            Invokes the property changed event.
+            </summary>
+            <param name="propertyName">The name of the property.</param>
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveInjectableComponentBase`1.Dispose(System.Boolean)">
+            <summary>
+            Cleans up the managed resources of the object.
+            </summary>
+            <param name="disposing">If it is getting called by the Dispose() method rather than a finalizer.</param>
+        </member>
+        <member name="T:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1">
+            <summary>
+            A base component for handling property changes and updating the blazer view appropriately.
+            </summary>
+            <typeparam name="T">The type of view model. Must support INotifyPropertyChanged.</typeparam>
+        </member>
+        <member name="E:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.PropertyChanged">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.ReactiveUI#IViewFor#ViewModel">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.Activated">
+            <inheritdoc />
+        </member>
+        <member name="P:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.Deactivated">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.Dispose">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.OnInitialized">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.OnAfterRender(System.Boolean)">
+            <inheritdoc />
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.OnPropertyChanged(System.String)">
+            <summary>
+            Invokes the property changed event.
+            </summary>
+            <param name="propertyName">The name of the property.</param>
+        </member>
+        <member name="M:ReactiveUI.Blazor.ReactiveLayoutComponentBase`1.Dispose(System.Boolean)">
+            <summary>
+            Cleans up the managed resources of the object.
+            </summary>
+            <param name="disposing">If it is getting called by the Dispose() method rather than a finalizer.</param>
+        </member>
+        <member name="T:ReactiveUI.Blazor.Registrations">
+            <summary>
+            Blazor Framework platform registrations.
+            </summary>
+            <seealso cref="T:ReactiveUI.IWantsToRegisterStuff" />
+        </member>
+        <member name="M:ReactiveUI.Blazor.Registrations.Register(System.Action{System.Func{System.Object},System.Type})">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

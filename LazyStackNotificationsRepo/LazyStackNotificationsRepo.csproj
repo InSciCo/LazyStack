@@ -1,16 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\LazyStack.PackageVersions.props"/>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\LazyStackBase\LazyStackBase.csproj" />
-    <ProjectReference Include="..\LazyStackControllerBase\LazyStackControllerBase.csproj" />
-    <ProjectReference Include="..\LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj" />
-    <ProjectReference Include="..\LazyStackNotificationsSchema\LazyStackNotificationsSchema.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LazyStackBase\LazyStackBase.csproj" />
+		<ProjectReference Include="..\LazyStackControllerBase\LazyStackControllerBase.csproj" />
+		<ProjectReference Include="..\LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj" />
+		<ProjectReference Include="..\LazyStackNotificationsSchema\LazyStackNotificationsSchema.csproj" />
+	</ItemGroup>
 
 </Project>

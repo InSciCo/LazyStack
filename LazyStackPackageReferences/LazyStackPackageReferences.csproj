@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- 
+		This project is used to resolve package versions used in the LazyStack libraiies for the 
+		local solution's Directory.Packages.props file. Reference this project in any other solution 
+		project that references LazyStack libraries. 
+	-->
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LazyStackPackageVersionsFilePath>..\..\..\LazyStack\LazyStackConfig\LazyStack.PackageVersions.props</LazyStackPackageVersionsFilePath>
+	</PropertyGroup>
+
+	<Import Project="$(LazyStackPackageVersionsFilePath)" Condition="Exists('$(LazyStackPackageVersionsFilePath)')" />
+
+</Project>

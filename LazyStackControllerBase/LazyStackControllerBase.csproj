@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+	<Import Project="..\LazyStack.PackageVersions.props"/>
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.32.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt"/>
 		<ProjectReference Include="..\LazyStackConfig\LazyStackConfig.csproj" />
 	</ItemGroup>
 

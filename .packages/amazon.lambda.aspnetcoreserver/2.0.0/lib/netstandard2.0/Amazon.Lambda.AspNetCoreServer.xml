@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Amazon.Lambda.AspNetCoreServer</name>
+    </assembly>
+    <members>
+        <member name="T:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction">
+            <summary>
+            ApiGatewayFunction is the base class that is implemented in a ASP.NET Core Web API. The derived class implements
+            the Init method similar to Main function in the ASP.NET Core. The function handler for the Lambda function will point
+            to this base class FunctionHandlerAsync method.
+            </summary>
+        </member>
+        <member name="F:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.LAMBDA_CONTEXT">
+            <summary>
+            Key to access the ILambdaContext object from the HttpContext.Items collection.
+            </summary>
+        </member>
+        <member name="F:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.APIGATEWAY_REQUEST">
+            <summary>
+            Key to access the APIGatewayProxyRequest object from the HttpContext.Items collection.
+            </summary>
+        </member>
+        <member name="P:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.DefaultResponseContentEncoding">
+            <summary>
+            Defines the default treatment of response content.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.#ctor">
+            <summary>
+            Default constructor that AWS Lambda will invoke.
+            </summary>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.Init(Microsoft.AspNetCore.Hosting.IWebHostBuilder)">
+            <summary>
+            Method to initialize the web builder before starting the web host. In a typical Web API this is similar to the main function. 
+            Setting the Startup class is required in this method.
+            </summary>
+            <example>
+            <code>
+            protected override void Init(IWebHostBuilder builder)
+            {
+                builder
+                    .UseStartup&lt;Startup&gt;();
+            }
+            </code>
+            </example>
+            <param name="builder"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.CreateWebHostBuilder">
+            <summary>
+            Creates the IWebHostBuilder similar to WebHost.CreateDefaultBuilder but replacing the registration of the Kestrel web server with a 
+            registration for ApiGateway.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.FunctionHandlerAsync(Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            This method is what the Lambda function handler points to.
+            </summary>
+            <param name="request"></param>
+            <param name="lambdaContext"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.RegisterResponseContentEncodingForContentType(System.String,Amazon.Lambda.AspNetCoreServer.ResponseContentEncoding)">
+            <summary>
+            Registers a mapping from a MIME content type to a <see cref="T:Amazon.Lambda.AspNetCoreServer.ResponseContentEncoding"/>.
+            </summary>
+            <remarks>
+            The mappings in combination with the <see cref="P:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.DefaultResponseContentEncoding"/>
+            setting will dictate if and how response content should be transformed before being
+            returned to the calling API Gateway instance.
+            <para>
+            The interface between the API Gateway and Lambda provides for repsonse content to
+            be returned as a UTF-8 string.  In order to return binary content without incurring
+            any loss or corruption due to transformations to the UTF-8 encoding, it is necessary
+            to encode the raw response content in Base64 and to annotate the response that it is
+            Base64-encoded.
+            </para><para>
+            <b>NOTE:</b>  In order to use this mechanism to return binary response content, in
+            addition to registering here any binary MIME content types that will be returned by
+            your application, it also necessary to register those same content types with the API
+            Gateway using either the console or the REST interface. Check the developer guide for
+            further information.
+            http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-configure-with-console.html
+            http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-payload-encodings-configure-with-control-service-api.html
+            </para>
+            </remarks>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.CreateContext(Microsoft.AspNetCore.Http.Features.IFeatureCollection)">
+            <summary>
+            Creates a <see cref="T:Microsoft.AspNetCore.Hosting.Internal.HostingApplication.Context"/> object using the <see cref="T:Amazon.Lambda.AspNetCoreServer.Internal.APIGatewayServer"/> field in the class.
+            </summary>
+            <param name="features"><see cref="T:Microsoft.AspNetCore.Http.Features.IFeatureCollection"/> implementation.</param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.ProcessRequest(Amazon.Lambda.Core.ILambdaContext,Microsoft.AspNetCore.Hosting.Internal.HostingApplication.Context,Amazon.Lambda.AspNetCoreServer.Internal.InvokeFeatures,System.Boolean)">
+            <summary>
+            Processes the current request.
+            </summary>
+            <param name="lambdaContext"><see cref="T:Amazon.Lambda.Core.ILambdaContext"/> implementation.</param>
+            <param name="context">The hosting application request context object.</param>
+            <param name="features">An <see cref="T:Amazon.Lambda.AspNetCoreServer.Internal.InvokeFeatures"/> instance.</param>
+            <param name="rethrowUnhandledError">
+            If specified, an unhandled exception will be rethrown for custom error handling.
+            Ensure that the error handling code calls 'this.MarshallResponse(features, 500);' after handling the error to return a <see cref="T:Amazon.Lambda.APIGatewayEvents.APIGatewayProxyResponse"/> to the user.
+            </param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.ErrorReport(System.Exception)">
+            <summary>
+            Formats an Exception into a string, including all inner exceptions.
+            </summary>
+            <param name="e"><see cref="T:System.Exception"/> instance.</param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.PostMarshallRequestFeature(Microsoft.AspNetCore.Http.Features.IHttpRequestFeature,Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            This method is called after the APIGatewayProxyFunction has marshalled the incoming API Gateway request
+            into ASP.NET Core's IHttpRequestFeature. Derived classes can overwrite this method to alter
+            the how the marshalling was done.
+            </summary>
+            <param name="aspNetCoreRequestFeature"></param>
+            <param name="apiGatewayRequest"></param>
+            <param name="lambdaContext"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.PostMarshallConnectionFeature(Microsoft.AspNetCore.Http.Features.IHttpConnectionFeature,Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            This method is called after the APIGatewayProxyFunction has marshalled the incoming API Gateway request
+            into ASP.NET Core's IHttpConnectionFeature. Derived classes can overwrite this method to alter
+            the how the marshalling was done.
+            </summary>
+            <param name="aspNetCoreConnectionFeature"></param>
+            <param name="apiGatewayRequest"></param>
+            <param name="lambdaContext"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.PostMarshallResponseFeature(Microsoft.AspNetCore.Http.Features.IHttpResponseFeature,Amazon.Lambda.APIGatewayEvents.APIGatewayProxyResponse,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            This method is called after the APIGatewayProxyFunction has marshalled IHttpResponseFeature that came
+            back from making the request into ASP.NET Core into API Gateway's response object APIGatewayProxyResponse. Derived classes can overwrite this method to alter
+            the how the marshalling was done.
+            </summary>
+            <param name="aspNetCoreResponseFeature"></param>
+            <param name="apiGatewayResponse"></param>
+            <param name="lambdaContext"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.PostCreateContext(Microsoft.AspNetCore.Hosting.Internal.HostingApplication.Context,Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            This method is called after the HostingApplication.Context has been created. Derived classes can overwrite this method to alter
+            the context before passing the request to ASP.NET Core to process the request.
+            </summary>
+            <param name="context"></param>
+            <param name="apiGatewayRequest"></param>
+            <param name="lambdaContext"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.MarshallRequest(Amazon.Lambda.AspNetCoreServer.Internal.InvokeFeatures,Amazon.Lambda.APIGatewayEvents.APIGatewayProxyRequest,Amazon.Lambda.Core.ILambdaContext)">
+            <summary>
+            Convert the JSON document received from API Gateway into the InvokeFeatures object.
+            InvokeFeatures is then passed into IHttpApplication to create the ASP.NET Core request objects.
+            </summary>
+            <param name="features"></param>
+            <param name="apiGatewayRequest"></param>
+            <param name="lambdaContext"></param>
+        </member>
+        <member name="M:Amazon.Lambda.AspNetCoreServer.APIGatewayProxyFunction.MarshallResponse(Microsoft.AspNetCore.Http.Features.IHttpResponseFeature,Amazon.Lambda.Core.ILambdaContext,System.Int32)">
+            <summary>
+            Convert the response coming from ASP.NET Core into APIGatewayProxyResponse which is
+            serialized into the JSON object that API Gateway expects.
+            </summary>
+            <param name="responseFeatures"></param>
+            <param name="statusCodeIfNotSet">Sometimes the ASP.NET server doesn't set the status code correctly when successful, so this parameter will be used when the value is 0.</param>
+            <param name="lambdaContext"></param>
+            <returns><see cref="T:Amazon.Lambda.APIGatewayEvents.APIGatewayProxyResponse"/></returns>
+        </member>
+        <member name="T:Amazon.Lambda.AspNetCoreServer.Internal.APIGatewayServer">
+            <summary>
+            Implements the ASP.NET Core IServer interface and exposes the application object for the Lambda function
+            to initiate a web request.
+            </summary>
+        </member>
+        <member name="P:Amazon.Lambda.AspNetCoreServer.Internal.APIGatewayServer.Application">
+            <summary>
+            The application is used by the Lambda function to initiate a web request through the ASP.NET Core framework.
+            </summary>
+        </member>
+        <member name="T:Amazon.Lambda.AspNetCoreServer.ResponseContentEncoding">
+            <summary>
+            Indicates how response content from a controller action should be treated,
+            possibly requiring a transformation to comply with the expected binary disposition.
+            </summary>
+        </member>
+        <member name="F:Amazon.Lambda.AspNetCoreServer.ResponseContentEncoding.Default">
+            Indicates the response content should already be UTF-8-friendly and should be
+            returned without any further transformation or encoding.  This typically
+            indicates a text response.
+        </member>
+        <member name="F:Amazon.Lambda.AspNetCoreServer.ResponseContentEncoding.Base64">
+            Indicates the response content should be Base64 encoded before being returned.
+            This is typically used to indicate a binary response.
+        </member>
+        <member name="T:Microsoft.AspNetCore.Hosting.WebHostBuilderExtensions">
+            <summary>
+            This class is a container for extensions methods to the IWebHostBuilder
+            </summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Hosting.WebHostBuilderExtensions.UseApiGateway(Microsoft.AspNetCore.Hosting.IWebHostBuilder)">
+            <summary>
+            Extension method for configuring API Gateway as the server for an ASP.NET Core application.
+            This is called instead of UseKestrel. If UseKestrel was called before this it will remove
+            the service description that was added to the IServiceCollection.
+            </summary>
+            <param name="hostBuilder"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

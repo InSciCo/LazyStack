@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Amazon.Lambda.Core</id>
+    <version>1.0.0</version>
+    <title>Amazon.Lambda.Core</title>
+    <authors>Amazon Web Services</authors>
+    <owners>Amazon Web Services</owners>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <projectUrl>https://aws.amazon.com/lambda/</projectUrl>
+    <iconUrl>http://media.amazonwebservices.com/aws_singlebox_01.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Amazon Lambda .NET Core support - Core package.</description>
+    <tags>AWS Amazon Lambda</tags>
+    <dependencies>
+      <group targetFramework=".NETStandard1.3">
+        <dependency id="System.IO" version="[4.1.0, )" />
+        <dependency id="System.Runtime" version="[4.1.0, )" />
+        <dependency id="System.Console" version="[4.0.0, )" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

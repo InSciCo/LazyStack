@@ -1,0 +1,3023 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AwsSignatureVersion4</name>
+    </assembly>
+    <members>
+        <member name="T:AwsSignatureVersion4.AwsSignatureHandler">
+            <summary>
+            HTTP message handler capable of signing requests using Signature Version 4. This class is
+            designed to be compatible with
+            <see href="https://docs.microsoft.com/dotnet/api/system.net.http.ihttpclientfactory">
+            IHttpClientFactory</see> and its request pipeline. For more information about message
+            handlers and their usage, please see
+            <see href="https://docs.microsoft.com/aspnet/web-api/overview/advanced/http-message-handlers">
+            HTTP Message Handlers in ASP.NET Web API</see>.
+            </summary>
+            <remarks>
+            Please make sure to leave the request unchanged after having it signed. Any changes in
+            subsequent message handlers will render the signature invalid.
+            </remarks>
+        </member>
+        <member name="M:AwsSignatureVersion4.AwsSignatureHandler.#ctor(AwsSignatureVersion4.AwsSignatureHandlerSettings)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AwsSignatureVersion4.AwsSignatureHandler"/> class.
+            </summary>
+            <param name="settings">The signature settings.</param>
+        </member>
+        <member name="M:AwsSignatureVersion4.AwsSignatureHandler.SendAsync(System.Net.Http.HttpRequestMessage,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:AwsSignatureVersion4.AwsSignatureHandler.RemoveHeaders(System.Net.Http.HttpRequestMessage)">
+            <summary>
+            Given the idempotent nature of message handlers, lets remove request headers that
+            might have been added by an prior attempt to send the request.
+            </summary>
+        </member>
+        <member name="T:AwsSignatureVersion4.AwsSignatureHandlerSettings">
+            <summary>
+            Class action as settings for <see cref="T:AwsSignatureVersion4.AwsSignatureHandler"/>.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.AwsSignatureHandlerSettings.#ctor(System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AwsSignatureVersion4.AwsSignatureHandlerSettings"/> class.
+            </summary>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+        </member>
+        <member name="M:AwsSignatureVersion4.AwsSignatureHandlerSettings.#ctor(System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Initializes a new instance of the <see cref="T:AwsSignatureVersion4.AwsSignatureHandlerSettings"/> class.
+            </summary>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+        </member>
+        <member name="P:AwsSignatureVersion4.AwsSignatureHandlerSettings.RegionName">
+            <summary>
+            Gets the system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </summary>
+        </member>
+        <member name="P:AwsSignatureVersion4.AwsSignatureHandlerSettings.ServiceName">
+            <summary>
+            Gets the signing name of the service, e.g. "execute-api".
+            </summary>
+        </member>
+        <member name="P:AwsSignatureVersion4.AwsSignatureHandlerSettings.Credentials">
+            <summary>
+            Gets the AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </summary>
+        </member>
+        <member name="T:AwsSignatureVersion4.Private.AuthorizationHeader">
+            <summary>
+            Building the authorization header is one of the steps in the Signature Version 4 process. For
+            more information, please read
+            https://docs.aws.amazon.com/general/latest/gr/sigv4-add-signature-to-request.html.
+            </summary>
+        </member>
+        <member name="T:AwsSignatureVersion4.Private.AWSCredentialsWrapper">
+            <summary>
+            Class wrapping an instance of <see cref="T:Amazon.Runtime.ImmutableCredentials"/> into an
+            <see cref="T:Amazon.Runtime.AWSCredentials"/>.
+            </summary>
+        </member>
+        <member name="T:AwsSignatureVersion4.Private.CanonicalRequest">
+            <summary>
+            Building the authorization header is one of the steps in the Signature Version 4 process. For
+            more information, please read
+            https://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html.
+            </summary>
+        </member>
+        <member name="P:AwsSignatureVersion4.Private.CanonicalRequest.EnvironmentProbe">
+            <summary>
+            Gets or sets an instance capable of probing the environment.
+            </summary>
+        </member>
+        <member name="P:AwsSignatureVersion4.Private.CanonicalRequest.HeaderValueSeparator">
+            <summary>
+            Gets or sets the header value separator. The default value is ", " and it is defined in
+            <see href="https://github.com/dotnet/corefx/blob/master/src/System.Net.Http/src/System/Net/Http/Headers/HttpHeaderParser.cs">
+            HttpHeaderParser</see> in the .NET source code. It is used when serializing a header
+            with multiple values into a HTTP request. For some other languages this separator is
+            plainly ",", but Microsoft has chosen to go with ", ".
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.CanonicalRequest.Build(System.String,System.Net.Http.HttpRequestMessage,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},System.String)">
+            <returns>
+            The first value is the canonical request, the second value is the signed headers.
+            </returns>
+        </member>
+        <member name="T:AwsSignatureVersion4.Private.ContentHash">
+            <summary>
+            Calculating the content hash is not in itself one of the steps in the Signature Version 4
+            process, but it one of the tasks in the step to build the canonical request.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.ContentHash.CalculateAsync(System.Net.Http.HttpContent)">
+            <remarks>This method has a synchronous alternative.</remarks>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.ToUri(System.String)">
+            <summary>
+            Converts string into an instance of an <see cref="T:System.Uri"/>.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.NormalizeWhiteSpace(System.String)">
+            <summary>
+            Normalize string by reducing multiple sequential whitespaces into a single space.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.AddHeader(System.Net.Http.HttpRequestMessage,System.String,System.String)">
+            <summary>
+            Adds header with single value.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.AddHeaders(System.Net.Http.HttpRequestMessage,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Adds header with multiple values.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.AddHeaderIf(System.Net.Http.HttpRequestMessage,System.Boolean,System.String,System.String)">
+            <summary>
+            Adds header if <paramref name="condition"/> is true.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.ToIso8601BasicDate(System.DateTime)">
+            <summary>
+            Converts instance into a ISO8601 basic date format of 'yyyyMMdd'.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Extensions.ToIso8601BasicDateTime(System.DateTime)">
+            <summary>
+            Converts instance into a ISO8601 basic date/time format of 'yyyyMMddTHHmmssZ'.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.Signer.SignAsync(System.Net.Http.HttpRequestMessage,System.Uri,System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{System.String,System.Collections.Generic.IEnumerable{System.String}}},System.DateTime,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <remarks>This method has a synchronous alternative.</remarks>
+        </member>
+        <member name="T:AwsSignatureVersion4.Private.StringToSign">
+            <summary>
+            Building the string to sign is one of the steps in the Signature Version 4 process. For
+            more information, please read
+            https://docs.aws.amazon.com/general/latest/gr/sigv4-create-string-to-sign.html.
+            </summary>
+        </member>
+        <member name="M:AwsSignatureVersion4.Private.StringToSign.Build(System.DateTime,System.String,System.String,System.String)">
+            <returns>
+            The first value is the string to sign, the second value is the credentials scope.
+            </returns>
+        </member>
+        <member name="T:System.Net.Http.DeleteAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support DELETE requests signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri with a
+            cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri with a
+            cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri with a
+            cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.DeleteAsyncExtensions.DeleteAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed DELETE request to the specified Uri with a
+            cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.GetAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support GET requests signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetAsyncExtensions.GetAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="completionOption">
+            An HTTP completion option value that indicates when the operation should be considered
+            completed.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.GetStringAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support GET requests (for strings) signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.String,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with a cancellation
+            token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.GetStringAsyncExtensions.GetStringAsync(System.Net.Http.HttpClient,System.Uri,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed GET request to the specified Uri with an HTTP
+            completion option and a cancellation token as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.PatchAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support PATCH requests signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="F:System.Net.Http.PatchAsyncExtensions.PatchMethod">
+            <summary>
+            .NET Standard 2.0 does not support HttpMethod.Patch, thus we create the method here
+            instead.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PatchAsyncExtensions.PatchAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PATCH request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.PostAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support POST requests signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed POST request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed POST request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed POST request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed POST request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed POST request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed POST request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed POST request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PostAsyncExtensions.PostAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed POST request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.PutAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support PUT requests signed with
+            AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PUT request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PUT request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PUT request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send a Signature Version 4 signed PUT request to the specified Uri as an asynchronous
+            operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PUT request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PUT request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PUT request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.PutAsyncExtensions.PutAsync(System.Net.Http.HttpClient,System.Uri,System.Net.Http.HttpContent,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send a Signature Version 4 signed PUT request with a cancellation token as an
+            asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="requestUri">
+            The Uri the request is sent to.
+            </param>
+            <param name="content">
+            The HTTP request content sent to the server.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            A cancellation token that can be used by other objects or threads to receive notice of
+            cancellation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="requestUri"/> is null.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="T:System.Net.Http.SendAsyncExtensions">
+            <summary>
+            Extensions to <see cref="T:System.Net.Http.HttpClient"/> extending it to support AWS Signature Version 4.
+            </summary>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="completionOption">
+            When the operation should complete (as soon as a response is available or after reading
+            the whole response content).
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="completionOption">
+            When the operation should complete (as soon as a response is available or after reading
+            the whole response content).
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to cancel operation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to cancel operation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. The returned <see cref="T:System.Threading.Tasks.Task`1"/> object will
+            complete once the entire response including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.AWSCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="completionOption">
+            When the operation should complete (as soon as a response is available or after reading
+            the whole response content).
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to cancel operation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+        <member name="M:System.Net.Http.SendAsyncExtensions.SendAsync(System.Net.Http.HttpClient,System.Net.Http.HttpRequestMessage,System.Net.Http.HttpCompletionOption,System.String,System.String,Amazon.Runtime.ImmutableCredentials,System.Threading.CancellationToken)">
+            <summary>
+            Send an Signature Version 4 signed HTTP request as an asynchronous operation.
+            </summary>
+            <param name="self">
+            The extension target.
+            </param>
+            <param name="request">
+            The HTTP request message to send.
+            </param>
+            <param name="completionOption">
+            When the operation should complete (as soon as a response is available or after reading
+            the whole response content).
+            </param>
+            <param name="regionName">
+            The system name of the AWS region associated with the endpoint, e.g. "us-east-1".
+            </param>
+            <param name="serviceName">
+            The signing name of the service, e.g. "execute-api".
+            </param>
+            <param name="credentials">
+            AWS credentials containing the following parameters:
+            - The AWS public key for the account making the service call.
+            - The AWS secret key for the account making the call, in clear text.
+            - The session token obtained from STS if request is authenticated using temporary
+              security credentials, e.g. a role.
+            </param>
+            <param name="cancellationToken">
+            The cancellation token to cancel operation.
+            </param>
+            <returns>
+            The task object representing the asynchronous operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            The <paramref name="request"/> is null.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            The request message was already sent by the <see cref="T:System.Net.Http.HttpClient"/> instance.
+            </exception>
+            <exception cref="T:System.Net.Http.HttpRequestException">
+            The request failed due to an underlying issue such as network connectivity, DNS
+            failure, server certificate validation or timeout.
+            </exception>
+            <remarks>
+            This operation will not block. Depending on the value of the
+            <paramref name="completionOption"/> parameter, the returned <see cref="T:System.Threading.Tasks.Task`1"/>
+            object will complete as soon as a response is available or the entire response
+            including content is read.
+            </remarks>
+        </member>
+    </members>
+</doc>

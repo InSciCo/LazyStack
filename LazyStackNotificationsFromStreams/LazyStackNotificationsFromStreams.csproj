@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\LazyStack.PackageVersions.props"/>
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -9,12 +10,13 @@
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<!-- Generate ready to run images during publishing to improve cold start time. -->
 		<PublishReadyToRun>true</PublishReadyToRun>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="2.6.0" />
-		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.3.1" />
-		<PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
-		<PackageReference Include="AWSSDK.ApiGatewayManagementApi" Version="3.7.0.42" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Amazon.Lambda.APIGatewayEvents" />
+		<PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
+		<PackageReference Include="AWSSDK.Extensions.NETCore.Setup"/>
+		<PackageReference Include="AWSSDK.ApiGatewayManagementApi"/>
+		<PackageReference Include="Newtonsoft.Json"/>
 	</ItemGroup>
 </Project>

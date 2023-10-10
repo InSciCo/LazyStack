@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AWSSDK.ApiGatewayManagementApi</id>
+    <version>3.7.0.42</version>
+    <title>AWSSDK - AmazonApiGatewayManagementApi</title>
+    <authors>Amazon Web Services</authors>
+    <owners>Amazon Web Services</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>http://aws.amazon.com/apache2.0/</licenseUrl>
+    <projectUrl>https://github.com/aws/aws-sdk-net/</projectUrl>
+    <iconUrl>https://sdk-for-net.amazonwebservices.com/images/AWSLogo128x128.png</iconUrl>
+    <description>This is the initial SDK release for the Amazon API Gateway Management API, which allows you to directly manage runtime aspects of your APIs. This release makes it easy to send data directly to clients connected to your WebSocket-based APIs.</description>
+    <language>en-US</language>
+    <tags>AWS Amazon cloud ApiGatewayManagementApi aws-sdk-v3</tags>
+    <dependencies>
+      <dependency id="AWSSDK.Core" version="[3.7.0.44, 4.0.0)" />
+    </dependencies>
+  </metadata>
+</package>

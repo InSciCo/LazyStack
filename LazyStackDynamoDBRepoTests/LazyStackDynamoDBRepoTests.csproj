@@ -1,53 +1,51 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
 
-    <IsPackable>false</IsPackable>
+		<IsPackable>false</IsPackable>
 
-    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
+		<Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
 
-    <Authors>Tim May, Thomas May</Authors>
+		<Authors>Tim May, Thomas May</Authors>
 
-    <Company>Insight Sciences Corporation</Company>
+		<Company>Insight Sciences Corporation</Company>
 
-    <Description>Test suite for LazyStackDynamoDBRepo library.</Description>
+		<Description>Test suite for LazyStackDynamoDBRepo library.</Description>
 
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 
-    <PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
+		<PackageProjectUrl>https://lazystack.io</PackageProjectUrl>
 
-    <RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
+		<RepositoryUrl>https://github.com/InSciCo/LazyStack</RepositoryUrl>
 
-    <RepositoryType>GitHub</RepositoryType>
-  </PropertyGroup>
+		<RepositoryType>GitHub</RepositoryType>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
-    <PackageReference Include="coverlet.collector" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+	</PropertyGroup>
 
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk"/>
+		<PackageReference Include="MSTest.TestAdapter"/>
+		<PackageReference Include="MSTest.TestFramework"/>
+		<PackageReference Include="coverlet.collector">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Configuration"/>
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder"/>
+		<PackageReference Include="AWSSDK.Extensions.NETCore.Setup"/>
+		<PackageReference Include="AWSSDK.DynamoDBv2"/>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc"/>
+		<PackageReference Include="Newtonsoft.Json"/>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.7" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.104.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\LazyStackDynamoDBRepo\LazyStackDynamoDBRepo.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Properties\" />
+	</ItemGroup>
 
 </Project>

@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Splat</id>
+    <version>7.3.5</version>
+    <authors>.NET Foundation and Contributors</authors>
+    <owners>.NET Foundation and Contributors</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/reactiveui/splat/</projectUrl>
+    <iconUrl>http://f.cl.ly/items/1307401C3x2g3F2p2Z36/Logo.png</iconUrl>
+    <description>A library to make things cross-platform that should be</description>
+    <releaseNotes>https://github.com/reactiveui/splat/releases</releaseNotes>
+    <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
+    <tags>drawing colours geometry logging unit test detection service location image handling portable xamarin xamarin ios xamarin mac android monodroid uwp net45</tags>
+    <repository type="git" url="https://github.com/reactiveui/splat" commit="a7aa1689c7ee1964e8f102a9160ece193718ea34" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="System.Drawing.Primitives" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="MonoAndroid8.1" />
+      <group targetFramework="Tizen4.0">
+        <dependency id="Tizen.NET" version="5.0.0.14562" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="Xamarin.iOS1.0" />
+      <group targetFramework="Xamarin.Mac2.0" />
+      <group targetFramework="Xamarin.TVOS1.0" />
+      <group targetFramework="Xamarin.WatchOS1.0" />
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Diagnostics.Contracts" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Drawing.Primitives" version="4.3.0" exclude="Build,Analyzers" />
+        <dependency id="System.Runtime.Serialization.Primitives" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="UAP10.0.17763">
+        <dependency id="System.Drawing.Primitives" version="4.3.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="Java.Interop" targetFramework="MonoAndroid8.1" />
+      <frameworkAssembly assemblyName="System.Runtime.Serialization" targetFramework="MonoAndroid8.1, Xamarin.iOS1.0, Xamarin.Mac2.0, Xamarin.TVOS1.0, Xamarin.WatchOS1.0" />
+      <frameworkAssembly assemblyName="PresentationCore" targetFramework=".NETFramework4.6.1" />
+      <frameworkAssembly assemblyName="PresentationFramework" targetFramework=".NETFramework4.6.1" />
+      <frameworkAssembly assemblyName="System.Xaml" targetFramework=".NETFramework4.6.1" />
+      <frameworkAssembly assemblyName="WindowsBase" targetFramework=".NETFramework4.6.1" />
+    </frameworkAssemblies>
+  </metadata>
+</package>

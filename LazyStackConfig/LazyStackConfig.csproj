@@ -1,13 +1,25 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\LazyStack.PackageVersions.props" />
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+	<Target Name="CopyPackageVersionsFile" BeforeTargets="Build">
+		<Copy SourceFiles="..\LazyStack.PackageVersions.props" DestinationFolder="$(ProjectDir)" />
+	</Target>
+	
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" />
+		
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <None Update="LazyStack.PackageVersions.props">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 
 </Project>

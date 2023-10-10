@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>System.Reactive.Wasm</name>
+    </assembly>
+    <members>
+        <member name="P:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.SupportsLongRunning">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.StartTimer(System.Action{System.Object},System.Object,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.StartPeriodicTimer(System.Action,System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.QueueUserWorkItem(System.Action{System.Object},System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.Sleep(System.TimeSpan)">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.StartStopwatch">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.ConcurrencyAbstractionLayerWasmImpl.StartThread(System.Action{System.Object},System.Object)">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Reactive.Concurrency.StopwatchImpl">
+            <summary>
+            A stop watch implementation.
+            </summary>
+        </member>
+        <member name="T:System.Reactive.Concurrency.WasmScheduler">
+            <summary>
+            A scheduler for the WASM systems.
+            </summary>
+        </member>
+        <member name="P:System.Reactive.Concurrency.WasmScheduler.Default">
+            <summary>
+            Gets the singleton instance of the Windows Runtime thread pool scheduler.
+            </summary>
+        </member>
+        <member name="M:System.Reactive.Concurrency.WasmScheduler.Schedule``1(``0,System.Func{System.Reactive.Concurrency.IScheduler,``0,System.IDisposable})">
+            <inheritdoc />
+        </member>
+        <member name="M:System.Reactive.Concurrency.WasmScheduler.SchedulePeriodic``1(``0,System.TimeSpan,System.Func{``0,``0})">
+            <summary>
+            Schedules a periodic piece of work, using a Windows.System.Threading.ThreadPoolTimer object.
+            </summary>
+            <typeparam name="TState">The type of the state passed to the scheduled action.</typeparam>
+            <param name="state">Initial state passed to the action upon the first iteration.</param>
+            <param name="period">Period for running the work periodically.</param>
+            <param name="action">Action to be executed, potentially updating the state.</param>
+            <returns>The disposable object used to cancel the scheduled recurring action (best effort).</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="action"/> is null.</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="period"/> is less than one millisecond.</exception>
+        </member>
+        <member name="M:System.Reactive.Concurrency.WasmScheduler.Schedule``1(``0,System.TimeSpan,System.Func{System.Reactive.Concurrency.IScheduler,``0,System.IDisposable})">
+            <inheritdoc />
+        </member>
+        <member name="T:System.Reactive.PlatformServices.PlatformEnlightenmentProviderExtensions">
+            <summary>
+            Contains extension methods associated with registrations of platform enlightenment providers.
+            </summary>
+        </member>
+        <member name="M:System.Reactive.PlatformServices.PlatformEnlightenmentProviderExtensions.EnableWasm(System.Reactive.PlatformServices.IPlatformEnlightenmentProvider)">
+            <summary>
+            Sets the <see cref="P:System.Reactive.PlatformServices.PlatformEnlightenmentProvider.Current"/> to the <see cref="T:System.Reactive.PlatformServices.WasmPlatformEnlightenmentProvider"/> one.
+            </summary>
+            <param name="provider">The provider. This parameter is ignored.</param>
+        </member>
+        <member name="T:System.Reactive.PlatformServices.WasmPlatformEnlightenmentProvider">
+            <summary>
+            (Infrastructure) Provider for platform-specific framework enlightenment.
+            </summary>
+        </member>
+        <member name="P:System.Reactive.PlatformServices.WasmPlatformEnlightenmentProvider.IsWasm">
+            <summary>Gets a value indicating whether the current executable is processing under WASM.</summary>
+        </member>
+        <member name="P:System.Reactive.PlatformServices.WasmPlatformEnlightenmentProvider.MonoTest">
+            <summary> Gets a value indicating whether we're running on mono, hence wasm. </summary>
+        </member>
+        <member name="M:System.Reactive.PlatformServices.WasmPlatformEnlightenmentProvider.GetService``1(System.Object[])">
+            <summary>
+            (Infastructure) Tries to gets the specified service.
+            </summary>
+            <typeparam name="T">Service type.</typeparam>
+            <param name="args">Optional set of arguments.</param>
+            <returns>Service instance or <c>null</c> if not found.</returns>
+        </member>
+    </members>
+</doc>

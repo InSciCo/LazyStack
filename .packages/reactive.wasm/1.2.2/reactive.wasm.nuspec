@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Reactive.Wasm</id>
+    <version>1.2.2</version>
+    <authors>.NET Foundation and Contributors</authors>
+    <owners>.NET Foundation and Contributors</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/reactiveui/Reactive.Wasm</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/dotnet/reactive/0f837d11385cfaf575861ccc5a5fbcafb22d888f/Rx.NET/Resources/Artwork/Logo.png</iconUrl>
+    <description>Wasm implementation for System.Reactive.</description>
+    <releaseNotes>https://github.com/reactiveui/Reactive.Wasm/releases</releaseNotes>
+    <copyright>Copyright (c) .NET Foundation and Contributors</copyright>
+    <tags>mvvm rx reactive extensions observable frp uwp net netstandard uno blazer</tags>
+    <repository type="git" url="https://github.com/reactiveui/Reactive.Wasm" commit="a226dc0bb4f010c248568eb67b0b8e5b768358f5" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Splat" version="7.3.5" exclude="Build,Analyzers" />
+        <dependency id="System.Reactive" version="4.1.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

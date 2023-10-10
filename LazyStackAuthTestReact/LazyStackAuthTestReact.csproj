@@ -1,63 +1,63 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+	<Import Project="..\LazyStack.PackageVersions.props"/>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+		<TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+		<IsPackable>false</IsPackable>
+		<SpaRoot>ClientApp\</SpaRoot>
+		<DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
+		<Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
+		<Authors>Tim May, Thomas May</Authors>
+		<Company>Insight Sciences Corporation</Company>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
-    <IsPackable>false</IsPackable>
-    <SpaRoot>ClientApp\</SpaRoot>
-    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
-    <Copyright>Copyright (c) 2021,2022 Insight Sciences Corporation. All rights reserved.</Copyright>
-    <Authors>Tim May, Thomas May</Authors>
-    <Company>Insight Sciences Corporation</Company>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions"/>
+	</ItemGroup>
 
-  </PropertyGroup>
+	<ItemGroup>
+		<!-- Don't publish the SPA source files, but do show them in the project files list -->
+		<Content Remove="$(SpaRoot)**" />
+		<None Remove="$(SpaRoot)**" />
+		<None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="7.0.8" />
-  </ItemGroup>
+	<Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
+		<!-- As part of publishing, copy LazyStackAuthTest generated aws-settings.js file into ClientApp/Src folder-->
+		<!-- Ensure Node.js is installed -->
+		<Exec Command="node --version" ContinueOnError="true">
+			<Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+		</Exec>
+		<Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
+		<Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
+		<Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+	</Target>
 
-  <ItemGroup>
-    <!-- Don't publish the SPA source files, but do show them in the project files list -->
-    <Content Remove="$(SpaRoot)**" />
-    <None Remove="$(SpaRoot)**" />
-    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
-  </ItemGroup>
+	<Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
+		<Message Text="In PublishRunWebpack." Importance="High" />
 
-  <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
-    <!-- As part of publishing, copy LazyStackAuthTest generated aws-settings.js file into ClientApp/Src folder-->
-    <!-- Ensure Node.js is installed -->
-    <Exec Command="node --version" ContinueOnError="true">
-      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
-    </Exec>
-    <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
-    <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
-  </Target>
+		<!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
+		<Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+		<Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
-  <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish">
-    <Message Text="In PublishRunWebpack." Importance="High" />
+		<!-- Include the newly-built files in the publish output -->
+		<ItemGroup>
+			<DistFiles Include="$(SpaRoot)build\**" />
+			<ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+				<RelativePath>%(DistFiles.Identity)</RelativePath>
+				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+				<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			</ResolvedFileToPublish>
+		</ItemGroup>
+	</Target>
 
-    <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
- 
-    <!-- Include the newly-built files in the publish output -->
-    <ItemGroup>
-      <DistFiles Include="$(SpaRoot)build\**" />
-      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
-        <RelativePath>%(DistFiles.Identity)</RelativePath>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      </ResolvedFileToPublish>
-    </ItemGroup>
-  </Target>
-
-  <!-- The aws-exports.js file contains the AWS Connection parameters for the LazyStackAuthTests stack.
+	<!-- The aws-exports.js file contains the AWS Connection parameters for the LazyStackAuthTests stack.
        You must deploy that stack and run the test suite to make the aws-exports.js file avaiilable. -->
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Message Text="Copying aws-exports.js from LazyStackAuthTests\bin\Debug\dotnetcore3.1" Importance="High" />
-    <Exec Command="copy ..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js .\ClientApp\src\aws-exports.js" Condition="Exists('..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js')" />
-  </Target>
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Message Text="Copying aws-exports.js from LazyStackAuthTests\bin\Debug\dotnetcore3.1" Importance="High" />
+		<Exec Command="copy ..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js .\ClientApp\src\aws-exports.js" Condition="Exists('..\LazyStackAuthTests\bin\Debug\netcoreapp3.1\aws-exports.js')" />
+	</Target>
 
 </Project>
