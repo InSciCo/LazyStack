@@ -1,5 +1,7 @@
 using Microsoft.JSInterop;
 using LazyStackBase;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace LazyStackBlazorNetworkConnectivitySvc;
 
@@ -27,7 +29,7 @@ public class InternetConnectivity : NotifyBase, IInternetConnectivitySvc, IDispo
     }
     public event Action<bool>? NetworkStatusChanged;
     private DotNetObjectReference<InternetConnectivity>? dotNetReference;
-    
+   
     private async Task Initialize()
     {
         var jsRuntime = await moduleTask.Value;

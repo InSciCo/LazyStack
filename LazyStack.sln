@@ -57,8 +57,6 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LazyStackNotificationsShare
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackCognitoValidation", "LazyStackCognitoValidation\LazyStackCognitoValidation.csproj", "{0709EADD-4A40-4B5E-988A-D08BE0143B23}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackBlazorNetworkConnectivitySvc", "LazyStackBlazorNetworkConnectivitySvc\LazyStackBlazorNetworkConnectivitySvc.csproj", "{786AB9E0-27C4-4AFE-BA01-D4B7801D2875}"
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "LazyStackNotifciationsSharedSDK", "LazyStackNotifciationsSharedSDK\LazyStackNotifciationsSharedSDK.shproj", "{764DFBAD-2799-4C2F-9061-6CA377816A5F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LazyStackNotificationsSchema", "LazyStackNotificationsSchema\LazyStackNotificationsSchema.csproj", "{C9DDD646-9ECE-45F7-B6D6-762BEF4A1477}"
@@ -163,10 +161,6 @@ Global
 		{0709EADD-4A40-4B5E-988A-D08BE0143B23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0709EADD-4A40-4B5E-988A-D08BE0143B23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0709EADD-4A40-4B5E-988A-D08BE0143B23}.Release|Any CPU.Build.0 = Release|Any CPU
-		{786AB9E0-27C4-4AFE-BA01-D4B7801D2875}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{786AB9E0-27C4-4AFE-BA01-D4B7801D2875}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{786AB9E0-27C4-4AFE-BA01-D4B7801D2875}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{786AB9E0-27C4-4AFE-BA01-D4B7801D2875}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C9DDD646-9ECE-45F7-B6D6-762BEF4A1477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9DDD646-9ECE-45F7-B6D6-762BEF4A1477}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9DDD646-9ECE-45F7-B6D6-762BEF4A1477}.Release|Any CPU.ActiveCfg = Release|Any CPU
